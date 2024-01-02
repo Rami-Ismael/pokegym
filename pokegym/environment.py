@@ -194,6 +194,9 @@ class Environment(Base):
         # Caught Pokemon
         pokemon_caught = ram_map.pokemon_caught(self.game)
         
+        # Total item count
+        item_count = ram_map.total_items(self.game)
+        
         reward = self.reward_scale * (event_reward + level_reward + 
             opponent_level_reward + death_reward + badges_reward +
             healing_reward + exploration_reward)
@@ -234,6 +237,7 @@ class Environment(Base):
                 'pokemon_exploration_map': self.counts_map,
                 "pokemon_seen": pokemon_seen,
                 "pokemon_caught": pokemon_caught,
+                "total_items": item_count,
             }
 
         if self.verbose:

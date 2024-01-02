@@ -23,6 +23,9 @@ MUSEUM_TICKET_ADDR = 0xD754
 MONEY_ADDR_1 = 0xD347
 MONEY_ADDR_100 = 0xD348
 MONEY_ADDR_10000 = 0xD349
+TOTAL_ITEMS_ADDR = 0xD31D
+PLAYER_POKEMON_TEAM_ADDR = [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247]
+#CUT_ADDR = 
 
 
 def bcd(num):
@@ -99,3 +102,25 @@ def events(game):
 
     # Omit 13 events by default
     return max(num_events - 13 - museum_ticket, 0)
+
+
+def total_items(game) -> int:
+    # https://github.com/pret/pokered/blob/0b20304e6d22baaf7c61439e5e087f2d93f98e39/ram/wram.asm#L1741
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Items
+    return game.get_memory_value(TOTAL_ITEMS_ADDR)
+
+
+def total_unique_moves(game) -> int:
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Wild_Pok%C3%A9mon
+    hash_set = set()
+    for pokemon_addr in PLAYER_POKEMON_TEAM_ADDR:
+        if game.get_memory_value(pokemon_addr) != 0:
+            for increment in range(8, 12):
+                move_id = game.get_memory_value(pokemon_addr + increment)
+                if move_id != 0:
+                    hash_set.add(move_id)
+    return len(hash_set)
+#def total_hm_party_has(game) -> int:
+#    # https://github.com/luckytyphlosion/pokered/blob/master/data/moves.asm#L13
+#    # https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/constants/move_constants.asm#L17
+#    # https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/constants/item_constants.asm#L103C1-L109C27
