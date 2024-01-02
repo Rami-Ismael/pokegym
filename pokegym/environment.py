@@ -98,7 +98,7 @@ class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
             state_path=None, headless=True, quiet=False, verbose=False, **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
-        self.counts_map = np.zeros((444, 365))
+        self.counts_map = np.zeros((444, 366))
         self.verbose = verbose
 
     def reset(self, seed=None, options=None, max_episode_steps=20480, reward_scale=4.0):
