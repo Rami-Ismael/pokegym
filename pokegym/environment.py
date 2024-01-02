@@ -187,7 +187,13 @@ class Environment(Base):
         event_reward = self.max_events
 
         money = ram_map.money(self.game)
-
+        
+        # Seen Pokemon
+        pokemon_seen = ram_map.pokemon_seen(self.game)
+        
+        # Caught Pokemon
+        pokemon_caught = ram_map.pokemon_caught(self.game)
+        
         reward = self.reward_scale * (event_reward + level_reward + 
             opponent_level_reward + death_reward + badges_reward +
             healing_reward + exploration_reward)
@@ -226,6 +232,8 @@ class Environment(Base):
                 'event': events,
                 'money': money,
                 'pokemon_exploration_map': self.counts_map,
+                "pokemon_seen": pokemon_seen,
+                "pokemon_caught": pokemon_caught,
             }
 
         if self.verbose:
