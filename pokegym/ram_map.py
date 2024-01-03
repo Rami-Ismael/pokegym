@@ -25,7 +25,9 @@ MONEY_ADDR_100 = 0xD348
 MONEY_ADDR_10000 = 0xD349
 TOTAL_ITEMS_ADDR = 0xD31D
 PLAYER_POKEMON_TEAM_ADDR = [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247]
-#CUT_ADDR = 
+HM_ITEMS_ADDR = [0xC4, 0xC5, 0xC6, 0xC7, 0xC8]
+FIRST_ITEM_ADDR = 0xD31E
+POKEMON_PARTY_MOVES_ADDR = [0xD173,0xD174, 0xD175, 0xD176 , 0xD19F, 0xD1A0, 0xD1A1, 0xD1A2, 0xD1CB, 0xD1CC, 0xD1CD, 0xD1CE, 0xD1F7, 0xD1F8, 0xD1F9, 0xD1FA, 0xD223, 0xD224, 0xD225, 0xD226, 0xD24F, 0xD250, 0xD251, 0xD252]
 
 
 def bcd(num):
@@ -120,7 +122,35 @@ def total_unique_moves(game) -> int:
                 if move_id != 0:
                     hash_set.add(move_id)
     return len(hash_set)
-#def total_hm_party_has(game) -> int:
-#    # https://github.com/luckytyphlosion/pokered/blob/master/data/moves.asm#L13
-#    # https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/constants/move_constants.asm#L17
-#    # https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/constants/item_constants.asm#L103C1-L109C27
+
+
+def get_items_in_bag(game):
+        # total 20 items
+        # item1, quantity1, item2, quantity2, ...
+        item_ids = []
+        for i in range(0, 20, 2):
+            item_id = game.get_memory_value(FIRST_ITEM_ADDR + i)
+            if item_id != 0:
+                item_ids.append(item_id)
+        return item_ids
+def total_hm_party_has(game) -> int:
+    # https://github.com/luckytyphlosion/pokered/blob/master/data/moves.asm#L13
+    # https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/constants/move_constants.asm#L17
+    # https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/constants/item_constants.asm#L103C1-L109C27
+    # https://github.com/xinpw8/pokegym/blob/alpha_pokegym_bill/pokegym/environment.py#L609
+    
+    total_hm_count = 0
+    for hm_iitem_addr in HM_ITEMS_ADDR:
+        hm_item_id = game.get_memory_value(hm_iitem_addr)
+        if hm_item_id != 0:
+            total_hm_count += 1
+    return total_hm_count
+def number_of_pokemon_that_hm_in_move_pool_in_your_part_your_party(game) -> int:
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Player
+    
+    count = 0
+    for pokemon_party_move_addr in POKEMON_PARTY_MOVES_ADDR:
+        pokemon_party_move_id = game.get_memory_value(pokemon_party_move_addr)
+        if pokemon_party_move_id in HM_ITEMS_ADDR:
+            count += 1
+    return count

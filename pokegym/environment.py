@@ -98,7 +98,7 @@ class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
             state_path=None, headless=True, quiet=False, verbose=False, **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
-        self.counts_map = np.zeros((444, 366))
+        self.counts_map = np.zeros((444, 336)) # to solve the map
         self.verbose = verbose
 
     def reset(self, seed=None, options=None, max_episode_steps=20480, reward_scale=4.0):
@@ -197,6 +197,12 @@ class Environment(Base):
         # Total item count
         item_count = ram_map.total_items(self.game)
         
+        # total hm count
+        hm_count = ram_map.total_hm_party_has(self.game)
+        
+        # number of hm moves my pokemon party has
+        total_number_hm_moves_that_my_pokemon_party_has = ram_map.total_hm_party_has(self.game)
+        
         reward = self.reward_scale * (event_reward + level_reward + 
             opponent_level_reward + death_reward + badges_reward +
             healing_reward + exploration_reward)
@@ -238,6 +244,8 @@ class Environment(Base):
                 "pokemon_seen": pokemon_seen,
                 "pokemon_caught": pokemon_caught,
                 "total_items": item_count,
+                "hm_item_counts": hm_count,
+                "hm_moves": total_number_hm_moves_that_my_pokemon_party_has,
             }
 
         if self.verbose:
