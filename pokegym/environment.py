@@ -6,6 +6,7 @@ import os
 from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
     load_pyboy_state, run_action_on_emulator)
 from pokegym import ram_map, game_map
+from rich import print
 
 
 def play():
@@ -96,10 +97,16 @@ class Base:
 
 class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
-            state_path=None, headless=True, quiet=False, verbose=False, **kwargs):
+            state_path=None, headless=True, quiet=False, verbose=False, 
+            reward_the_agent_for_the_number_of_pokemon_caught=True, **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
         self.counts_map = np.zeros((444, 336)) # to solve the map
         self.verbose = verbose
+        self.reward_the_agent_for_the_number_of_pokemon_caught: bool = reward_the_agent_for_the_number_of_pokemon_caught
+        print("reward_the_agent_for_the_number_of_pokemon_caught", self.reward_the_agent_for_the_number_of_pokemon_caught)
+        self.last_pokemon_caught = 0
+        self.last_pokemon_seen = 0
+        self.time = 0
 
     def reset(self, seed=None, options=None, max_episode_steps=20480, reward_scale=4.0):
         '''Resets the game. Seeding is NOT supported'''
@@ -121,10 +128,15 @@ class Environment(Base):
         self.last_hp = 1.0
         self.last_party_size = 1
         self.last_reward = None
+        self.last_pokemon_caught = 0
+        self.last_pokemon_seen = 0
 
         return self.render()[::2, ::2], {}
 
     def step(self, action, fast_video=True):
+        
+        current_state_pokemon_seen = ram_map.pokemon_seen(self.game)
+        
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
             self.headless, fast_video=fast_video)
         self.time += 1
@@ -189,10 +201,16 @@ class Environment(Base):
         money = ram_map.money(self.game)
         
         # Seen Pokemon
-        pokemon_seen = ram_map.pokemon_seen(self.game)
+        next_state_pokemon_seen = ram_map.pokemon_seen(self.game)
+        reward_the_agent_seing_new_pokemon = next_state_pokemon_seen - current_state_pokemon_seen
+        assert ( reward_the_agent_seing_new_pokemon >= 0 and reward_the_agent_seing_new_pokemon <= 1) or reward_the_agent_seing_new_pokemon==3, f"reward_the_agent_seing_new_pokemon: {reward_the_agent_seing_new_pokemon}"
         
         # Caught Pokemon
         pokemon_caught = ram_map.pokemon_caught(self.game)
+        new_pokemon_caught = pokemon_caught - self.last_pokemon_caught
+        self.last_pokemon_caught = pokemon_caught
+        assert new_pokemon_caught >= 0 and new_pokemon_caught <= 1
+        
         
         # Total item count
         item_count = ram_map.total_items(self.game)
@@ -206,6 +224,8 @@ class Environment(Base):
         reward = self.reward_scale * (event_reward + level_reward + 
             opponent_level_reward + death_reward + badges_reward +
             healing_reward + exploration_reward)
+        if self.reward_the_agent_for_the_number_of_pokemon_caught:
+            reward += new_pokemon_caught
 
         # Subtract previous reward
         # TODO: Don't record large cumulative rewards in the first place
@@ -218,7 +238,8 @@ class Environment(Base):
             self.last_reward = nxt_reward
 
         info = {}
-        done = self.time >= self.max_episode_steps
+        #done = self.time >= self.max_episode_steps
+        done = True
         if done:
             info = {
                 'reward': {
@@ -230,6 +251,9 @@ class Environment(Base):
                     'badges': badges_reward,
                     'healing': healing_reward,
                     'exploration': exploration_reward,
+                    "new_pokemon_caught": new_pokemon_caught,
+                    "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
+                    "completing_the_pokedex": new_pokemon_caught,
                 },
                 'maps_explored': len(self.seen_maps),
                 'party_size': party_size,
@@ -241,11 +265,15 @@ class Environment(Base):
                 'event': events,
                 'money': money,
                 'pokemon_exploration_map': self.counts_map,
-                "pokemon_seen": pokemon_seen,
+                "pokemon_seen": next_state_pokemon_seen,
                 "pokemon_caught": pokemon_caught,
                 "total_items": item_count,
                 "hm_item_counts": hm_count,
                 "hm_moves": total_number_hm_moves_that_my_pokemon_party_has,
+                "current_pokemon_seen": current_state_pokemon_seen,
+                "new_pokemon_caught": next_state_pokemon_seen,
+                "last_pokemon_caught": self.last_pokemon_caught,
+                "max_opponent_level": self.max_opponent_level,
             }
 
         if self.verbose:
@@ -260,6 +288,9 @@ class Environment(Base):
                 f'event reward: {event_reward}',
                 f'money: {money}',
                 f'ai reward: {reward}',
+                f'party size: {party_size}',
+                f'party levels: {party_levels}',
+                f'party hp: {hp}',
                 f'Info: {info}',
             )
 
