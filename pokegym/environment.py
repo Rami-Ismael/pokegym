@@ -238,8 +238,8 @@ class Environment(Base):
             self.last_reward = nxt_reward
 
         info = {}
-        #done = self.time >= self.max_episode_steps
-        done = True
+        done = self.time >= self.max_episode_steps
+        #done = True
         if done:
             info = {
                 'reward': {
