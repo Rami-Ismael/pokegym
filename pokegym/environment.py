@@ -203,7 +203,8 @@ class Environment(Base):
         # Money Reward
         next_state_money = money = ram_map.money(self.game)
         assert next_state_money >= 0 and next_state_money <= 999999, f"next_state_money: {next_state_money}"
-        normalize_gain_of_new_money_reward = (next_state_money - current_state_money) / ( 999999.0 - current_state_money)
+        normalize_gain_of_new_money_reward = normalize_value(next_state_money - current_state_money, -999999.0, 999999.0, -1, 1)
+        assert normalize_gain_of_new_money_reward >=  ( -1.0 - 1e5) and normalize_gain_of_new_money_reward <= 1.0, f"normalize_gain_of_new_money_reward: {normalize_gain_of_new_money_reward} the current state money is {current_state_money} and the next state money is {next_state_money}"
         
         
         
@@ -308,3 +309,18 @@ class Environment(Base):
             )
 
         return self.render()[::2, ::2], reward, done, done, info
+def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) -> float:
+    """Normalize a value from its original range to a new specified range.
+    
+    Args:
+        x (float): The value to be normalized.
+        min_x (float): The minimum value of the original range. 
+        max_x (float): The maximum value of the original range.
+        a (float): The lower bound of the target range.
+        b (float): The upper bound of the target range.
+        
+    Returns:
+        float: The normalized value.
+    """
+    
+    return a + ((x - min_x) * (b - a)) / (max_x - min_x)
