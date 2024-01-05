@@ -255,6 +255,7 @@ class Environment(Base):
                     'exploration': exploration_reward,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "completing_the_pokedex": reward_for_completing_the_pokedex,
+                    "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
                 },
                 'maps_explored': len(self.seen_maps),
                 'party_size': party_size,
