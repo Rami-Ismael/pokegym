@@ -202,7 +202,8 @@ class Environment(Base):
         event_reward = self.max_events
         # Money Reward
         next_state_money = money = ram_map.money(self.game)
-        normalize_gain_of_new_money_reward = next_state_money - current_state_money / ( 999999 - current_state_money)
+        assert next_state_money >= 0 and next_state_money <= 999999, f"next_state_money: {next_state_money}"
+        normalize_gain_of_new_money_reward = (next_state_money - current_state_money) / ( 999999.0 - current_state_money)
         
         
         
