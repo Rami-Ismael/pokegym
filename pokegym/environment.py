@@ -98,11 +98,14 @@ class Base:
 class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
             state_path=None, headless=True, quiet=False, verbose=False, 
-            reward_the_agent_for_completing_the_pokedex=True, **kwargs):
+            reward_the_agent_for_completing_the_pokedex=True,
+            reward_the_agent_for_the_normalize_gain_of_new_money = True,
+            **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
         self.counts_map = np.zeros((444, 336)) # to solve the map
         self.verbose = verbose
         self.reward_the_agent_for_completing_the_pokedex: bool = reward_the_agent_for_completing_the_pokedex
+        self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.time = 0
 
     def reset(self, seed=None, options=None, max_episode_steps=20480, reward_scale=4.0):
@@ -228,6 +231,8 @@ class Environment(Base):
             healing_reward + exploration_reward)
         if self.reward_the_agent_for_completing_the_pokedex:
             reward += reward_for_completing_the_pokedex
+        if self.reward_the_agent_for_the_normalize_gain_of_new_money:
+            reward += normalize_gain_of_new_money_reward
 
         # Subtract previous reward
         # TODO: Don't record large cumulative rewards in the first place
