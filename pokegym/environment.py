@@ -98,14 +98,11 @@ class Base:
 class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
             state_path=None, headless=True, quiet=False, verbose=False, 
-            reward_the_agent_for_the_number_of_pokemon_caught=True, **kwargs):
+            reward_the_agent_for_completing_the_pokedex=True, **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
         self.counts_map = np.zeros((444, 336)) # to solve the map
         self.verbose = verbose
-        self.reward_the_agent_for_the_number_of_pokemon_caught: bool = reward_the_agent_for_the_number_of_pokemon_caught
-        print("reward_the_agent_for_the_number_of_pokemon_caught", self.reward_the_agent_for_the_number_of_pokemon_caught)
-        self.last_pokemon_caught = 0
-        self.last_pokemon_seen = 0
+        self.reward_the_agent_for_completing_the_pokedex: bool = reward_the_agent_for_completing_the_pokedex
         self.time = 0
 
     def reset(self, seed=None, options=None, max_episode_steps=20480, reward_scale=4.0):
@@ -128,14 +125,17 @@ class Environment(Base):
         self.last_hp = 1.0
         self.last_party_size = 1
         self.last_reward = None
-        self.last_pokemon_caught = 0
-        self.last_pokemon_seen = 0
 
         return self.render()[::2, ::2], {}
 
     def step(self, action, fast_video=True):
-        
-        current_state_pokemon_seen = ram_map.pokemon_seen(self.game)
+        # Reward the agent for seeing new pokemon that it never had seen 
+        current_state_pokemon_seen = ram_map.pokemon_seen(self.game) # this is new pokemon you have seen
+        # Reward teh agent for catching new pokemon to copmlete the pokedex
+        current_state_completing_the_pokedex = ram_map.pokemon_caught(self.game) # this is new pokemon you have seen
+        # Normalize the increase reward base the opportuniyes on having learniIugn rate 1 / ( 100 - current level of pokemon)
+        # Check what is the current value of the money
+        current_state_money = ram_map.money(self.game)
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
             self.headless, fast_video=fast_video)
@@ -197,19 +197,21 @@ class Environment(Base):
         events = ram_map.events(self.game)
         self.max_events = max(self.max_events, events)
         event_reward = self.max_events
-
-        money = ram_map.money(self.game)
+        # Money Reward
+        next_state_money = money = ram_map.money(self.game)
+        normalize_gain_of_new_money_reward = next_state_money - current_state_money / ( 999999 - current_state_money)
+        
+        
         
         # Seen Pokemon
         next_state_pokemon_seen = ram_map.pokemon_seen(self.game)
         reward_the_agent_seing_new_pokemon = next_state_pokemon_seen - current_state_pokemon_seen
         assert ( reward_the_agent_seing_new_pokemon >= 0 and reward_the_agent_seing_new_pokemon <= 1) or reward_the_agent_seing_new_pokemon==3, f"reward_the_agent_seing_new_pokemon: {reward_the_agent_seing_new_pokemon}"
         
-        # Caught Pokemon
-        pokemon_caught = ram_map.pokemon_caught(self.game)
-        new_pokemon_caught = pokemon_caught - self.last_pokemon_caught
-        self.last_pokemon_caught = pokemon_caught
-        assert new_pokemon_caught >= 0 and new_pokemon_caught <= 1
+        # Completing the pokedex
+        next_state_completing_the_pokedex = ram_map.pokemon_caught(self.game)
+        reward_for_completing_the_pokedex = next_state_completing_the_pokedex - current_state_completing_the_pokedex
+        assert reward_the_agent_seing_new_pokemon >= 0 and reward_the_agent_seing_new_pokemon <= 1
         
         
         # Total item count
@@ -224,8 +226,8 @@ class Environment(Base):
         reward = self.reward_scale * (event_reward + level_reward + 
             opponent_level_reward + death_reward + badges_reward +
             healing_reward + exploration_reward)
-        if self.reward_the_agent_for_the_number_of_pokemon_caught:
-            reward += new_pokemon_caught
+        if self.reward_the_agent_for_completing_the_pokedex:
+            reward += reward_for_completing_the_pokedex
 
         # Subtract previous reward
         # TODO: Don't record large cumulative rewards in the first place
@@ -251,9 +253,8 @@ class Environment(Base):
                     'badges': badges_reward,
                     'healing': healing_reward,
                     'exploration': exploration_reward,
-                    "new_pokemon_caught": new_pokemon_caught,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
-                    "completing_the_pokedex": new_pokemon_caught,
+                    "completing_the_pokedex": reward_for_completing_the_pokedex,
                 },
                 'maps_explored': len(self.seen_maps),
                 'party_size': party_size,
@@ -266,14 +267,19 @@ class Environment(Base):
                 'money': money,
                 'pokemon_exploration_map': self.counts_map,
                 "pokemon_seen": next_state_pokemon_seen,
-                "pokemon_caught": pokemon_caught,
                 "total_items": item_count,
                 "hm_item_counts": hm_count,
                 "hm_moves": total_number_hm_moves_that_my_pokemon_party_has,
-                "current_pokemon_seen": current_state_pokemon_seen,
-                "new_pokemon_caught": next_state_pokemon_seen,
-                "last_pokemon_caught": self.last_pokemon_caught,
                 "max_opponent_level": self.max_opponent_level,
+                "money": next_state_money,
+                "pokemon_seen": next_state_pokemon_seen,
+                "pokedex": next_state_completing_the_pokedex,
+                "current_state_money": current_state_money,
+                "next_state_money": next_state_money,
+                "current_state_pokemon_seen": current_state_pokemon_seen,
+                "next_state_pokemon_seen": next_state_pokemon_seen,
+                "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
+                "next_state_completing_the_pokedex": next_state_completing_the_pokedex,
             }
 
         if self.verbose:

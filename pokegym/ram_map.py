@@ -72,6 +72,9 @@ def pokemon_seen(game):
     return sum([bit_count(b) for b in seen_bytes])
 
 def pokemon_caught(game):
+    '''
+    This will calculate how much pokemon you have that complete the pokedex
+    '''
     caught_bytes = [game.get_memory_value(addr) for addr in CAUGHT_POKE_ADDR]
     return sum([bit_count(b) for b in caught_bytes])
 
