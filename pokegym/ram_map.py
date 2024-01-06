@@ -173,4 +173,8 @@ def is_in_battle(game):
     # -1 lost battle
     #https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/wram.asm#L1629C1-L1634C6
     bflag = game.get_memory_value(BATTLE_FLAG)
-    return BattleState(bflag)
+    try:
+        return BattleState(bflag)
+    except ValueError as e:
+        # We will solve this error later
+        return BattleState.NOT_IN_BATTLE
