@@ -1,3 +1,4 @@
+from enum import Enum
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
 HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248]
@@ -28,6 +29,13 @@ PLAYER_POKEMON_TEAM_ADDR = [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247]
 HM_ITEMS_ADDR = [0xC4, 0xC5, 0xC6, 0xC7, 0xC8]
 FIRST_ITEM_ADDR = 0xD31E
 POKEMON_PARTY_MOVES_ADDR = [0xD173,0xD174, 0xD175, 0xD176 , 0xD19F, 0xD1A0, 0xD1A1, 0xD1A2, 0xD1CB, 0xD1CC, 0xD1CD, 0xD1CE, 0xD1F7, 0xD1F8, 0xD1F9, 0xD1FA, 0xD223, 0xD224, 0xD225, 0xD226, 0xD24F, 0xD250, 0xD251, 0xD252]
+BATTLE_FLAG = 0xD057
+
+class BattleState(Enum):
+    NOT_IN_BATTLE = 0
+    WILD_BATTLE = 1
+    TRAINER_BATTLE = 2
+    LOST_BATTLE = -1
 
 
 def bcd(num):
@@ -157,3 +165,12 @@ def number_of_pokemon_that_hm_in_move_pool_in_your_part_your_party(game) -> int:
         if pokemon_party_move_id in HM_ITEMS_ADDR:
             count += 1
     return count
+def is_in_battle(game):
+    # D057
+    # 0 not in battle
+    # 1 wild battle
+    # 2 trainer battle
+    # -1 lost battle
+    #https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/wram.asm#L1629C1-L1634C6
+    bflag = game.get_memory_value(BATTLE_FLAG)
+    return BattleState(bflag)

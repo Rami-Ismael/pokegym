@@ -139,6 +139,11 @@ class Environment(Base):
         # Normalize the increase reward base the opportuniyes on having learniIugn rate 1 / ( 100 - current level of pokemon)
         # Check what is the current value of the money
         current_state_money = ram_map.money(self.game)
+        # Current x
+        r, c, map_n = ram_map.position(self.game)
+        # Check if you are in a battle 
+        current_state_is_in_battle:ram_map.BattleState = ram_map.is_in_battle(self.game)
+        
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
             self.headless, fast_video=fast_video)
@@ -218,6 +223,9 @@ class Environment(Base):
         reward_for_completing_the_pokedex = next_state_completing_the_pokedex - current_state_completing_the_pokedex
         assert reward_the_agent_seing_new_pokemon >= 0 and reward_the_agent_seing_new_pokemon <= 1
         
+        # Is in a trainer battle
+        next_state_is_in_battle = ram_map.is_in_battle(self.game)
+        
         
         # Total item count
         item_count = ram_map.total_items(self.game)
@@ -235,6 +243,13 @@ class Environment(Base):
             reward += reward_for_completing_the_pokedex
         if self.reward_the_agent_for_the_normalize_gain_of_new_money:
             reward += normalize_gain_of_new_money_reward
+        reward_for_battle = 0
+        # Reward the Agent for choosing to be in a trainer battle and not losing
+        if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
+            reward_for_battle += 1
+        elif current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
+            reward_for_battle -= 1
+        reward += reward_for_battle
 
         # Subtract previous reward
         # TODO: Don't record large cumulative rewards in the first place
@@ -263,6 +278,7 @@ class Environment(Base):
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "completing_the_pokedex": reward_for_completing_the_pokedex,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
+                    "reward_for_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
                 },
                 'maps_explored': len(self.seen_maps),
                 'party_size': party_size,
@@ -282,6 +298,8 @@ class Environment(Base):
                 "money": next_state_money,
                 "pokemon_seen": next_state_pokemon_seen,
                 "pokedex": next_state_completing_the_pokedex,
+                #"current_state_is_in_battle": current_state_is_in_battle, enum
+                #"next_state_is_in_battle": next_state_is_in_battle, #enum
                 "current_state_money": current_state_money,
                 "next_state_money": next_state_money,
                 "current_state_pokemon_seen": current_state_pokemon_seen,
@@ -305,6 +323,7 @@ class Environment(Base):
                 f'party size: {party_size}',
                 f'party levels: {party_levels}',
                 f'party hp: {hp}',
+                f"In a trainer battle: {current_state_is_in_battle}",
                 f'Info: {info}',
             )
 
