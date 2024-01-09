@@ -73,17 +73,22 @@ class Base:
         self.headless = headless
 
         R, C = self.screen.raw_screen_buffer_dims()
-        self.observation_space = spaces.Box(
-            low=0, high=255, dtype=np.uint8,
-            shape=(R//2, C//2, 3),
-        )
+        self.observation_space = spaces.Dict({
+            'screen': spaces.Box(
+                low=0, high=255, dtype=np.uint8,
+                shape=(R // 2, C // 2, 3),
+            ),
+        })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
     def reset(self, seed=None, options=None):
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
         return self.screen.screen_ndarray(), {}
-
+    '''
+    You can view this where the update of observation is done because in every step 
+    the render is called which display the observation 
+    '''
     def render(self):
         return self.screen.screen_ndarray()
 
