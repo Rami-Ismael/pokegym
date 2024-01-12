@@ -71,13 +71,13 @@ class Base:
 
         self.initial_state = open_state_file(state_path)
         self.headless = headless
-
         R, C = self.screen.raw_screen_buffer_dims()
         self.observation_space = spaces.Dict({
             'screen': spaces.Box(
                 low=0, high=255, dtype=np.uint8,
                 shape=(R // 2, C // 2, 3),
             ),
+            "party_size": spaces.Discrete(6),
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
@@ -85,6 +85,7 @@ class Base:
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
         return self.screen.screen_ndarray(), {}
+        
     '''
     You can view this where the update of observation is done because in every step 
     the render is called which display the observation 
@@ -107,7 +108,8 @@ class Environment(Base):
             reward_the_agent_for_the_normalize_gain_of_new_money = True,
             **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
-        self.counts_map = np.zeros((444, 336)) # to solve the map
+        # https://github.com/xinpw8/pokegym/blob/d44ee5048d597d7eefda06a42326220dd9b6295f/pokegym/environment.py#L233
+        self.counts_map = np.zeros((444, 436)) # to solve the map
         self.verbose = verbose
         self.reward_the_agent_for_completing_the_pokedex: bool = reward_the_agent_for_completing_the_pokedex
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
@@ -134,7 +136,8 @@ class Environment(Base):
         self.last_party_size = 1
         self.last_reward = None
 
-        return self.render()[::2, ::2], {}
+        #return self.render()[::2, ::2], {}
+        return {"screen": self.render()[::2, ::2], "party_size": 1}, {}
 
     def step(self, action, fast_video=True):
         # Reward the agent for seeing new pokemon that it never had seen 
@@ -331,8 +334,12 @@ class Environment(Base):
                 f"In a trainer battle: {current_state_is_in_battle}",
                 f'Info: {info}',
             )
-
-        return self.render()[::2, ::2], reward, done, done, info
+        # Observation , reward, done, info
+        observation = {
+            'screen': self.render()[::2, ::2],
+            "party_size": party_size,
+        }
+        return observation, reward, done, done, info
 def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) -> float:
     """Normalize a value from its original range to a new specified range.
     

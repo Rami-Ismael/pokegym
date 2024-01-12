@@ -181,4 +181,3 @@ def is_in_battle(game):
 def pokecenter(game):
     #https://github.com/CJBoey/PokemonRedExperiments1/blob/4024b8793e25a895a07efb07529c5728f076412d/baselines/boey_baselines/red_gym_env.py#L629C2-L635C53
     return 5
-    
