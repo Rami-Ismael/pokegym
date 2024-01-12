@@ -113,14 +113,14 @@ class Environment(Base):
         self.verbose = verbose
         self.reward_the_agent_for_completing_the_pokedex: bool = reward_the_agent_for_completing_the_pokedex
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
+        self.max_episode_steps = 2 ^ 15  # 32768
         self.time = 0
 
-    def reset(self, seed=None, options=None, max_episode_steps=20480, reward_scale=4.0):
+    def reset(self, seed=None, options=None,  reward_scale=4.0):
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
 
         self.time = 0
-        self.max_episode_steps = max_episode_steps
         self.reward_scale = reward_scale
          
         self.max_events = 0
