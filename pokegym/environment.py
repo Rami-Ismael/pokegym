@@ -12,7 +12,7 @@ from rich import print
 def play():
     '''Creates an environment and plays it'''
     env = Environment(rom_path='pokemon_red.gb', state_path=None, headless=False,
-        disable_input=False, sound=False, sound_emulated=False, verbose=True
+        disable_input=False, sound=False, sound_emulated=False, verbose=True,
     )
 
     env.reset()
@@ -58,6 +58,7 @@ def play():
 
                 # Additional game logic or information display can go here
                 print(f"new Reward: {reward}\n")
+                
 
 class Base:
     def __init__(self, rom_path='pokemon_red.gb',
@@ -115,8 +116,9 @@ class Environment(Base):
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.max_episode_steps = 2 ^ 15  # 32768
         self.time = 0
+        self.last_map = -1
 
-    def reset(self, seed=None, options=None,  reward_scale=4.0):
+    def reset(self, seed=None, options=None,  reward_scale=1):
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
 
@@ -135,6 +137,7 @@ class Environment(Base):
         self.last_hp = 1.0
         self.last_party_size = 1
         self.last_reward = None
+        self.seen_coords_no_reward = set()
 
         #return self.render()[::2, ::2], {}
         return {"screen": self.render()[::2, ::2], "party_size": 1}, {}
@@ -151,50 +154,41 @@ class Environment(Base):
         r, c, map_n = ram_map.position(self.game)
         # Check if you are in a battle 
         current_state_is_in_battle:ram_map.BattleState = ram_map.is_in_battle(self.game)
+        # Reward the increaseing the team pokemon levels
+        prev_party, prev_party_size, prev_party_levels = ram_map.party(self.game)
+        
         
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
             self.headless, fast_video=fast_video)
         self.time += 1
 
-        # Exploration reward
-        r, c, map_n = ram_map.position(self.game)
-        self.seen_coords.add((r, c, map_n))
-        self.seen_maps.add(map_n)
-        exploration_reward = 0.01 * len(self.seen_coords)
-        glob_r, glob_c = game_map.local_to_global(r, c, map_n)
+        # Exploration reward reward the agent travel a new state in the game 
+        row, column, map_n = ram_map.position(self.game)
         try:
-            self.counts_map[glob_r, glob_c] += 1
-        except:
-            pass
+            global_row, global_column = game_map.local_to_global(row, column, map_n)
+        except IndexError:
+            print(f'IndexError: index {global_row} or {global_column} for {map_n} is out of bounds for axis 0 with size 444.')
+            global_row = 0
+            global_column = 0
+        exploration_reward = 0
+        if (row, column, map_n) not in self.seen_coords:
+            self.seen_coords.add((row, column, map_n))
+            exploration_reward = normalize_gaine_exploration = 1.0 - normalize_value(len(self.seen_coords), 0, 444*436, 0, 1)
+        
+        
+        self.update_heat_map(r, c, map_n)
+
 
         # Level reward
-        party, party_size, party_levels = ram_map.party(self.game)
-        self.max_level_sum = max(self.max_level_sum, sum(party_levels))
-        if self.max_level_sum < 30:
-            level_reward = 1 * self.max_level_sum
-        else:
-            level_reward = 30 + (self.max_level_sum - 30)/4
+        #party, party_size, party_levels = ram_map.party(self.game)
+        next_state_party, next_state_party_size, next_state_party_levels = ram_map.party(self.game)
+        self.max_level_sum = sum(next_state_party_levels)
+        reward_the_agent_increase_the_level_of_the_pokemon: float =  ( sum(next_state_party_levels) - sum(prev_party_levels) )  / (600- sum(prev_party_levels))
 
-        # Healing and death rewards
-        hp = ram_map.hp(self.game)
-        hp_delta = hp - self.last_hp
-        party_size_constant = party_size == self.last_party_size
 
-        # Only reward if not reviving at pokecenter
-        if hp_delta > 0 and party_size_constant and not self.is_dead:
-            self.total_healing += hp_delta
 
-        # Dead if hp is zero
-        if hp <= 0 and self.last_hp > 0:
-            self.death_count += 1
-            self.is_dead = True
-        elif hp > 0.01: # TODO: Check if this matters
-            self.is_dead = False
 
-        # Update last known values for next iteration
-        self.last_hp = hp
-        self.last_party_size = party_size
 
         # Set rewards
         healing_reward = self.total_healing
@@ -229,7 +223,7 @@ class Environment(Base):
         # Completing the pokedex
         next_state_completing_the_pokedex = ram_map.pokemon_caught(self.game)
         reward_for_completing_the_pokedex = next_state_completing_the_pokedex - current_state_completing_the_pokedex
-        assert reward_the_agent_seing_new_pokemon >= 0 and reward_the_agent_seing_new_pokemon <= 1
+        assert reward_for_completing_the_pokedex >= 0 and reward_for_completing_the_pokedex <= 1
         
         # Is in a trainer battle
         next_state_is_in_battle = ram_map.is_in_battle(self.game)
@@ -244,30 +238,26 @@ class Environment(Base):
         # number of hm moves my pokemon party has
         total_number_hm_moves_that_my_pokemon_party_has = ram_map.total_hm_party_has(self.game)
         
-        reward = self.reward_scale * (event_reward + level_reward + 
-            opponent_level_reward + death_reward + badges_reward +
-            healing_reward + exploration_reward)
-        if self.reward_the_agent_for_completing_the_pokedex:
-            reward += reward_for_completing_the_pokedex
-        if self.reward_the_agent_for_the_normalize_gain_of_new_money:
-            reward += normalize_gain_of_new_money_reward
         reward_for_battle = 0
         # Reward the Agent for choosing to be in a trainer battle and not losing
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             reward_for_battle += 1
         elif current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
             reward_for_battle -= 1
-        reward += reward_for_battle
+        
+        reward: float =  (
+                event_reward 
+                + reward_the_agent_seing_new_pokemon 
+                + opponent_level_reward 
+                + death_reward 
+                + badges_reward 
+                + healing_reward 
+                + exploration_reward
+                +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
+                + normalize_gain_of_new_money_reward if self.reward_the_agent_for_the_normalize_gain_of_new_money else 0
+                + reward_for_battle
+        )
 
-        # Subtract previous reward
-        # TODO: Don't record large cumulative rewards in the first place
-        if self.last_reward is None:
-            reward = 0
-            self.last_reward = 0
-        else:
-            nxt_reward = reward
-            reward -= self.last_reward
-            self.last_reward = nxt_reward
 
         info = {}
         done = self.time >= self.max_episode_steps
@@ -275,9 +265,9 @@ class Environment(Base):
         if done:
             info = {
                 'reward': {
-                    'delta': reward,
+                    'reward': reward,
                     'event': event_reward,
-                    'level': level_reward,
+                    'level':reward_the_agent_increase_the_level_of_the_pokemon,
                     'opponent_level': opponent_level_reward,
                     'death': death_reward,
                     'badges': badges_reward,
@@ -289,9 +279,9 @@ class Environment(Base):
                     "reward_for_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
                 },
                 'maps_explored': len(self.seen_maps),
-                'party_size': party_size,
-                'highest_pokemon_level': max(party_levels),
-                'total_party_level': sum(party_levels),
+                'party_size': next_state_party_size,
+                'highest_pokemon_level': max(next_state_party_levels),
+                'total_party_level': sum(next_state_party_levels),
                 'deaths': self.death_count,
                 'badge_1': float(badges == 1),
                 'badge_2': float(badges > 1),
@@ -320,7 +310,6 @@ class Environment(Base):
             print(
                 f'steps: {self.time}',
                 f'exploration reward: {exploration_reward}',
-                f'level_Reward: {level_reward}',
                 f'healing: {healing_reward}',
                 f'death: {death_reward}',
                 f'op_level: {opponent_level_reward}',
@@ -328,18 +317,47 @@ class Environment(Base):
                 f'event reward: {event_reward}',
                 f'money: {money}',
                 f'ai reward: {reward}',
-                f'party size: {party_size}',
-                f'party levels: {party_levels}',
-                f'party hp: {hp}',
                 f"In a trainer battle: {current_state_is_in_battle}",
                 f'Info: {info}',
             )
         # Observation , reward, done, info
         observation = {
             'screen': self.render()[::2, ::2],
-            "party_size": party_size,
+            "party_size": next_state_party_size,
         }
         return observation, reward, done, done, info
+    def update_heat_map(self, r, c, current_map):
+        '''
+        Updates the heat map based on the agent's current position.
+
+        Args:
+            r (int): global y coordinate of the agent's position.
+            c (int): global x coordinate of the agent's position.
+            current_map (int): ID of the current map (map_n)
+
+        Updates the counts_map to track the frequency of visits to each position on the map.
+        '''
+        # Convert local position to global position
+        try:
+            glob_r, glob_c = game_map.local_to_global(r, c, current_map)
+        except IndexError:
+            print(f'IndexError: index {glob_r} or {glob_c} for {current_map} is out of bounds for axis 0 with size 444.')
+            glob_r = 0
+            glob_c = 0
+
+        # Update heat map based on current map
+        if self.last_map == current_map or self.last_map == -1:
+            # Increment count for current global position
+                try:
+                    self.counts_map[glob_r, glob_c] += 1
+                except:
+                    pass
+        else:
+            # Reset count for current global position if it's a new map for warp artifacts
+            self.counts_map[(glob_r, glob_c)] = -1
+
+        # Update last_map for the next iteration
+        self.last_map = current_map
 def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) -> float:
     """Normalize a value from its original range to a new specified range.
     
