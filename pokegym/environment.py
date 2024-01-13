@@ -79,6 +79,8 @@ class Base:
                 shape=(R // 2, C // 2, 3),
             ),
             "party_size": spaces.Discrete(6),
+            "player_row": spaces.Box(low=0, high=444, shape=(1,), dtype=np.uint16),
+            "player_column": spaces.Box(low=0, high=436, shape=(1,), dtype=np.uint16),
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
@@ -115,8 +117,8 @@ class Environment(Base):
         self.reward_the_agent_for_completing_the_pokedex: bool = reward_the_agent_for_completing_the_pokedex
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.max_episode_steps = 2 ^ 15  # 32768
-        self.time = 0
         self.last_map = -1
+        self.seen_coords = set()
 
     def reset(self, seed=None, options=None,  reward_scale=1):
         '''Resets the game. Seeding is NOT supported'''
@@ -138,9 +140,12 @@ class Environment(Base):
         self.last_party_size = 1
         self.last_reward = None
         self.seen_coords_no_reward = set()
+        
+        self.number_of_wild_battle = 0
+        self.number_of_trainer_battle = 0
 
         #return self.render()[::2, ::2], {}
-        return {"screen": self.render()[::2, ::2], "party_size": 1}, {}
+        return {"screen": self.render()[::2, ::2], "party_size": 0, "player_row":0, "player_column":0}, {}
 
     def step(self, action, fast_video=True):
         # Reward the agent for seeing new pokemon that it never had seen 
@@ -197,7 +202,7 @@ class Environment(Base):
         # Opponent level reward
         max_opponent_level = max(ram_map.opponent(self.game))
         self.max_opponent_level = max(self.max_opponent_level, max_opponent_level)
-        opponent_level_reward = 0.2 * self.max_opponent_level
+        opponent_level_reward = 0
 
         # Badge reward
         badges = ram_map.badges(self.game)
@@ -227,6 +232,8 @@ class Environment(Base):
         
         # Is in a trainer battle
         next_state_is_in_battle = ram_map.is_in_battle(self.game)
+        if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.WILD_BATTLE:
+            self.number_of_wild_battle += 1
         
         
         # Total item count
@@ -242,6 +249,7 @@ class Environment(Base):
         # Reward the Agent for choosing to be in a trainer battle and not losing
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             reward_for_battle += 1
+            self.number_of_trainer_battle += 1
         elif current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
             reward_for_battle -= 1
         
@@ -278,6 +286,7 @@ class Environment(Base):
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
                     "reward_for_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
                 },
+                'time': self.time,
                 'maps_explored': len(self.seen_maps),
                 'party_size': next_state_party_size,
                 'highest_pokemon_level': max(next_state_party_levels),
@@ -296,8 +305,14 @@ class Environment(Base):
                 "money": next_state_money,
                 "pokemon_seen": next_state_pokemon_seen,
                 "pokedex": next_state_completing_the_pokedex,
+                "number_of_wild_battle": self.number_of_wild_battle,
+                "number_of_trainer_battle": self.number_of_trainer_battle,
                 #"current_state_is_in_battle": current_state_is_in_battle, enum
                 #"next_state_is_in_battle": next_state_is_in_battle, #enum
+                "player_row_position": row,
+                "player_column_position": column,
+                "next_state_row": row,
+                "next_state_column": column,
                 "current_state_money": current_state_money,
                 "next_state_money": next_state_money,
                 "current_state_pokemon_seen": current_state_pokemon_seen,
@@ -308,7 +323,7 @@ class Environment(Base):
 
         if self.verbose:
             print(
-                f'steps: {self.time}',
+                f'time: {self.time}',
                 f'exploration reward: {exploration_reward}',
                 f'healing: {healing_reward}',
                 f'death: {death_reward}',
@@ -323,7 +338,9 @@ class Environment(Base):
         # Observation , reward, done, info
         observation = {
             'screen': self.render()[::2, ::2],
-            "party_size": next_state_party_size,
+            "party_size": next_state_party_size / 6,
+            "player_row": row,
+            "player_column": column,
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
