@@ -118,13 +118,13 @@ class Environment(Base):
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.last_map = -1
 
-    def reset(self, seed=None, options=None,  max_episode_steps = 2^15, reward_scale=1):
+    def reset(self, seed=None, options=None,  max_episode_steps = 32768, reward_scale=1):
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
 
         self.time = 0
         self.reward_scale = reward_scale
-        self.max_episode_steps: int = max_episode_steps  # 32768
+        self.max_episode_steps: int = max_episode_steps  # 32768 or 2^15
          
         self.max_events = 0
         self.max_level_sum = 0
