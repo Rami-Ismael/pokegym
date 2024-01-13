@@ -290,6 +290,7 @@ class Environment(Base):
                     "winning_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
                 },
                 'time': self.time,
+                "max_episode_steps": self.max_episode_steps,
                 'maps_explored': len(self.seen_maps),
                 'party_size': next_state_party_size,
                 'highest_pokemon_level': max(next_state_party_levels),
