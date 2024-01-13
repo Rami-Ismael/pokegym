@@ -184,7 +184,7 @@ class Environment(Base):
             assert len(self.seen_coords) >= prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
         
         
-        self.update_heat_map(r, c, map_n)
+        self.update_heat_map(row, column, map_n)
 
 
         # Level reward
