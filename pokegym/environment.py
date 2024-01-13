@@ -182,6 +182,7 @@ class Environment(Base):
             exploration_reward = normalize_gaine_exploration = 1.0 - normalize_value(len(self.seen_coords), 0, 444*436, 0, 1)
             assert normalize_gaine_exploration >= 0.0 and normalize_gaine_exploration <= 1.0, f"normalize_gaine_exploration: {normalize_gaine_exploration}"
             assert len(self.seen_coords) > prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
+            assert len(self.seen_coords) - prev_size == 1, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
         
         
         self.update_heat_map(row, column, map_n)
@@ -270,7 +271,7 @@ class Environment(Base):
 
 
         info = {}
-        done = self.time >= self.max_episode_steps
+        done: bool = self.time >= self.max_episode_steps
         #done = True
         if done:
             info = {
@@ -286,7 +287,7 @@ class Environment(Base):
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "completing_the_pokedex": reward_for_completing_the_pokedex,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
-                    "reward_for_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
+                    "winning_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
                 },
                 'time': self.time,
                 'maps_explored': len(self.seen_maps),
