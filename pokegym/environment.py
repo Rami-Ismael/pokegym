@@ -116,16 +116,15 @@ class Environment(Base):
         self.verbose = verbose
         self.reward_the_agent_for_completing_the_pokedex: bool = reward_the_agent_for_completing_the_pokedex
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
-        self.max_episode_steps = 2 ^ 15  # 32768
         self.last_map = -1
-        self.seen_coords = set()
 
-    def reset(self, seed=None, options=None,  reward_scale=1):
+    def reset(self, seed=None, options=None,  max_episode_steps = 2^15, reward_scale=1):
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
 
         self.time = 0
         self.reward_scale = reward_scale
+        self.max_episode_steps: int = max_episode_steps  # 32768
          
         self.max_events = 0
         self.max_level_sum = 0
@@ -174,8 +173,8 @@ class Environment(Base):
             global_row, global_column = game_map.local_to_global(row, column, map_n)
         except IndexError:
             print(f'IndexError: index {global_row} or {global_column} for {map_n} is out of bounds for axis 0 with size 444.')
-            global_row = 0
-            global_column = 0
+            global_row = -1
+            global_column = -1
         exploration_reward = 0
         if (row, column, map_n) not in self.seen_coords:
             self.seen_coords.add((row, column, map_n))
@@ -311,6 +310,8 @@ class Environment(Base):
                 #"next_state_is_in_battle": next_state_is_in_battle, #enum
                 "player_row_position": row,
                 "player_column_position": column,
+                "player_global_row_position": global_row,
+                "player_global_column_position": global_column,
                 "next_state_row": row,
                 "next_state_column": column,
                 "current_state_money": current_state_money,
