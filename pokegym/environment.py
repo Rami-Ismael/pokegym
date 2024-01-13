@@ -180,8 +180,8 @@ class Environment(Base):
             prev_size = len(self.seen_coords)
             self.seen_coords.add((row, column, map_n))
             exploration_reward = normalize_gaine_exploration = 1.0 - normalize_value(len(self.seen_coords), 0, 444*436, 0, 1)
-            assert normalize_gaine_exploration >= 0 and normalize_gaine_exploration <= 1, f"normalize_gaine_exploration: {normalize_gaine_exploration}"
-            assert len(self.seen_coords) >= prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
+            assert normalize_gaine_exploration >= 0.0 and normalize_gaine_exploration <= 1.0, f"normalize_gaine_exploration: {normalize_gaine_exploration}"
+            assert len(self.seen_coords) > prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
         
         
         self.update_heat_map(row, column, map_n)
