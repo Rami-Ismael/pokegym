@@ -86,17 +86,25 @@ def pokemon_caught(game):
     caught_bytes = [game.get_memory_value(addr) for addr in CAUGHT_POKE_ADDR]
     return sum([bit_count(b) for b in caught_bytes])
 
-def hp(game):
+def party_health_ratio(game) -> float:
     '''Percentage of total party HP'''
-    party_hp = [read_uint16(game, addr) for addr in HP_ADDR]
-    party_max_hp = [read_uint16(game, addr) for addr in MAX_HP_ADDR]
+    party_hp:int = total_party_hit_point(game)
+    party_max_hp:int  = total_party_max_hit_point(game)
 
     # Avoid division by zero if no pokemon
     sum_max_hp = sum(party_max_hp)
     if sum_max_hp == 0:
-        return 1
+        return 0
 
     return sum(party_hp) / sum_max_hp
+def total_party_hit_point(game) -> int:
+    '''Percentage of total party HP'''
+    party_hp = [read_uint16(game, addr) for addr in HP_ADDR]
+    return sum(party_hp)
+def total_party_max_hit_point(game) -> int:
+    '''Percentage of total party HP'''
+    party_max_hp = [read_uint16(game, addr) for addr in MAX_HP_ADDR]
+    return sum(party_max_hp)
 
 def money(game):
     return (100 * 100 * bcd(game.get_memory_value(MONEY_ADDR_1))

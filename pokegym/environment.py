@@ -125,6 +125,7 @@ class Environment(Base):
         self.time = 0
         self.reward_scale = reward_scale
         self.max_episode_steps: int = max_episode_steps  # 32768 or 2^15
+        print(f"self.max_episode_steps: {self.max_episode_steps}")
          
         self.max_events = 0
         self.max_level_sum = 0
@@ -144,7 +145,7 @@ class Environment(Base):
         self.number_of_trainer_battle = 0
 
         #return self.render()[::2, ::2], {}
-        return {"screen": self.render()[::2, ::2], "party_size": 0, "player_row":0, "player_column":0}, {}
+        return {"screen": self.render()[::2, ::2], "party_size": 0, "player_row":0, "player_column":0 , "total_party_hit_point":0, "total_party_max_hit_point":0, "party_health_ratio":0 , "total_party_level":0}, {}
 
     def step(self, action, fast_video=True):
         # Reward the agent for seeing new pokemon that it never had seen 
@@ -311,6 +312,9 @@ class Environment(Base):
                 "pokedex": next_state_completing_the_pokedex,
                 "number_of_wild_battle": self.number_of_wild_battle,
                 "number_of_trainer_battle": self.number_of_trainer_battle,
+                "total_party_hit_point" : ram_map.total_party_hit_point(self.game),
+                "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
+                "party_health_ratio": ram_map.party_health_ratio(self.game),
                 #"current_state_is_in_battle": current_state_is_in_battle, enum
                 #"next_state_is_in_battle": next_state_is_in_battle, #enum
                 "player_row_position": row,
@@ -347,6 +351,10 @@ class Environment(Base):
             "party_size": next_state_party_size / 6,
             "player_row": row,
             "player_column": column,
+            "total_party_hit_point" : ram_map.total_party_hit_point(self.game),
+            "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
+            "party_health_ratio": ram_map.party_health_ratio(self.game),
+            "total_party_level": sum(next_state_party_levels),
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
