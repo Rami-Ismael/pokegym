@@ -228,10 +228,6 @@ class Environment(Base):
         self.max_opponent_level = max(self.max_opponent_level, max_opponent_level)
         opponent_level_reward = 0
         # gym
-        ## Gym Music 
-        ### Gym Leader Music is playing
-        if ram_map.check_if_gym_leader_music_is_playing(self.game):
-            self.number_of_gym_leader_music_is_playing += 1
         # Badge reward
         badges_reward = 0
         if not prev_badges_one and  ram_map.check_if_player_has_gym_one_badge(self.game):
@@ -287,6 +283,7 @@ class Environment(Base):
             # Reward the Agent for choosing to be in a gym battle
             if ram_map.check_if_gym_leader_music_is_playing(self.game):
                 reward_for_battle += 1
+                self.number_of_gym_leader_music_is_playing += 1
         elif current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
             reward_for_battle -= 1
             
