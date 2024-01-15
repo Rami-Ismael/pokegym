@@ -30,6 +30,7 @@ HM_ITEMS_ADDR = [0xC4, 0xC5, 0xC6, 0xC7, 0xC8]
 FIRST_ITEM_ADDR = 0xD31E
 POKEMON_PARTY_MOVES_ADDR = [0xD173,0xD174, 0xD175, 0xD176 , 0xD19F, 0xD1A0, 0xD1A1, 0xD1A2, 0xD1CB, 0xD1CC, 0xD1CD, 0xD1CE, 0xD1F7, 0xD1F8, 0xD1F9, 0xD1FA, 0xD223, 0xD224, 0xD225, 0xD226, 0xD24F, 0xD250, 0xD251, 0xD252]
 BATTLE_FLAG = 0xD057
+BOOLEAN_FLAG_THAT_INDICATES_THE_GAME_GYM_LEADER_MUSIC_IS_PLAYING = 0xD05C # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Menu_Data
 
 class BattleState(Enum):
     NOT_IN_BATTLE = 0
@@ -111,7 +112,7 @@ def money(game):
         + 100 * bcd(game.get_memory_value(MONEY_ADDR_100))
         + bcd(game.get_memory_value(MONEY_ADDR_10000)))
 
-def badges(game):
+def check_if_player_has_gym_one_badge(game):
     badges = game.get_memory_value(BADGE_1_ADDR)
     return bit_count(badges)
 
@@ -189,3 +190,6 @@ def is_in_battle(game):
 def pokecenter(game):
     #https://github.com/CJBoey/PokemonRedExperiments1/blob/4024b8793e25a895a07efb07529c5728f076412d/baselines/boey_baselines/red_gym_env.py#L629C2-L635C53
     return 5
+def check_if_gym_leader_music_is_playing(game):
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Menu_Data
+    return game.get_memory_value(BOOLEAN_FLAG_THAT_INDICATES_THE_GAME_GYM_LEADER_MUSIC_IS_PLAYING)

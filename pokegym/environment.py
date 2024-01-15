@@ -85,6 +85,7 @@ class Base:
             "total_party_max_hit_point" : spaces.Box(low=0, high=999, shape=(1,), dtype=np.uint16),
             "party_health_ratio": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "total_party_level": spaces.Box(low=0, high=600, shape=(1,), dtype=np.uint16),
+            "each_pokemon_level": spaces.Box(low=0, high=100, shape=(6,), dtype=np.uint8),
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
@@ -147,6 +148,7 @@ class Environment(Base):
         
         self.number_of_wild_battle = 0
         self.number_of_trainer_battle = 0
+        self.number_of_gym_leader_music_is_playing = 0
 
         #return self.render()[::2, ::2], {}
         return {"screen": self.render()[::2, ::2], 
@@ -157,6 +159,7 @@ class Environment(Base):
                 "total_party_max_hit_point": ram_map.total_party_max_hit_point(self.game),
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
                 "total_party_level": sum(ram_map.party(self.game)[2]),
+                "each_pokemon_level": ram_map.party(self.game)[2],
                 }, {}
 
     def step(self, action, fast_video=True):
@@ -177,6 +180,8 @@ class Environment(Base):
         # Previous Health Ratio
         prev_health_ratio = ram_map.party_health_ratio(self.game)
         
+        # Previous own a gym badge
+        prev_badges_one  = ram_map.check_if_player_has_gym_one_badge(self.game)
         
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
@@ -222,10 +227,15 @@ class Environment(Base):
         max_opponent_level = max(ram_map.opponent(self.game))
         self.max_opponent_level = max(self.max_opponent_level, max_opponent_level)
         opponent_level_reward = 0
-
+        # gym
+        ## Gym Music 
+        ### Gym Leader Music is playing
+        if ram_map.check_if_gym_leader_music_is_playing(self.game):
+            self.number_of_gym_leader_music_is_playing += 1
         # Badge reward
-        badges = ram_map.badges(self.game)
-        badges_reward = 5 * badges
+        badges_reward = 0
+        if not prev_badges_one and  ram_map.check_if_player_has_gym_one_badge(self.game):
+            badges_reward += 10
 
         # Event reward
         events = ram_map.events(self.game)
@@ -274,8 +284,13 @@ class Environment(Base):
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             reward_for_battle += 1
             self.number_of_trainer_battle += 1
+            # Reward the Agent for choosing to be in a gym battle
+            if ram_map.check_if_gym_leader_music_is_playing(self.game):
+                reward_for_battle += 1
         elif current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
             reward_for_battle -= 1
+            
+
         
         reward: float =  (
                 event_reward 
@@ -313,6 +328,7 @@ class Environment(Base):
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
                 'maps_explored': len(self.seen_maps),
+                "number_of_uniqiue_coordinate_it_explored:": len(self.seen_coords),
                 'party_size': next_state_party_size,
                 'highest_pokemon_level': max(next_state_party_levels),
                 'total_party_level': sum(next_state_party_levels),
@@ -335,6 +351,7 @@ class Environment(Base):
                 "total_party_hit_point" : ram_map.total_party_hit_point(self.game),
                 "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
+                "number_of_time_gym_leader_music_is_playing": self.number_of_gym_leader_music_is_playing,
                 #"current_state_is_in_battle": current_state_is_in_battle, enum
                 #"next_state_is_in_battle": next_state_is_in_battle, #enum
                 "player_row_position": row,
@@ -350,12 +367,13 @@ class Environment(Base):
                 "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
                 "next_state_completing_the_pokedex": next_state_completing_the_pokedex,
             }
+            for index , level in enumerate(next_state_party_levels):
+                info[f'pokemon_{ index +1 }_level'] = level
 
         if self.verbose:
             print(
                 f'time: {self.time}',
                 f'exploration reward: {exploration_reward}',
-                f'healing: {healing_reward}',
                 f'death: {death_reward}',
                 f'op_level: {opponent_level_reward}',
                 f'badges reward: {badges_reward}',
@@ -363,6 +381,7 @@ class Environment(Base):
                 f'money: {money}',
                 f'ai reward: {reward}',
                 f"In a trainer battle: {current_state_is_in_battle}",
+                f"Gym Leader Music is playing: {ram_map.check_if_gym_leader_music_is_playing(self.game)}",
                 f'Info: {info}',
             )
         # Observation , reward, done, info
@@ -375,6 +394,7 @@ class Environment(Base):
             "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
             "party_health_ratio": ram_map.party_health_ratio(self.game),
             "total_party_level": sum(next_state_party_levels),
+            "each_pokemon_level": next_state_party_levels,
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
