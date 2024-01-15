@@ -81,6 +81,10 @@ class Base:
             "party_size": spaces.Discrete(6),
             "player_row": spaces.Box(low=0, high=444, shape=(1,), dtype=np.uint16),
             "player_column": spaces.Box(low=0, high=436, shape=(1,), dtype=np.uint16),
+            "total_party_hit_point" : spaces.Box(low=0, high=999, shape=(1,), dtype=np.uint16),
+            "total_party_max_hit_point" : spaces.Box(low=0, high=999, shape=(1,), dtype=np.uint16),
+            "party_health_ratio": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "total_party_level": spaces.Box(low=0, high=600, shape=(1,), dtype=np.uint16),
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
@@ -145,7 +149,15 @@ class Environment(Base):
         self.number_of_trainer_battle = 0
 
         #return self.render()[::2, ::2], {}
-        return {"screen": self.render()[::2, ::2], "party_size": 0, "player_row":0, "player_column":0 , "total_party_hit_point":0, "total_party_max_hit_point":0, "party_health_ratio":0 , "total_party_level":0}, {}
+        return {"screen": self.render()[::2, ::2], 
+                "party_size": ram_map.party(self.game)[1],
+                "player_row": ram_map.position(self.game)[0],
+                "player_column": ram_map.position(self.game)[1],
+                "total_party_hit_point": ram_map.total_party_hit_point(self.game),
+                "total_party_max_hit_point": ram_map.total_party_max_hit_point(self.game),
+                "party_health_ratio": ram_map.party_health_ratio(self.game),
+                "total_party_level": sum(ram_map.party(self.game)[2]),
+                }, {}
 
     def step(self, action, fast_video=True):
         # Reward the agent for seeing new pokemon that it never had seen 
@@ -161,6 +173,9 @@ class Environment(Base):
         current_state_is_in_battle:ram_map.BattleState = ram_map.is_in_battle(self.game)
         # Reward the increaseing the team pokemon levels
         prev_party, prev_party_size, prev_party_levels = ram_map.party(self.game)
+        
+        # Previous Health Ratio
+        prev_health_ratio = ram_map.party_health_ratio(self.game)
         
         
         
@@ -200,7 +215,7 @@ class Environment(Base):
 
 
         # Set rewards
-        healing_reward = self.total_healing
+        #healing_reward = self.total_healing
         death_reward = -0.05 * self.death_count
 
         # Opponent level reward
@@ -249,6 +264,11 @@ class Environment(Base):
         # number of hm moves my pokemon party has
         total_number_hm_moves_that_my_pokemon_party_has = ram_map.total_hm_party_has(self.game)
         
+        # Reward the agent increase the health ratio health party by healing only not by adding a new pokemon
+        next_health_ratio = ram_map.party_health_ratio(self.game)
+        assert next_health_ratio >= 0 and next_health_ratio <= 1, f"next_health_ratio: {next_health_ratio}"
+        reward_for_healing = max( next_health_ratio - prev_health_ratio , 0)
+        
         reward_for_battle = 0
         # Reward the Agent for choosing to be in a trainer battle and not losing
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
@@ -263,7 +283,7 @@ class Environment(Base):
                 + opponent_level_reward 
                 + death_reward 
                 + badges_reward 
-                + healing_reward 
+                + reward_for_healing 
                 + exploration_reward
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward if self.reward_the_agent_for_the_normalize_gain_of_new_money else 0
@@ -283,7 +303,7 @@ class Environment(Base):
                     'opponent_level': opponent_level_reward,
                     'death': death_reward,
                     'badges': badges_reward,
-                    'healing': healing_reward,
+                    'for_healing': reward_for_healing,
                     'exploration': exploration_reward,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "completing_the_pokedex": reward_for_completing_the_pokedex,
@@ -348,7 +368,7 @@ class Environment(Base):
         # Observation , reward, done, info
         observation = {
             'screen': self.render()[::2, ::2],
-            "party_size": next_state_party_size / 6,
+            "party_size": next_state_party_size ,
             "player_row": row,
             "player_column": column,
             "total_party_hit_point" : ram_map.total_party_hit_point(self.game),

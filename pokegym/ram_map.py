@@ -92,11 +92,11 @@ def party_health_ratio(game) -> float:
     party_max_hp:int  = total_party_max_hit_point(game)
 
     # Avoid division by zero if no pokemon
-    sum_max_hp = sum(party_max_hp)
-    if sum_max_hp == 0:
+    #sum_max_hp = sum(party_max_hp)
+    if party_hp == 0 or party_max_hp == 0:
         return 0
+    return party_hp / party_max_hp
 
-    return sum(party_hp) / sum_max_hp
 def total_party_hit_point(game) -> int:
     '''Percentage of total party HP'''
     party_hp = [read_uint16(game, addr) for addr in HP_ADDR]
