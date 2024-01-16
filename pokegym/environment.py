@@ -151,6 +151,7 @@ class Environment(Base):
         self.number_of_gym_leader_music_is_playing = 0
 
         #return self.render()[::2, ::2], {}
+        assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
         return {"screen": self.render()[::2, ::2], 
                 "party_size": ram_map.party(self.game)[1],
                 "player_row": ram_map.position(self.game)[0],
@@ -159,7 +160,7 @@ class Environment(Base):
                 "total_party_max_hit_point": ram_map.total_party_max_hit_point(self.game),
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
                 "total_party_level": sum(ram_map.party(self.game)[2]),
-                "each_pokemon_level": ram_map.party(self.game)[2],
+                "each_pokemon_level": np.array(ram_map.party(self.game)[2]),
                 }, {}
 
     def step(self, action, fast_video=True):
@@ -200,7 +201,7 @@ class Environment(Base):
         if (row, column, map_n) not in self.seen_coords:
             prev_size = len(self.seen_coords)
             self.seen_coords.add((row, column, map_n))
-            exploration_reward = normalize_gaine_exploration = 1.0 - normalize_value(len(self.seen_coords), 0, 444*436, 0, 1)
+            exploration_reward = normalize_gaine_exploration = 1.0 - normalize_value(len(self.seen_coords), 0, 400*400, 0, 1) # it cannot visit all the places, therefore it should low esimate but at the point it should be able many thing at ht epoint
             assert normalize_gaine_exploration >= 0.0 and normalize_gaine_exploration <= 1.0, f"normalize_gaine_exploration: {normalize_gaine_exploration}"
             assert len(self.seen_coords) > prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
             assert len(self.seen_coords) - prev_size == 1, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
@@ -286,7 +287,11 @@ class Environment(Base):
                 self.number_of_gym_leader_music_is_playing += 1
         elif current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
             reward_for_battle -= 1
-            
+            self.death_count += 1
+        elif current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
+            reward_for_battle -= 1 # Punished the agent for losing a wild battle
+            self.death_count += 1
+        #elif current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE:
 
         
         reward: float =  (
@@ -330,8 +335,8 @@ class Environment(Base):
                 'highest_pokemon_level': max(next_state_party_levels),
                 'total_party_level': sum(next_state_party_levels),
                 'deaths': self.death_count,
-                'badge_1': float(badges == 1),
-                'badge_2': float(badges > 1),
+                'badge_1': ram_map.check_if_player_has_gym_one_badge(self.game),
+                #'badge_2': float(badges > 1),
                 'event': events,
                 'money': money,
                 'pokemon_exploration_map': self.counts_map,
@@ -382,6 +387,7 @@ class Environment(Base):
                 f'Info: {info}',
             )
         # Observation , reward, done, info
+        assert isinstance(next_state_party_levels, list), f"next_state_party_levels: {next_state_party_levels}"
         observation = {
             'screen': self.render()[::2, ::2],
             "party_size": next_state_party_size ,
@@ -391,7 +397,7 @@ class Environment(Base):
             "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
             "party_health_ratio": ram_map.party_health_ratio(self.game),
             "total_party_level": sum(next_state_party_levels),
-            "each_pokemon_level": next_state_party_levels,
+            "each_pokemon_level": np.array(next_state_party_levels),
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
