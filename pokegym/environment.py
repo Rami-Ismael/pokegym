@@ -87,6 +87,9 @@ class Base:
             "total_party_level": spaces.Box(low=0, high=600, shape=(1,), dtype=np.uint16),
             "each_pokemon_level": spaces.Box(low=0, high=100, shape=(6,), dtype=np.uint8),
             "type_of_battle" :spaces.Box(low=-1, high=2, shape=(1,), dtype=np.int8),
+            "player_pokemon_party_id": spaces.Box(low=0, high=255, shape=(6,), dtype=np.uint8),
+            "opponent_pokemon_party_id": spaces.Box(low=0, high=255, shape=(6,), dtype=np.uint8),
+        
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
@@ -165,6 +168,8 @@ class Environment(Base):
                 "total_party_level": sum(ram_map.party(self.game)[2]),
                 "each_pokemon_level": np.array(ram_map.party(self.game)[2]),
                 "type_of_battle": ram_map.is_in_battle(self.game).value, # 0 means not in battle, 1 means wild battle, 2 means trainer battle
+                "player_pokemon_party_id": ram_map.get_party_pokemon_id(self.game),
+                "opponent_pokemon_party_id": ram_map.get_opponent_party_pokemon_id(self.game),
                 }, {}
 
     def step(self, action, fast_video=True):
@@ -292,7 +297,6 @@ class Environment(Base):
         if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
             reward_for_battle -= .5 # Punished the agent for losing a wild battle
             self.death_count += 1
-        #if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and 
         
         wipe_out = 0
         if ram_map.total_party_hit_point(self.game) == 0:
@@ -306,7 +310,7 @@ class Environment(Base):
         discourage_running_from_battle = 0   
         if ram_map.number_of_attempt_running(self.game) :
             self.total_numebr_attempted_to_run += 1
-            discourage_running_from_battle -= 4
+            discourage_running_from_battle -= 8
             
         
 
@@ -395,6 +399,14 @@ class Environment(Base):
             }
             for index , level in enumerate(next_state_party_levels):
                 info[f'pokemon_{ index +1 }_level'] = level
+            try:
+                for index , pokemon_id in enumerate(ram_map.get_party_pokemon_id(self.game)):
+                    info[f'pokemon_{ index +1 }_id'] = pokemon_id
+            except Exception as e:
+                print(f"Error: {e}")
+                print(f"ram_map.get_party_pokemon_id(self.game): {ram_map.get_party_pokemon_id(self.game)}")
+            for index , pokemon_id in enumerate(ram_map.get_opponent_party_pokemon_id(self.game)):
+                info[f'opponent_pokemon_{ index +1 }_id'] = pokemon_id
 
         if self.verbose:
             print(
@@ -423,6 +435,8 @@ class Environment(Base):
             "total_party_level": sum(next_state_party_levels),
             "each_pokemon_level": np.array(next_state_party_levels, dtype=np.uint8),
             "type_of_battle": next_state_is_in_battle.value, # 0 means not in battle, 1 means wild battle, 2 means trainer battle
+            "player_pokemon_party_id": ram_map.get_party_pokemon_id(self.game),
+            "opponent_pokemon_party_id": ram_map.get_opponent_party_pokemon_id(self.game),
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
