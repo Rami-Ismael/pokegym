@@ -86,7 +86,7 @@ class Base:
             "party_health_ratio": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "total_party_level": spaces.Box(low=0, high=600, shape=(1,), dtype=np.uint16),
             "each_pokemon_level": spaces.Box(low=0, high=100, shape=(6,), dtype=np.uint8),
-            "type_of_battle" :spaces.Box(low=-1, high=2, shape=(1,), dtype=np.uint8),
+            "type_of_battle" :spaces.Box(low=-1, high=2, shape=(1,), dtype=np.int8),
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
@@ -164,6 +164,7 @@ class Environment(Base):
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
                 "total_party_level": sum(ram_map.party(self.game)[2]),
                 "each_pokemon_level": np.array(ram_map.party(self.game)[2]),
+                "type_of_battle": ram_map.is_in_battle(self.game).value, # 0 means not in battle, 1 means wild battle, 2 means trainer battle
                 }, {}
 
     def step(self, action, fast_video=True):
@@ -227,7 +228,7 @@ class Environment(Base):
 
         # Set rewards
         #healing_reward = self.total_healing
-        death_reward = -0.05 * self.death_count
+        death_reward = 0
         # gym
         # Badge reward
         badges_reward = 0
@@ -299,13 +300,13 @@ class Environment(Base):
             wipe_out += 1
         opponent_level_reward = 0
         if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE or next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
-            if self.max_opponent_level > max(ram_map.opponent(self.game)):
+            if self.max_opponent_level < max(ram_map.opponent(self.game)):
                 self.max_opponent_level = max(ram_map.opponent(self.game))
                 opponent_level_reward += 1
         discourage_running_from_battle = 0   
         if ram_map.number_of_attempt_running(self.game) :
             self.total_numebr_attempted_to_run += 1
-            discourage_running_from_battle -= 1
+            discourage_running_from_battle -= 4
             
         
 
@@ -344,6 +345,8 @@ class Environment(Base):
                     "completing_the_pokedex": reward_for_completing_the_pokedex,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
                     "winning_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
+                    "increase_party_size": reward_the_agent_for_increasing_the_party_size,
+                    "discourage_running_from_battle": discourage_running_from_battle,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
@@ -375,8 +378,8 @@ class Environment(Base):
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
                 "total_number_of_time_attempted_to_run": self.total_numebr_attempted_to_run,
-                #"current_state_is_in_battle": current_state_is_in_battle, enum
-                #"next_state_is_in_battle": next_state_is_in_battle, #enum
+                "current_state_is_in_battle": current_state_is_in_battle.value , 
+                "next_state_is_in_battle": next_state_is_in_battle.value , 
                 "player_row_position": row,
                 "player_column_position": column,
                 "player_global_row_position": global_row,
@@ -419,6 +422,7 @@ class Environment(Base):
             "party_health_ratio": ram_map.party_health_ratio(self.game),
             "total_party_level": sum(next_state_party_levels),
             "each_pokemon_level": np.array(next_state_party_levels, dtype=np.uint8),
+            "type_of_battle": next_state_is_in_battle.value, # 0 means not in battle, 1 means wild battle, 2 means trainer battle
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
