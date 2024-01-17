@@ -86,6 +86,7 @@ class Base:
             "party_health_ratio": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "total_party_level": spaces.Box(low=0, high=600, shape=(1,), dtype=np.uint16),
             "each_pokemon_level": spaces.Box(low=0, high=100, shape=(6,), dtype=np.uint8),
+            "type_of_battle" :spaces.Box(low=-1, high=2, shape=(1,), dtype=np.uint8),
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
@@ -150,6 +151,7 @@ class Environment(Base):
         self.number_of_trainer_battle = 0
         self.number_of_gym_leader_music_is_playing = 0
         self.total_wipe_out = 0
+        self.total_numebr_attempted_to_run = 0 
 
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
@@ -300,6 +302,10 @@ class Environment(Base):
             if self.max_opponent_level > max(ram_map.opponent(self.game)):
                 self.max_opponent_level = max(ram_map.opponent(self.game))
                 opponent_level_reward += 1
+        discourage_running_from_battle = 0   
+        if ram_map.number_of_attempt_running(self.game) :
+            self.total_numebr_attempted_to_run += 1
+            discourage_running_from_battle -= 1
             
         
 
@@ -317,11 +323,13 @@ class Environment(Base):
                 + reward_for_battle
                 + reward_the_agent_increase_the_level_of_the_pokemon   
                 + reward_the_agent_for_increasing_the_party_size
+                + discourage_running_from_battle
         )
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 1024 == 0 or self.time >= self.max_episode_steps:
+        #if self.time % 1024 == 0 or self.time >= self.max_episode_steps:
+        if True:
             info = {
                 'reward': {
                     'reward': reward,
@@ -366,6 +374,7 @@ class Environment(Base):
                 "number_of_time_gym_leader_music_is_playing": self.number_of_gym_leader_music_is_playing,
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
+                "total_number_of_time_attempted_to_run": self.total_numebr_attempted_to_run,
                 #"current_state_is_in_battle": current_state_is_in_battle, enum
                 #"next_state_is_in_battle": next_state_is_in_battle, #enum
                 "player_row_position": row,

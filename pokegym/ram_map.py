@@ -31,6 +31,7 @@ FIRST_ITEM_ADDR = 0xD31E
 POKEMON_PARTY_MOVES_ADDR = [0xD173,0xD174, 0xD175, 0xD176 , 0xD19F, 0xD1A0, 0xD1A1, 0xD1A2, 0xD1CB, 0xD1CC, 0xD1CD, 0xD1CE, 0xD1F7, 0xD1F8, 0xD1F9, 0xD1FA, 0xD223, 0xD224, 0xD225, 0xD226, 0xD24F, 0xD250, 0xD251, 0xD252]
 BATTLE_FLAG = 0xD057
 BOOLEAN_FLAG_THAT_INDICATES_THE_GAME_GYM_LEADER_MUSIC_IS_PLAYING = 0xD05C # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Menu_Data
+NUMBER_RUN_ATTEMPTS_ADDR = 0xD120
 
 class BattleState(Enum):
     NOT_IN_BATTLE = 0
@@ -193,3 +194,6 @@ def pokecenter(game):
 def check_if_gym_leader_music_is_playing(game):
     # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Menu_Data
     return game.get_memory_value(BOOLEAN_FLAG_THAT_INDICATES_THE_GAME_GYM_LEADER_MUSIC_IS_PLAYING)
+def number_of_attempt_running(game)-> int:
+    return game.get_memory_value(NUMBER_RUN_ATTEMPTS_ADDR)
+        
