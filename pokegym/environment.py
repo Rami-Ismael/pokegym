@@ -123,7 +123,7 @@ class Environment(Base):
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.last_map = -1
 
-    def reset(self, seed=None, options=None,  max_episode_steps = 65536, reward_scale=1):
+    def reset(self, seed=None, options=None,  max_episode_steps = 2**18, reward_scale=1):
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
 
@@ -215,7 +215,9 @@ class Environment(Base):
         #party, party_size, party_levels = ram_map.party(self.game)
         next_state_party, next_state_party_size, next_state_party_levels = ram_map.party(self.game)
         self.max_level_sum = sum(next_state_party_levels)
-        reward_the_agent_increase_the_level_of_the_pokemon: float =  ( sum(next_state_party_levels) - sum(prev_party_levels) )  / (600- sum(prev_party_levels))
+        reward_the_agent_increase_the_level_of_the_pokemon: float =  ( sum(next_state_party_levels) - sum(prev_party_levels) )  / (  ( next_state_party_size * 100 ) - sum(prev_party_levels))
+        reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size )
+        assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
 
 
 
@@ -281,18 +283,20 @@ class Environment(Base):
             if ram_map.check_if_gym_leader_music_is_playing(self.game):
                 reward_for_battle += 1
                 self.number_of_gym_leader_music_is_playing += 1
-        elif current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
+        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
             reward_for_battle -= .5 # Punished the agent for losing a trainer battle a bit not to lose but still want to fight
             self.death_count += 1
-        elif current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
-            reward_for_battle -= 1 # Punished the agent for losing a wild battle
+        if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
+            reward_for_battle -= .5 # Punished the agent for losing a wild battle
             self.death_count += 1
+        #if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and 
         
         wipe_out = 0
-        if game_map.total_party_hit_point(self.game) == 0:
+        if ram_map.total_party_hit_point(self.game) == 0:
             self.total_wipe_out += 1 # Wipe out means the agent has lost all of its pokemon in battle or poison
             wipe_out += 1
-        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
+        opponent_level_reward = 0
+        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE or next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             if self.max_opponent_level > max(ram_map.opponent(self.game)):
                 self.max_opponent_level = max(ram_map.opponent(self.game))
                 opponent_level_reward += 1
@@ -311,13 +315,13 @@ class Environment(Base):
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward if self.reward_the_agent_for_the_normalize_gain_of_new_money else 0
                 + reward_for_battle
+                + reward_the_agent_increase_the_level_of_the_pokemon   
+                + reward_the_agent_for_increasing_the_party_size
         )
 
-
         info = {}
-        done: bool = self.time >= self.max_episode_steps or self.max_episode_steps / self.time == 2 or self.max_episode_steps / self.time == 4
-        #done = True
-        if done:
+        done = self.time >= self.max_episode_steps
+        if self.time % 1024 == 0 or self.time >= self.max_episode_steps:
             info = {
                 'reward': {
                     'reward': reward,
@@ -360,7 +364,7 @@ class Environment(Base):
                 "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
                 "number_of_time_gym_leader_music_is_playing": self.number_of_gym_leader_music_is_playing,
-                "total_wipe_out": self.wipe_out,
+                "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
                 #"current_state_is_in_battle": current_state_is_in_battle, enum
                 #"next_state_is_in_battle": next_state_is_in_battle, #enum
@@ -405,7 +409,7 @@ class Environment(Base):
             "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
             "party_health_ratio": ram_map.party_health_ratio(self.game),
             "total_party_level": sum(next_state_party_levels),
-            "each_pokemon_level": np.array(next_state_party_levels),
+            "each_pokemon_level": np.array(next_state_party_levels, dtype=np.uint8),
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
