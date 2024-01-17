@@ -195,7 +195,7 @@ class Environment(Base):
         prev_badges_one  = ram_map.check_if_player_has_gym_one_badge(self.game)
         
         # current opponent pokemon health points
-        current_state_opponent_pokemon_health_points:np.array = ram_map.opponent_pokemon_health_points(self.game)
+        current_state_opponent_pokemon_health_points:np.array = ram_map.get_opponent_party_pokemon_hp(self.game)
         
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
@@ -314,9 +314,9 @@ class Environment(Base):
         discourage_running_from_battle = 0   
         if ram_map.number_of_attempt_running(self.game) :
             self.total_numebr_attempted_to_run += 1
-            discourage_running_from_battle -= 8
+            discourage_running_from_battle -= 16
         reward_the_agent_for_fainting_a_opponent_pokemon_during_battle = 0
-        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and (np.count_nonzero(current_state_opponent_pokemon_health_points) > np.count_nonzero(ram_map.opponent_pokemon_health_points(self.game))):
+        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and (np.count_nonzero(current_state_opponent_pokemon_health_points) < np.count_nonzero(ram_map.opponent_pokemon_health_points(self.game))):
             reward_the_agent_for_fainting_a_opponent_pokemon_during_battle += 1
             self.total_number_of_opponent_pokemon_fainted += 1
          
@@ -391,7 +391,6 @@ class Environment(Base):
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
                 "total_number_of_time_attempted_to_run": self.total_numebr_attempted_to_run,
-                "total_number_of_opponent_pokemon_fainted": self.total_number_of_opponent_pokemon_fainted,
                 "current_state_is_in_battle": current_state_is_in_battle.value , 
                 "next_state_is_in_battle": next_state_is_in_battle.value , 
                 "player_row_position": row,
