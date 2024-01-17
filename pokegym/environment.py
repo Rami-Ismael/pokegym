@@ -154,7 +154,8 @@ class Environment(Base):
         self.number_of_trainer_battle = 0
         self.number_of_gym_leader_music_is_playing = 0
         self.total_wipe_out = 0
-        self.total_numebr_attempted_to_run = 0 
+        self.total_numebr_attempted_to_run = 0
+        self.total_number_of_opponent_pokemon_fainted = 0
 
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
@@ -192,6 +193,9 @@ class Environment(Base):
         
         # Previous own a gym badge
         prev_badges_one  = ram_map.check_if_player_has_gym_one_badge(self.game)
+        
+        # current opponent pokemon health points
+        current_state_opponent_pokemon_health_points:np.array = ram_map.opponent_pokemon_health_points(self.game)
         
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
@@ -311,7 +315,11 @@ class Environment(Base):
         if ram_map.number_of_attempt_running(self.game) :
             self.total_numebr_attempted_to_run += 1
             discourage_running_from_battle -= 8
-            
+        reward_the_agent_for_fainting_a_opponent_pokemon_during_battle = 0
+        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and (np.count_nonzero(current_state_opponent_pokemon_health_points) > np.count_nonzero(ram_map.opponent_pokemon_health_points(self.game))):
+            reward_the_agent_for_fainting_a_opponent_pokemon_during_battle += 1
+            self.total_number_of_opponent_pokemon_fainted += 1
+         
         
 
         
@@ -329,12 +337,12 @@ class Environment(Base):
                 + reward_the_agent_increase_the_level_of_the_pokemon   
                 + reward_the_agent_for_increasing_the_party_size
                 + discourage_running_from_battle
+                + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
         )
 
         info = {}
         done = self.time >= self.max_episode_steps
-        #if self.time % 1024 == 0 or self.time >= self.max_episode_steps:
-        if True:
+        if self.time % 1024 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
@@ -351,6 +359,7 @@ class Environment(Base):
                     "winning_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
                     "increase_party_size": reward_the_agent_for_increasing_the_party_size,
                     "discourage_running_from_battle": discourage_running_from_battle,
+                    "reward_the_agent_for_fainting_a_opponent_pokemon_during_battle": reward_the_agent_for_fainting_a_opponent_pokemon_during_battle,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
@@ -382,6 +391,7 @@ class Environment(Base):
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
                 "total_number_of_time_attempted_to_run": self.total_numebr_attempted_to_run,
+                "total_number_of_opponent_pokemon_fainted": self.total_number_of_opponent_pokemon_fainted,
                 "current_state_is_in_battle": current_state_is_in_battle.value , 
                 "next_state_is_in_battle": next_state_is_in_battle.value , 
                 "player_row_position": row,

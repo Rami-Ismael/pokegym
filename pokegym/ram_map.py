@@ -11,6 +11,7 @@ POKE_XP_ADDR = [0xD179, 0xD1A5, 0xD1D1, 0xD1FD, 0xD229, 0xD255]
 CAUGHT_POKE_ADDR = range(0xD2F7, 0xD309) # base on the pokemon did you caught the pokemon
 SEEN_POKE_ADDR = range(0xD30A, 0xD31D) # base on the pokemon did you seen the pokemon
 OPPONENT_LEVEL_ADDR = [0xD8C5, 0xD8F1, 0xD91D, 0xD949, 0xD975, 0xD9A1]
+OPPONENT_HP_ADDR = [0xD8C6, 0xD8F2, 0xD91E, 0xD94A, 0xD976, 0xD9A2]
 X_POS_ADDR = 0xD362
 Y_POS_ADDR = 0xD361
 MAP_N_ADDR = 0xD35E
@@ -204,4 +205,7 @@ def get_party_pokemon_id(self) -> np.array:
     return np.array( [self.get_memory_value(single_pokemon_pokemon_id_addr) for single_pokemon_pokemon_id_addr in POKEMONI_PARTY_IDS_ADDR]) 
 def get_opponent_party_pokemon_id(self) -> np.array:
     return np.array( [self.get_memory_value(single_pokemon_pokemon_id_addr) for single_pokemon_pokemon_id_addr in OPPONENT_PARRTY_IDS_ADDR])
+
+def get_opponent_party_pokemon_hp(self) -> np.array:
+    return np.array( [self.get_memory_value(single_pokemon_pokemon_hp_addr) for single_pokemon_pokemon_hp_addr in OPPONENT_HP_ADDR])
         
