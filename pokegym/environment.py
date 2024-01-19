@@ -227,9 +227,12 @@ class Environment(Base):
         #party, party_size, party_levels = ram_map.party(self.game)
         next_state_party, next_state_party_size, next_state_party_levels = ram_map.party(self.game)
         self.max_level_sum = sum(next_state_party_levels)
-        reward_the_agent_increase_the_level_of_the_pokemon: float =  ( sum(next_state_party_levels) - sum(prev_party_levels) )  / (  ( next_state_party_size * 100 ) - sum(prev_party_levels))
+        reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)  
+        reward_the_agent_increase_the_level_of_the_pokemon:float = min(1 , reward_the_agent_increase_the_level_of_the_pokemon)
         reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size )
-        assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
+        #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
+        ## Reward the agent for increasing the highest level of the pokemon
+        reward_tha_agent_increase_the_highest_level_of_the_pokemon: float = max(next_state_party_levels) - max(prev_party_levels)
 
 
 
@@ -246,8 +249,11 @@ class Environment(Base):
 
         # Event reward
         events = ram_map.events(self.game)
-        self.max_events = max(self.max_events, events)
-        event_reward = self.max_events
+        event_reward  = 0
+        if events > self.max_events:
+            event_reward += 1
+            self.max_events = events
+            
         # Money Reward
         next_state_money = money = ram_map.money(self.game)
         assert next_state_money >= 0 and next_state_money <= 999999, f"next_state_money: {next_state_money}"
@@ -312,9 +318,9 @@ class Environment(Base):
                 self.max_opponent_level = max(ram_map.opponent(self.game))
                 opponent_level_reward += 1
         discourage_running_from_battle = 0   
-        if ram_map.number_of_attempt_running(self.game) :
-            self.total_numebr_attempted_to_run += 1
-            discourage_running_from_battle -= 16
+        #if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE:
+        #    self.total_numebr_attempted_to_run += 1
+        #    discourage_running_from_battle -= 1
         reward_the_agent_for_fainting_a_opponent_pokemon_during_battle = 0
         if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and (np.count_nonzero(current_state_opponent_pokemon_health_points) < np.count_nonzero(ram_map.opponent_pokemon_health_points(self.game))):
             reward_the_agent_for_fainting_a_opponent_pokemon_during_battle += 1
@@ -338,6 +344,7 @@ class Environment(Base):
                 + reward_the_agent_for_increasing_the_party_size
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
+                + reward_tha_agent_increase_the_highest_level_of_the_pokemon
         )
 
         info = {}
@@ -360,6 +367,7 @@ class Environment(Base):
                     "increase_party_size": reward_the_agent_for_increasing_the_party_size,
                     "discourage_running_from_battle": discourage_running_from_battle,
                     "reward_the_agent_for_fainting_a_opponent_pokemon_during_battle": reward_the_agent_for_fainting_a_opponent_pokemon_during_battle,
+                    "reward_tha_agent_increase_the_highest_level_of_the_pokemon": reward_tha_agent_increase_the_highest_level_of_the_pokemon,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
