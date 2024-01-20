@@ -118,6 +118,7 @@ class Environment(Base):
             state_path=None, headless=True, quiet=False, verbose=False, 
             reward_the_agent_for_completing_the_pokedex=True,
             reward_the_agent_for_the_normalize_gain_of_new_money = True,
+            punish_wipe_out:bool = False,
             **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
         # https://github.com/xinpw8/pokegym/blob/d44ee5048d597d7eefda06a42326220dd9b6295f/pokegym/environment.py#L233
@@ -126,8 +127,9 @@ class Environment(Base):
         self.reward_the_agent_for_completing_the_pokedex: bool = reward_the_agent_for_completing_the_pokedex
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.last_map = -1
+        self.punish_wipe_out: bool = punish_wipe_out
 
-    def reset(self, seed=None, options=None,  max_episode_steps = 2**18, reward_scale=1):
+    def reset(self, seed=None, options=None,  max_episode_steps = 2**16, reward_scale=1):
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
 
@@ -214,7 +216,7 @@ class Environment(Base):
         if (row, column, map_n) not in self.seen_coords:
             prev_size = len(self.seen_coords)
             self.seen_coords.add((row, column, map_n))
-            exploration_reward = normalize_gaine_exploration = 1.0 - normalize_value(len(self.seen_coords), 0, 400*400, 0, 1) # it cannot visit all the places, therefore it should low esimate but at the point it should be able many thing at ht epoint
+            exploration_reward = normalize_gaine_exploration = 1.0 - normalize_value(len(self.seen_coords), min_x = 0, max_x = 436 * 444, a = 0, b =1) # it cannot visit all the places, therefore it should low esimate but at the point it should be able many thing at ht epoint
             assert normalize_gaine_exploration >= 0.0 and normalize_gaine_exploration <= 1.0, f"normalize_gaine_exploration: {normalize_gaine_exploration}"
             assert len(self.seen_coords) > prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
             assert len(self.seen_coords) - prev_size == 1, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
@@ -228,11 +230,11 @@ class Environment(Base):
         next_state_party, next_state_party_size, next_state_party_levels = ram_map.party(self.game)
         self.max_level_sum = sum(next_state_party_levels)
         reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)  
-        reward_the_agent_increase_the_level_of_the_pokemon:float = min(1 , reward_the_agent_increase_the_level_of_the_pokemon)
-        reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size )
+        reward_the_agent_increase_the_level_of_the_pokemon:float = reward_the_agent_increase_the_level_of_the_pokemon / 600
+        reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size ) / 6
         #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
         ## Reward the agent for increasing the highest level of the pokemon
-        reward_tha_agent_increase_the_highest_level_of_the_pokemon: float = max(next_state_party_levels) - max(prev_party_levels)
+        reward_tha_agent_increase_the_highest_level_of_the_pokemon: float =  ( max(next_state_party_levels) - max(prev_party_levels) )  / 100
 
 
 
@@ -345,6 +347,7 @@ class Environment(Base):
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + reward_tha_agent_increase_the_highest_level_of_the_pokemon
+                + wipe_out * -1 if punish_wipe else 0
         )
 
         info = {}
