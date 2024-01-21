@@ -229,7 +229,9 @@ class Environment(Base):
         #party, party_size, party_levels = ram_map.party(self.game)
         next_state_party, next_state_party_size, next_state_party_levels = ram_map.party(self.game)
         self.max_level_sum = sum(next_state_party_levels)
-        reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)  
+        reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)
+        if np.count_nonzero(next_state_party_levels) != np.count_nonzero(prev_party_levels):  
+            reward_the_agent_increase_the_level_of_the_pokemon = 0 # you should get a reward only if you increase the level of the pokemon not by capturing new pokemon 
         reward_the_agent_increase_the_level_of_the_pokemon:float = reward_the_agent_increase_the_level_of_the_pokemon / 600
         reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size ) / 6
         #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
@@ -293,6 +295,8 @@ class Environment(Base):
         next_health_ratio = ram_map.party_health_ratio(self.game)
         assert next_health_ratio >= 0 and next_health_ratio <= 1, f"next_health_ratio: {next_health_ratio}"
         reward_for_healing = max( next_health_ratio - prev_health_ratio , 0)
+        if prev_party_size != next_state_party_size or ram_map.total_party_hit_point(self.game) == 0:
+            reward_for_healing = 0
         
         reward_for_battle = 0
         # Reward the Agent for choosing to be in a trainer battle and not losing
@@ -347,7 +351,7 @@ class Environment(Base):
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + reward_tha_agent_increase_the_highest_level_of_the_pokemon
-                + wipe_out * -1 if punish_wipe else 0
+                + wipe_out * -1 if self.punish_wipe_out else 0
         )
 
         info = {}
