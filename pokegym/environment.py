@@ -235,8 +235,6 @@ class Environment(Base):
         reward_the_agent_increase_the_level_of_the_pokemon:float = reward_the_agent_increase_the_level_of_the_pokemon / 600
         reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size ) / 6
         #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
-        ## Reward the agent for increasing the highest level of the pokemon
-        reward_tha_agent_increase_the_highest_level_of_the_pokemon: float =  ( max(next_state_party_levels) - max(prev_party_levels) )  / 100
 
 
 
@@ -350,7 +348,6 @@ class Environment(Base):
                 + reward_the_agent_for_increasing_the_party_size
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
-                + reward_tha_agent_increase_the_highest_level_of_the_pokemon
                 + wipe_out * -1 if self.punish_wipe_out else 0
         )
 
@@ -374,7 +371,6 @@ class Environment(Base):
                     "increase_party_size": reward_the_agent_for_increasing_the_party_size,
                     "discourage_running_from_battle": discourage_running_from_battle,
                     "reward_the_agent_for_fainting_a_opponent_pokemon_during_battle": reward_the_agent_for_fainting_a_opponent_pokemon_during_battle,
-                    "reward_tha_agent_increase_the_highest_level_of_the_pokemon": reward_tha_agent_increase_the_highest_level_of_the_pokemon,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
