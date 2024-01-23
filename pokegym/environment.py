@@ -375,7 +375,7 @@ class Environment(Base):
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
                 'maps_explored': len(self.seen_maps),
-                "number_of_uniqiue_coordinate_it_explored:": len(self.seen_coords),
+                "number_of_uniqiue_coordinate_it_explored": len(self.seen_coords),
                 'party_size': next_state_party_size,
                 'highest_pokemon_level': max(next_state_party_levels),
                 'total_party_level': sum(next_state_party_levels),
