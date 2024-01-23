@@ -1,21 +1,10 @@
-from pathlib import Path
 from pdb import set_trace as T
 from gymnasium import Env, spaces
 import numpy as np
+import os
 
-from collections import defaultdict
-import io, os
-import random
-
-import matplotlib.pyplot as plt
-
-from pokegym.pyboy_binding import (
-    ACTIONS,
-    make_env,
-    open_state_file,
-    load_pyboy_state,
-    run_action_on_emulator,
-)
+from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
+    load_pyboy_state, run_action_on_emulator)
 from pokegym import ram_map, game_map
 from rich import print
 
@@ -36,14 +25,14 @@ def play():
 
     # Create a mapping from WindowEvent to action index
     window_event_to_action = {
-        "PRESS_ARROW_DOWN": 0,
-        "PRESS_ARROW_LEFT": 1,
-        "PRESS_ARROW_RIGHT": 2,
-        "PRESS_ARROW_UP": 3,
-        "PRESS_BUTTON_A": 4,
-        "PRESS_BUTTON_B": 5,
-        "PRESS_BUTTON_START": 6,
-        "PRESS_BUTTON_SELECT": 7,
+        'PRESS_ARROW_DOWN': 0,
+        'PRESS_ARROW_LEFT': 1,
+        'PRESS_ARROW_RIGHT': 2,
+        'PRESS_ARROW_UP': 3,
+        'PRESS_BUTTON_A': 4,
+        'PRESS_BUTTON_B': 5,
+        'PRESS_BUTTON_START': 6,
+        'PRESS_BUTTON_SELECT': 7,
         # Add more mappings if necessary
     }
 
@@ -60,8 +49,7 @@ def play():
             if event_str in window_event_to_action:
                 action_index = window_event_to_action[event_str]
                 observation, reward, done, _, info = env.step(
-                    action_index, fast_video=False
-                )
+                    action_index, fast_video=False)
 
                 # Check for game over
                 if done:
@@ -70,23 +58,19 @@ def play():
 
                 # Additional game logic or information display can go here
                 print(f"new Reward: {reward}\n")
+                
 
 class Base:
-    def __init__(
-        self,
-        rom_path="pokemon_red.gb",
-        state_path=None,
-        headless=True,
-        quiet=False,
-        **kwargs,
-    ):
-        """Creates a PokemonRed environment"""
+    def __init__(self, rom_path='pokemon_red.gb',
+            state_path=None, headless=True, quiet=False, **kwargs):
+        '''Creates a PokemonRed environment'''
         if state_path is None:
-            state_path = __file__.rstrip("environment.py") + "has_pokedex_nballs.state"
+            state_path = __file__.rstrip('environment.py') + 'has_pokedex_nballs.state'
 
-        self.game, self.screen = make_env(rom_path, headless, quiet, **kwargs)
+        self.game, self.screen = make_env(
+            rom_path, headless, quiet, **kwargs)
 
-        self.initial_states = [open_state_file(state_path)]
+        self.initial_state = open_state_file(state_path)
         self.headless = headless
         R, C = self.screen.raw_screen_buffer_dims()
         self.observation_space = spaces.Dict({
@@ -108,38 +92,10 @@ class Base:
         
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
-        
-    def save_screenshot(self, event, map_n):
-    # print(f'SCREENSHOT TAKEN!\n')
-        self.screenshot_counter += 1
-        # print(f'screenshots taken: {self.screenshot_counter} \n')
-        ss_dir = Path('screenshots')
-        ss_dir.mkdir(exist_ok=True)
-        plt.imsave(
-            # ss_dir / Path(f'ss_{x}_y_{y}_steps_{steps}_{comment}.jpeg'),
-            ss_dir / Path(f'{self.screenshot_counter}_{event}_{map_n}.jpeg'),
-            self.screen.screen_ndarray())  # (144, 160, 3)
-        # print(f'TOOK SCREENSHOT\n')
-
-    def save_state(self):
-        state = io.BytesIO()
-        state.seek(0)
-        self.game.save_state(state)
-        self.initial_states.append(state)
-        _, _, map_n = ram_map.position(self.game)
-        self.save_screenshot(f'save_state', map_n)
-
-    def load_random_state(self):
-        rand_idx = random.randint(0, len(self.initial_states) - 1)
-        return self.initial_states[rand_idx]
-    
-    def load_last_state(self):
-        _, _, map_n = ram_map.position(self.game)
-        self.save_screenshot(f'load_state', map_n)
-        return self.initial_states[len(self.initial_states) - 1]
 
     def reset(self, seed=None, options=None):
-        """Resets the game. Seeding is NOT supported"""
+        '''Resets the game. Seeding is NOT supported'''
+        load_pyboy_state(self.game, self.initial_state)
         return self.screen.screen_ndarray(), {}
         
     '''
@@ -147,24 +103,7 @@ class Base:
     the render is called which display the observation 
     '''
     def render(self):
-        if self.use_screen_memory:
-            r, c, map_n = ram_map.position(self.game)
-            # Update tile map
-            mmap = self.screen_memory[map_n]
-            if 0 <= r <= 254 and 0 <= c <= 254:
-                mmap[r, c] = 255
-
-            # Downsamples the screen and retrieves a fixed window from mmap,
-            # then concatenates along the 3rd-dimensional axis (image channel)
-            return np.concatenate(
-                (
-                    self.screen.screen_ndarray()[::2, ::2],
-                    self.get_fixed_window(mmap, r, c, self.observation_space.shape),
-                ),
-                axis=2,
-            )
-        else:
-            return self.screen.screen_ndarray()[::2, ::2]
+        return self.screen.screen_ndarray()
 
     def step(self, action):
         run_action_on_emulator(self.game, self.screen, ACTIONS[action], self.headless)
@@ -194,10 +133,6 @@ class Environment(Base):
         '''Resets the game. Seeding is NOT supported'''
         load_pyboy_state(self.game, self.initial_state)
 
-        if self.use_screen_memory:
-            self.screen_memory = defaultdict(
-                lambda: np.zeros((255, 255, 1), dtype=np.uint8)
-            )
         self.time = 0
         self.reward_scale = reward_scale
         self.max_episode_steps: int = max_episode_steps  # 65536 or 2^16
