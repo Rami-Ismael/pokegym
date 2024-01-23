@@ -1,3 +1,5 @@
+import numpy as np
+from enum import Enum
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
 HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248]
@@ -6,9 +8,10 @@ PARTY_SIZE_ADDR = 0xD163
 PARTY_ADDR = [0xD164, 0xD165, 0xD166, 0xD167, 0xD168, 0xD169]
 PARTY_LEVEL_ADDR = [0xD18C, 0xD1B8, 0xD1E4, 0xD210, 0xD23C, 0xD268]
 POKE_XP_ADDR = [0xD179, 0xD1A5, 0xD1D1, 0xD1FD, 0xD229, 0xD255]
-CAUGHT_POKE_ADDR = range(0xD2F7, 0xD309)
-SEEN_POKE_ADDR = range(0xD30A, 0xD31D)
+CAUGHT_POKE_ADDR = range(0xD2F7, 0xD309) # base on the pokemon did you caught the pokemon
+SEEN_POKE_ADDR = range(0xD30A, 0xD31D) # base on the pokemon did you seen the pokemon
 OPPONENT_LEVEL_ADDR = [0xD8C5, 0xD8F1, 0xD91D, 0xD949, 0xD975, 0xD9A1]
+OPPONENT_HP_ADDR = [0xD8C6, 0xD8F2, 0xD91E, 0xD94A, 0xD976, 0xD9A2]
 X_POS_ADDR = 0xD362
 Y_POS_ADDR = 0xD361
 MAP_N_ADDR = 0xD35E
@@ -23,6 +26,22 @@ MUSEUM_TICKET_ADDR = 0xD754
 MONEY_ADDR_1 = 0xD347
 MONEY_ADDR_100 = 0xD348
 MONEY_ADDR_10000 = 0xD349
+TOTAL_ITEMS_ADDR = 0xD31D
+PLAYER_POKEMON_TEAM_ADDR = [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247]
+HM_ITEMS_ADDR = [0xC4, 0xC5, 0xC6, 0xC7, 0xC8]
+FIRST_ITEM_ADDR = 0xD31E
+POKEMON_PARTY_MOVES_ADDR = [0xD173,0xD174, 0xD175, 0xD176 , 0xD19F, 0xD1A0, 0xD1A1, 0xD1A2, 0xD1CB, 0xD1CC, 0xD1CD, 0xD1CE, 0xD1F7, 0xD1F8, 0xD1F9, 0xD1FA, 0xD223, 0xD224, 0xD225, 0xD226, 0xD24F, 0xD250, 0xD251, 0xD252]
+BATTLE_FLAG = 0xD057
+BOOLEAN_FLAG_THAT_INDICATES_THE_GAME_GYM_LEADER_MUSIC_IS_PLAYING = 0xD05C # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Menu_Data
+NUMBER_RUN_ATTEMPTS_ADDR = 0xD120
+POKEMONI_PARTY_IDS_ADDR: list[int] = [0xD164, 0xD165, 0xD166, 0xD167, 0xD168, 0xD169]
+OPPONENT_PARRTY_IDS_ADDR: list[int] = [0xD89D, 0xD89E, 0xD89F, 0xD8A0, 0xD8A1, 0xD8A2]
+
+class BattleState(Enum):
+    NOT_IN_BATTLE = 0
+    WILD_BATTLE = 1
+    TRAINER_BATTLE = 2
+    LOST_BATTLE = -1
 
 
 def bcd(num):
@@ -67,27 +86,38 @@ def pokemon_seen(game):
     return sum([bit_count(b) for b in seen_bytes])
 
 def pokemon_caught(game):
+    '''
+    This will calculate how much pokemon you have that complete the pokedex
+    '''
     caught_bytes = [game.get_memory_value(addr) for addr in CAUGHT_POKE_ADDR]
     return sum([bit_count(b) for b in caught_bytes])
 
-def hp(game):
+def party_health_ratio(game) -> float:
     '''Percentage of total party HP'''
-    party_hp = [read_uint16(game, addr) for addr in HP_ADDR]
-    party_max_hp = [read_uint16(game, addr) for addr in MAX_HP_ADDR]
+    party_hp:int = total_party_hit_point(game)
+    party_max_hp:int  = total_party_max_hit_point(game)
 
     # Avoid division by zero if no pokemon
-    sum_max_hp = sum(party_max_hp)
-    if sum_max_hp == 0:
-        return 1
+    #sum_max_hp = sum(party_max_hp)
+    if party_hp == 0 or party_max_hp == 0:
+        return 0
+    return party_hp / party_max_hp
 
-    return sum(party_hp) / sum_max_hp
+def total_party_hit_point(game) -> int:
+    '''Percentage of total party HP'''
+    party_hp = [read_uint16(game, addr) for addr in HP_ADDR]
+    return sum(party_hp)
+def total_party_max_hit_point(game) -> int:
+    '''Percentage of total party HP'''
+    party_max_hp = [read_uint16(game, addr) for addr in MAX_HP_ADDR]
+    return sum(party_max_hp)
 
 def money(game):
     return (100 * 100 * bcd(game.get_memory_value(MONEY_ADDR_1))
         + 100 * bcd(game.get_memory_value(MONEY_ADDR_100))
         + bcd(game.get_memory_value(MONEY_ADDR_10000)))
 
-def badges(game):
+def check_if_player_has_gym_one_badge(game):
     badges = game.get_memory_value(BADGE_1_ADDR)
     return bit_count(badges)
 
@@ -99,3 +129,83 @@ def events(game):
 
     # Omit 13 events by default
     return max(num_events - 13 - museum_ticket, 0)
+
+
+def total_items(game) -> int:
+    # https://github.com/pret/pokered/blob/0b20304e6d22baaf7c61439e5e087f2d93f98e39/ram/wram.asm#L1741
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Items
+    return game.get_memory_value(TOTAL_ITEMS_ADDR)
+
+
+def total_unique_moves(game) -> int:
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Wild_Pok%C3%A9mon
+    hash_set = set()
+    for pokemon_addr in PLAYER_POKEMON_TEAM_ADDR:
+        if game.get_memory_value(pokemon_addr) != 0:
+            for increment in range(8, 12):
+                move_id = game.get_memory_value(pokemon_addr + increment)
+                if move_id != 0:
+                    hash_set.add(move_id)
+    return len(hash_set)
+
+
+def get_items_in_bag(game):
+        # total 20 items
+        # item1, quantity1, item2, quantity2, ...
+        item_ids = []
+        for i in range(0, 20, 2):
+            item_id = game.get_memory_value(FIRST_ITEM_ADDR + i)
+            if item_id != 0:
+                item_ids.append(item_id)
+        return item_ids
+def total_hm_party_has(game) -> int:
+    # https://github.com/luckytyphlosion/pokered/blob/master/data/moves.asm#L13
+    # https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/constants/move_constants.asm#L17
+    # https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/constants/item_constants.asm#L103C1-L109C27
+    # https://github.com/xinpw8/pokegym/blob/alpha_pokegym_bill/pokegym/environment.py#L609
+    
+    total_hm_count = 0
+    for hm_iitem_addr in HM_ITEMS_ADDR:
+        hm_item_id = game.get_memory_value(hm_iitem_addr)
+        if hm_item_id != 0:
+            total_hm_count += 1
+    return total_hm_count
+def number_of_pokemon_that_hm_in_move_pool_in_your_part_your_party(game) -> int:
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Player
+    
+    count = 0
+    for pokemon_party_move_addr in POKEMON_PARTY_MOVES_ADDR:
+        pokemon_party_move_id = game.get_memory_value(pokemon_party_move_addr)
+        if pokemon_party_move_id in HM_ITEMS_ADDR:
+            count += 1
+    return count
+def is_in_battle(game):
+    # D057
+    # 0 not in battle
+    # 1 wild battle
+    # 2 trainer battle
+    # -1 lost battle
+    #https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/wram.asm#L1629C1-L1634C6
+    bflag = game.get_memory_value(BATTLE_FLAG)
+    try:
+        return BattleState(bflag)
+    except ValueError as e:
+        # We will solve this error later
+        return BattleState.NOT_IN_BATTLE
+def pokecenter(game):
+    #https://github.com/CJBoey/PokemonRedExperiments1/blob/4024b8793e25a895a07efb07529c5728f076412d/baselines/boey_baselines/red_gym_env.py#L629C2-L635C53
+    return 5
+def check_if_gym_leader_music_is_playing(game):
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Menu_Data
+    return game.get_memory_value(BOOLEAN_FLAG_THAT_INDICATES_THE_GAME_GYM_LEADER_MUSIC_IS_PLAYING)
+def number_of_attempt_running(game)-> int:
+    return game.get_memory_value(NUMBER_RUN_ATTEMPTS_ADDR)
+
+def get_party_pokemon_id(self) -> np.array:
+    return np.array( [self.get_memory_value(single_pokemon_pokemon_id_addr) for single_pokemon_pokemon_id_addr in POKEMONI_PARTY_IDS_ADDR]) 
+def get_opponent_party_pokemon_id(self) -> np.array:
+    return np.array( [self.get_memory_value(single_pokemon_pokemon_id_addr) for single_pokemon_pokemon_id_addr in OPPONENT_PARRTY_IDS_ADDR])
+
+def get_opponent_party_pokemon_hp(self) -> np.array:
+    return np.array( [self.get_memory_value(single_pokemon_pokemon_hp_addr) for single_pokemon_pokemon_hp_addr in OPPONENT_HP_ADDR])
+        
