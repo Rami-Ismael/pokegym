@@ -71,7 +71,6 @@ def play():
                 # Additional game logic or information display can go here
                 print(f"new Reward: {reward}\n")
 
-
 class Base:
     def __init__(
         self,
