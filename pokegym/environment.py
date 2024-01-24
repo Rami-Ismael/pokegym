@@ -2,6 +2,7 @@ from pdb import set_trace as T
 from gymnasium import Env, spaces
 import numpy as np
 import os
+import io, os
 
 from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
     load_pyboy_state, run_action_on_emulator)
@@ -67,10 +68,10 @@ class Base:
         if state_path is None:
             state_path = __file__.rstrip('environment.py') + 'has_pokedex_nballs.state'
 
-        self.game, self.screen = make_env(
-            rom_path, headless, quiet, **kwargs)
-
-        self.initial_state = open_state_file(state_path)
+        # Make the environment
+        self.game, self.screen = make_env(rom_path, headless, quiet,
+                                          save_video=False, **kwargs)
+        self.initial_states = [open_state_file(state_path)]
         self.headless = headless
         R, C = self.screen.raw_screen_buffer_dims()
         self.observation_space = spaces.Dict({
@@ -111,7 +112,13 @@ class Base:
 
     def close(self):
         self.game.stop(False)
-
+    def save_state(self):
+        state = io.BytesIO()
+        state.seek(0)
+        self.game.save_state(state)
+        self.initial_states.append(state)
+    def load_last_state(self):
+        return self.initial_states[len(self.initial_states) - 1]
 
 class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
@@ -128,10 +135,16 @@ class Environment(Base):
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.last_map = -1
         self.punish_wipe_out: bool = punish_wipe_out
+        self.initial_states = [open_state_file(state_path)]
+    
+
 
     def reset(self, seed=None, options=None,  max_episode_steps = 2**16, reward_scale=1):
         '''Resets the game. Seeding is NOT supported'''
-        load_pyboy_state(self.game, self.initial_state)
+        #load_pyboy_state(self.game, self.initial_state)
+        """Resets the game. Seeding is NOT supported"""
+        # https://github.com/xinpw8/pokegym/blob/baseline_0.6/pokegym/environment.py
+        load_pyboy_state(self.game, self.load_last_state()) # load a saved state
 
         self.time = 0
         self.reward_scale = reward_scale
