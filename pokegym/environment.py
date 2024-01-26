@@ -135,7 +135,6 @@ class Environment(Base):
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.last_map = -1
         self.punish_wipe_out: bool = punish_wipe_out
-        self.initial_states = [open_state_file(state_path)]
     
 
 
