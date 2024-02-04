@@ -196,7 +196,7 @@ class Environment(Base):
         # Check what is the current value of the money
         current_state_money = ram_map.money(self.game)
         # Current x
-        r, c, map_n = ram_map.position(self.game)
+        r, c, prev_map_n = ram_map.position(self.game)
         # Check if you are in a battle 
         current_state_is_in_battle:ram_map.BattleState = ram_map.is_in_battle(self.game)
         # Reward the increaseing the team pokemon levels
@@ -224,8 +224,9 @@ class Environment(Base):
         exploring new states without being rewarded repeatedly for visiting the 
         same states."""
         # State the state when base on many factor on the aspects where you want to be in the increase exploration
-        if (row, column, map_n) not in self.seen_coords_no_reward:
-            self.save_state()
+        if prev_map_n!= map_n:
+            if (row, column, map_n) not in self.seen_coords_no_reward:
+                self.save_state()
         
         try:
             global_row, global_column = game_map.local_to_global(row, column, map_n)
