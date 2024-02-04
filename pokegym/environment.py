@@ -218,6 +218,15 @@ class Environment(Base):
 
         # Exploration reward reward the agent travel a new state in the game 
         row, column, map_n = ram_map.position(self.game)
+       
+        """Saves the current state if the agent is in a new map location that has not 
+        previously given exploration rewards. This allows the agent to continue 
+        exploring new states without being rewarded repeatedly for visiting the 
+        same states."""
+        # State the state when base on many factor on the aspects where you want to be in the increase exploration
+        if (row, column, map_n) not in self.seen_coords_no_reward:
+            self.save_state()
+        
         try:
             global_row, global_column = game_map.local_to_global(row, column, map_n)
         except IndexError:
