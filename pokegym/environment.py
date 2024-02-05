@@ -138,7 +138,7 @@ class Environment(Base):
     
 
 
-    def reset(self, seed=None, options=None,  max_episode_steps = 2**13, reward_scale=1):
+    def reset(self, seed=None, options=None,  max_episode_steps = 2**14, reward_scale=1):
         '''Resets the game. Seeding is NOT supported'''
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
@@ -362,7 +362,7 @@ class Environment(Base):
                 + death_reward 
                 + badges_reward 
                 + reward_for_healing 
-                + exploration_reward
+                +  ( exploration_reward * 2 )
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
