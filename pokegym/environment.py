@@ -71,7 +71,7 @@ class Base:
         # Make the environment
         self.game, self.screen = make_env(rom_path, headless, quiet,
                                           save_video=False, **kwargs)
-        self.initial_states = [open_state_file(state_path)]
+        self.initial_states = open_state_file(state_path)
         self.headless = headless
         R, C = self.screen.raw_screen_buffer_dims()
         self.observation_space = spaces.Dict({
@@ -116,9 +116,9 @@ class Base:
         state = io.BytesIO()
         state.seek(0)
         self.game.save_state(state)
-        self.initial_states.append(state)
+        self.initial_states = state
     def load_last_state(self):
-        return self.initial_states[len(self.initial_states) - 1]
+        return self.initial_states
 
 class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
@@ -364,7 +364,7 @@ class Environment(Base):
                 + reward_for_healing 
                 + exploration_reward
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
-                + normalize_gain_of_new_money_reward if self.reward_the_agent_for_the_normalize_gain_of_new_money else 0
+                + normalize_gain_of_new_money_reward
                 + reward_for_battle
                 + reward_the_agent_increase_the_level_of_the_pokemon   
                 + reward_the_agent_for_increasing_the_party_size
