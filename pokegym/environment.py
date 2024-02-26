@@ -348,7 +348,7 @@ class Environment(Base):
         #    self.total_numebr_attempted_to_run += 1
         #    discourage_running_from_battle -= 1
         reward_the_agent_for_fainting_a_opponent_pokemon_during_battle = 0
-        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and (np.count_nonzero(current_state_opponent_pokemon_health_points) < np.count_nonzero(ram_map.opponent_pokemon_health_points(self.game))):
+        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and (np.count_nonzero(current_state_opponent_pokemon_health_points) < np.count_nonzero(ram_map.get_opponent_party_pokemon_hp(self.game))):
             reward_the_agent_for_fainting_a_opponent_pokemon_during_battle += 1
             self.total_number_of_opponent_pokemon_fainted += 1
          
