@@ -139,7 +139,7 @@ class Environment(Base):
 
 
     def reset(self, seed=None, options=None,  max_episode_steps = 2**14, reward_scale=1):
-        '''Resets the game. Seeding is NOT supported'''
+        '''Resets the game to the previous save steps. Seeding is NOT supported'''
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
         # https://github.com/xinpw8/pokegym/blob/baseline_0.6/pokegym/environment.py
@@ -254,7 +254,7 @@ class Environment(Base):
         reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)
         if np.count_nonzero(next_state_party_levels) != np.count_nonzero(prev_party_levels):  
             reward_the_agent_increase_the_level_of_the_pokemon = 0 # you should get a reward only if you increase the level of the pokemon not by capturing new pokemon 
-        reward_the_agent_increase_the_level_of_the_pokemon:float = reward_the_agent_increase_the_level_of_the_pokemon / 600
+        reward_the_agent_increase_the_level_of_the_pokemon: float = reward_the_agent_increase_the_level_of_the_pokemon / 600
         reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size ) / 6
         #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
 
