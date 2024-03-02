@@ -146,6 +146,7 @@ class Environment(Base):
         self.punish_wipe_out: bool = punish_wipe_out
         self.reset_count = 0
         self.seen_maps_no_reward = set()
+        self.max_episode_steps: int = 100_000_000
     
 
 
