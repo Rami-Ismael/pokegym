@@ -1,5 +1,6 @@
 import numpy as np
 from enum import Enum
+from pyboy.utils import WindowEvent
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
 HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248]
@@ -71,6 +72,8 @@ def party(game):
     party_size = game.get_memory_value(PARTY_SIZE_ADDR)
     party_levels = [game.get_memory_value(addr) for addr in PARTY_LEVEL_ADDR]
     return party, party_size, party_levels
+def get_party_size(game)-> int:
+    return game.get_memory_value(PARTY_SIZE_ADDR)
 
 def opponent(game):
     return [game.get_memory_value(addr) for addr in OPPONENT_LEVEL_ADDR]
@@ -208,4 +211,63 @@ def get_opponent_party_pokemon_id(self) -> np.array:
 
 def get_opponent_party_pokemon_hp(self) -> np.array:
     return np.array( [self.get_memory_value(single_pokemon_pokemon_hp_addr) for single_pokemon_pokemon_hp_addr in OPPONENT_HP_ADDR])
+
+def set_perfect_iv_dvs(self):
+    party_size:int = self.read_m(PARTY_SIZE_ADDR)
+    for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
+        for m in range(12):  # Number of offsets for IV/DV
+            self.pyboy.set_memory_value(i + 17 + m, 0xFF)
+
+def check_if_party_has_cut(self) -> bool:
+    party_size:int = self.read_m(PARTY_SIZE_ADDR)
+    for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
+        for m in range(4):
+            if self.pyboy.get_memory_value(i + 8 + m) == 15:
+                return True
+    return False
+
+def check_if_in_start_menu(self) -> bool:
+    return (
+        self.read_m(0xD057) == 0
+        and self.read_m(0xCF13) == 0
+        and self.read_m(0xFF8C) == 6
+        and self.read_m(0xCF94) == 0
+    )
+
+def check_if_in_pokemon_menu(self) -> bool:
+    return (
+        self.read_m(0xD057) == 0
+        and self.read_m(0xCF13) == 0
+        and self.read_m(0xFF8C) == 6
+        and self.read_m(0xCF94) == 2
+    )
+
+def check_if_in_stats_menu(self) -> bool:
+    return (
+        self.read_m(0xD057) == 0
+        and self.read_m(0xCF13) == 0
+        and self.read_m(0xFF8C) == 6
+        and self.read_m(0xCF94) == 1
+    )
+
+def check_if_in_bag_menu(self) -> bool:
+    return (
+        self.read_m(0xD057) == 0
+        and self.read_m(0xCF13) == 0
+        # and self.read_m(0xFF8C) == 6 # only sometimes
+        and self.read_m(0xCF94) == 3
+    )
+
+def check_if_cancel_bag_menu(self, action) -> bool:
+    return (
+        action == WindowEvent.PRESS_BUTTON_A
+        and self.read_m(0xD057) == 0
+        and self.read_m(0xCF13) == 0
+        # and self.read_m(0xFF8C) == 6
+        and self.read_m(0xCF94) == 3
+        and self.read_m(0xD31D) == self.read_m(0xCC36) + self.read_m(0xCC26)
+    )
+
+def check_if_in_overworld(self) -> bool:
+    return self.read_m(0xD057) == 0 and self.read_m(0xCF13) == 0 and self.read_m(0xFF8C) == 0
         
