@@ -149,7 +149,7 @@ class Environment(Base):
     
 
 
-    def reset(self, seed=None, options=None,  max_episode_steps = 1_000_00, reward_scale=1):
+    def reset(self, seed=None, options=None,  max_episode_steps = 100_000_000, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
