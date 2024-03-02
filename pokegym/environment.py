@@ -1,3 +1,4 @@
+from collections import deque
 from pdb import set_trace as T
 from gymnasium import Env, spaces
 import numpy as np
@@ -8,6 +9,14 @@ from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
     load_pyboy_state, run_action_on_emulator)
 from pokegym import ram_map, game_map
 from rich import print
+
+CUT_SEQ = [
+    ((0x3D, 1, 1, 0, 4, 1), (0x3D, 1, 1, 0, 1, 1)),
+    ((0x50, 1, 1, 0, 4, 1), (0x50, 1, 1, 0, 1, 1)),
+]
+
+CUT_GRASS_SEQ = deque([(0x52, 255, 1, 0, 1, 1), (0x52, 255, 1, 0, 1, 1), (0x52, 1, 1, 0, 1, 1)])
+CUT_FAIL_SEQ = deque([(-1, 255, 0, 0, 4, 1), (-1, 255, 0, 0, 1, 1), (-1, 255, 0, 0, 1, 1)])
 
 
 def play():
@@ -135,10 +144,12 @@ class Environment(Base):
         self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.last_map = -1
         self.punish_wipe_out: bool = punish_wipe_out
+        self.reset_count = 0
+        self.seen_maps_no_reward = set()
     
 
 
-    def reset(self, seed=None, options=None,  max_episode_steps = 2**14, reward_scale=1):
+    def reset(self, seed=None, options=None,  max_episode_steps = 1_000_00, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
@@ -170,6 +181,8 @@ class Environment(Base):
         self.total_wipe_out = 0
         self.total_numebr_attempted_to_run = 0
         self.total_number_of_opponent_pokemon_fainted = 0
+        
+        self.reset_count += 1
 
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
@@ -315,9 +328,9 @@ class Environment(Base):
         next_health_ratio = ram_map.party_health_ratio(self.game)
         assert next_health_ratio >= 0 and next_health_ratio <= 1, f"next_health_ratio: {next_health_ratio}"
         reward_for_healing = max( next_health_ratio - prev_health_ratio , 0)
-        if prev_party_size != next_state_party_size or ram_map.total_party_hit_point(self.game) == 0:
+        assert reward_for_healing >= 0 and reward_for_healing <= 1.0, f"reward_for_healing: {reward_for_healing}"
+        if prev_party_size != next_state_party_size or ram_map.total_party_hit_point(self.game) or prev_health_ratio < next_health_ratio:
             reward_for_healing = 0
-        
         reward_for_battle = 0
         # Reward the Agent for choosing to be in a trainer battle and not losing
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
@@ -351,6 +364,7 @@ class Environment(Base):
         if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and (np.count_nonzero(current_state_opponent_pokemon_health_points) < np.count_nonzero(ram_map.get_opponent_party_pokemon_hp(self.game))):
             reward_the_agent_for_fainting_a_opponent_pokemon_during_battle += 1
             self.total_number_of_opponent_pokemon_fainted += 1
+        
          
         
 
@@ -424,6 +438,7 @@ class Environment(Base):
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
                 "total_number_of_time_attempted_to_run": self.total_numebr_attempted_to_run,
+                "reset_count": self.reset_count,
                 "current_state_is_in_battle": current_state_is_in_battle.value , 
                 "next_state_is_in_battle": next_state_is_in_battle.value , 
                 "player_row_position": row,
