@@ -10,6 +10,12 @@ from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
 from pokegym import ram_map, game_map
 from rich import print
 
+EVENT_FLAGS_START = 0xD747
+EVENT_FLAGS_END = (
+    0xD7F6  # 0xD761 # 0xD886 temporarily lower event flag range for obs input
+)
+
+PARTY_SIZE = 0xD163
 CUT_SEQ = [
     ((0x3D, 1, 1, 0, 4, 1), (0x3D, 1, 1, 0, 1, 1)),
     ((0x50, 1, 1, 0, 4, 1), (0x50, 1, 1, 0, 1, 1)),
@@ -147,11 +153,16 @@ class Environment(Base):
         self.reset_count = 0
         self.seen_maps_no_reward = set()
         self.max_episode_steps: int = 100_000_000
+        
+        self.first = True # The reset method will be called first before nay step is occured
     
 
 
     def reset(self, seed=None, options=None,  max_episode_steps = 100_000_000, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
+        if self.first:
+            self.recetn_screen = deque()
+            self.init_mem()
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
         # https://github.com/xinpw8/pokegym/blob/baseline_0.6/pokegym/environment.py
@@ -166,7 +177,6 @@ class Environment(Base):
         self.max_level_sum = 0
         self.max_opponent_level = 0
 
-        self.seen_coords = set()
         self.seen_maps = set()
 
         self.death_count = 0
@@ -183,7 +193,11 @@ class Environment(Base):
         self.total_numebr_attempted_to_run = 0
         self.total_number_of_opponent_pokemon_fainted = 0
         
+        self.taught_cut = self.check_if_party_has_cut()
         self.reset_count += 1
+        
+        self.max_map_progress = 0 
+        self.first = False
 
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
@@ -229,6 +243,91 @@ class Environment(Base):
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
             self.headless, fast_video=fast_video)
         self.time += 1
+        ### Cut and Talking to NPCS
+        
+        # Cut check
+        # 0xCFC6 - wTileInFrontOfPlayer
+        # 0xCFCB - wUpdateSpritesEnabled
+        if self.read_m(0xD057) == 0:
+            if self.taught_cut:
+                player_direction = self.game.get_memory_value(0xC109)
+                x, y, map_id = self.get_game_coords()  # x, y, map_id
+                if player_direction == 0:  # down
+                    coords = (x, y + 1, map_id)
+                if player_direction == 4:
+                    coords = (x, y - 1, map_id)
+                if player_direction == 8:
+                    coords = (x - 1, y, map_id)
+                if player_direction == 0xC:
+                    coords = (x + 1, y, map_id)
+                self.cut_state.append(
+                    (
+                        self.game.get_memory_value(0xCFC6),
+                        self.game.get_memory_value(0xCFCB),
+                        self.game.get_memory_value(0xCD6A),
+                        self.game.get_memory_value(0xD367),
+                        self.game.get_memory_value(0xD125),
+                        self.game.get_memory_value(0xCD3D),
+                    )
+                )
+                if tuple(list(self.cut_state)[1:]) in CUT_SEQ:
+                    self.cut_coords[coords] = 10
+                    self.cut_tiles[self.cut_state[-1][0]] = 1
+                elif self.cut_state == CUT_GRASS_SEQ:
+                    self.cut_coords[coords] = 0.01
+                    self.cut_tiles[self.cut_state[-1][0]] = 1
+                elif deque([(-1, *elem[1:]) for elem in self.cut_state]) == CUT_FAIL_SEQ:
+                    self.cut_coords[coords] = 0.01
+                    self.cut_tiles[self.cut_state[-1][0]] = 1
+
+            # check if the font is loaded this occur when you are talking 
+            if self.game.get_memory_value(0xCFC4):
+                # check if we are talking to a hidden object:
+                player_direction = self.game.get_memory_value(0xC109)
+                player_y_tiles = self.game.get_memory_value(0xD361)
+                player_x_tiles = self.game.get_memory_value(0xD362)
+                if (
+                    self.game.get_memory_value(0xCD3D) != 0x0
+                    and self.game.get_memory_value(0xCD3E) != 0x0
+                ):
+                    # add hidden object to seen hidden objects
+                    self.seen_hidden_objs[
+                        (
+                            self.game.get_memory_value(0xD35E),
+                            self.game.get_memory_value(0xCD3F),
+                        )
+                    ] = 1
+                elif any(
+                    self.find_neighboring_sign(
+                        sign_id, player_direction, player_x_tiles, player_y_tiles
+                    )
+                    for sign_id in range(self.game.get_memory_value(0xD4B0))
+                ):
+                    pass
+                else:
+                    # get information for player
+                    player_y = self.game.get_memory_value(0xC104)
+                    player_x = self.game.get_memory_value(0xC106)
+                    # get the npc who is closest to the player and facing them
+                    # we go through all npcs because there are npcs like
+                    # nurse joy who can be across a desk and still talk to you
+
+                    # npc_id 0 is the player
+                    npc_distances = (
+                        (
+                            self.find_neighboring_npc(npc_id, player_direction, player_x, player_y),
+                            npc_id,
+                        )
+                        for npc_id in range(1, self.game.get_memory_value(0xD4E1))
+                    )
+                    npc_candidates = [x for x in npc_distances if x[0]]
+                    if npc_candidates:
+                        _, npc_id = min(npc_candidates, key=lambda x: x[0])
+                        self.seen_npcs[(self.game.get_memory_value(0xD35E), npc_id)] = 1
+                        self.seen_npcs_since_blackout.add(
+                            (self.game.get_memory_value(0xD35E), npc_id)
+                        )
+        # check if the npc is talking to you
 
         # Exploration reward reward the agent travel a new state in the game 
         row, column, map_n = ram_map.position(self.game)
@@ -238,9 +337,6 @@ class Environment(Base):
         exploring new states without being rewarded repeatedly for visiting the 
         same states."""
         # State the state when base on many factor on the aspects where you want to be in the increase exploration
-        if prev_map_n!= map_n:
-            if (row, column, map_n) not in self.seen_coords_no_reward:
-                self.save_state()
         
         try:
             global_row, global_column = game_map.local_to_global(row, column, map_n)
@@ -366,6 +462,11 @@ class Environment(Base):
             reward_the_agent_for_fainting_a_opponent_pokemon_during_battle += 1
             self.total_number_of_opponent_pokemon_fainted += 1
         
+        # Reward the agent if taught of one pokemon in the team with the moves cuts 
+        reward_for_teaching_a_pokemon_on_the_team_with_move_cuts: int  = self.check_if_party_has_cut() - self.taught_cut
+        assert reward_for_teaching_a_pokemon_on_the_team_with_move_cuts >= 0
+        self.taught_cut = self.check_if_party_has_cut()
+        
          
         
 
@@ -386,6 +487,7 @@ class Environment(Base):
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + wipe_out * -1 if self.punish_wipe_out else 0
+                + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
         )
 
         info = {}
@@ -429,6 +531,7 @@ class Environment(Base):
                 "max_opponent_level": self.max_opponent_level,
                 "money": next_state_money,
                 "pokemon_seen": next_state_pokemon_seen,
+                "taught_cut": int(self.check_if_party_has_cut()),
                 "pokedex": next_state_completing_the_pokedex,
                 "number_of_wild_battle": self.number_of_wild_battle,
                 "number_of_trainer_battle": self.number_of_trainer_battle,
@@ -529,6 +632,80 @@ class Environment(Base):
 
         # Update last_map for the next iteration
         self.last_map = current_map
+    # Code snippet https://github.com/thatguy11325/pokemonred_puffer/blob/main/pokemonred_puffer/environment.py
+    def find_neighboring_sign(self, sign_id, player_direction, player_x, player_y) -> bool:
+        sign_y = self.game.get_memory_value(0xD4B1 + (2 * sign_id))
+        sign_x = self.game.get_memory_value(0xD4B1 + (2 * sign_id + 1))
+
+        # Check if player is facing the sign (skip sign direction)
+        # 0 - down, 4 - up, 8 - left, 0xC - right
+        # We are making the assumption that a player will only ever be 1 space away
+        # from a sign
+        return (
+            (player_direction == 0 and sign_x == player_x and sign_y == player_y + 1)
+            or (player_direction == 4 and sign_x == player_x and sign_y == player_y - 1)
+            or (player_direction == 8 and sign_y == player_y and sign_x == player_x - 1)
+            or (player_direction == 0xC and sign_y == player_y and sign_x == player_x + 1)
+        )
+    def init_mem(self):
+        # Maybe I should preallocate a giant matrix for all map ids
+        # All map ids have the same size, right?
+        self.seen_coords: set = set()
+        self.seen_coords_since_blackout = set([])
+        # self.seen_global_coords = np.zeros(GLOBAL_MAP_SHAPE)
+        self.seen_map_ids = np.zeros(256)
+        self.seen_map_ids_since_blackout = set([])
+
+        self.seen_npcs = {}
+        self.seen_npcs_since_blackout = set([])
+
+        self.seen_hidden_objs = {}
+
+        self.cut_coords = {}
+        self.cut_tiles = set([])
+        self.cut_state = deque(maxlen=3)
+
+        self.seen_start_menu = 0
+        self.seen_pokemon_menu = 0
+        self.seen_stats_menu = 0
+        self.seen_bag_menu = 0
+        self.seen_cancel_bag_menu = 0
+    def find_neighboring_npc(self, npc_id, player_direction, player_x, player_y) -> int:
+        npc_y = self.game.get_memory_value(0xC104 + (npc_id * 0x10))
+        npc_x = self.game.get_memory_value(0xC106 + (npc_id * 0x10))
+
+        # Check if player is facing the NPC (skip NPC direction)
+        # 0 - down, 4 - up, 8 - left, 0xC - right
+        if (
+            (player_direction == 0 and npc_x == player_x and npc_y > player_y)
+            or (player_direction == 4 and npc_x == player_x and npc_y < player_y)
+            or (player_direction == 8 and npc_y == player_y and npc_x < player_x)
+            or (player_direction == 0xC and npc_y == player_y and npc_x > player_x)
+        ):
+            # Manhattan distance
+            return abs(npc_y - player_y) + abs(npc_x - player_x)
+
+        return False
+    def check_if_party_has_cut(self) -> bool:
+        party_size = self.read_m(PARTY_SIZE)
+        for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
+            for m in range(4):
+                if self.game.get_memory_value(i + 8 + m) == 15:
+                    return True
+        return False
+    def read_m(self, addr):
+        return self.game.get_memory_value(addr)
+
+    def read_bit(self, addr, bit: int) -> bool:
+        # add padding so zero will read '0b100000000' instead of '0b0'
+        return bin(256 + self.read_m(addr))[-bit - 1] == "1"
+
+    def read_event_bits(self) -> list[int]:
+        return [
+            int(bit)
+            for i in range(EVENT_FLAGS_START, EVENT_FLAGS_END)
+            for bit in f"{self.read_m(i):08b}"
+        ]
 def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) -> float:
     """Normalize a value from its original range to a new specified range.
     
