@@ -431,8 +431,8 @@ class Environment(Base):
         if (row, column, map_n) not in self.seen_coords:
             prev_size = len(self.seen_coords)
             self.seen_coords.add((row, column, map_n))
-            exploration_reward = normalize_gaine_exploration = 1.0 - normalize_value(len(self.seen_coords), min_x = 0, max_x = 436 * 444, a = 0, b =1) # it cannot visit all the places, therefore it should low esimate but at the point it should be able many thing at ht epoint
-            assert normalize_gaine_exploration >= 0.0 and normalize_gaine_exploration <= 1.0, f"normalize_gaine_exploration: {normalize_gaine_exploration}"
+            exploration_reward: float =  1.0 - ( len(self.seen_coords) / ( 436 * 444 ) ) #  it cannot visit all the places, therefore it should low esimate but at the point it should be able many thing at ht epoint
+            assert exploration_reward >= 0.0 and exploration_reward <= 1.0, f"normalize_gaine_exploration: {exploration_reward}"
             assert len(self.seen_coords) > prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
             assert len(self.seen_coords) - prev_size == 1, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
         
@@ -829,4 +829,4 @@ def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) ->
         float: The normalized value.
     """
     
-    return a + ((x - min_x) * (b - a)) / (max_x - min_x)
+    return  (x - min_x) / (max_x - min_x)
