@@ -320,6 +320,7 @@ class Environment(Base):
         
         # current opponent pokemon health points
         current_state_opponent_pokemon_health_points:np.array = ram_map.get_opponent_party_pokemon_hp(self.game)
+        prev_seen_npcs:int  = sum(self.seen_npcs.values())
         
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
@@ -550,7 +551,10 @@ class Environment(Base):
         self.taught_cut = self.check_if_party_has_cut()
        
         if self.perfect_ivs:
-            self.set_perfect_iv_dvs() 
+            self.set_perfect_iv_dvs()
+        
+        next_seen_npcs = sum(self.seen_npcs.values())
+        reward_seeen_npcs:int  = next_seen_npcs - prev_seen_npcs
          
         
 
@@ -572,6 +576,7 @@ class Environment(Base):
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + wipe_out * -1 if self.punish_wipe_out else 0
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
+                + reward_seeen_npcs
         )
 
         info = {}
@@ -594,6 +599,8 @@ class Environment(Base):
                     "increase_party_size": reward_the_agent_for_increasing_the_party_size,
                     "discourage_running_from_battle": discourage_running_from_battle,
                     "reward_the_agent_for_fainting_a_opponent_pokemon_during_battle": reward_the_agent_for_fainting_a_opponent_pokemon_during_battle,
+                    "reaward_for_teaching_a_pokemon_on_the_team_with_move_cuts": reward_for_teaching_a_pokemon_on_the_team_with_move_cuts,
+                    "reward_seeen_npcs": reward_seeen_npcs,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
