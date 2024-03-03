@@ -23,7 +23,84 @@ CUT_SEQ = [
 
 CUT_GRASS_SEQ = deque([(0x52, 255, 1, 0, 1, 1), (0x52, 255, 1, 0, 1, 1), (0x52, 1, 1, 0, 1, 1)])
 CUT_FAIL_SEQ = deque([(-1, 255, 0, 0, 4, 1), (-1, 255, 0, 0, 1, 1), (-1, 255, 0, 0, 1, 1)])
+TM_HM_MOVES = set(
+    [
+        5,  # Mega punch
+        0xD,  # Razor wind
+        0xE,  # Swords dance
+        0x12,  # Whirlwind
+        0x19,  # Mega kick
+        0x5C,  # Toxic
+        0x20,  # Horn drill
+        0x22,  # Body slam
+        0x24,  # Take down
+        0x26,  # Double edge
+        0x3D,  # Bubble beam
+        0x37,  # Water gun
+        0x3A,  # Ice beam
+        0x3B,  # Blizzard
+        0x3F,  # Hyper beam
+        0x06,  # Pay day
+        0x42,  # Submission
+        0x44,  # Counter
+        0x45,  # Seismic toss
+        0x63,  # Rage
+        0x48,  # Mega drain
+        0x4C,  # Solar beam
+        0x52,  # Dragon rage
+        0x55,  # Thunderbolt
+        0x57,  # Thunder
+        0x59,  # Earthquake
+        0x5A,  # Fissure
+        0x5B,  # Dig
+        0x5E,  # Psychic
+        0x64,  # Teleport
+        0x66,  # Mimic
+        0x68,  # Double team
+        0x73,  # Reflect
+        0x75,  # Bide
+        0x76,  # Metronome
+        0x78,  # Selfdestruct
+        0x79,  # Egg bomb
+        0x7E,  # Fire blast
+        0x81,  # Swift
+        0x82,  # Skull bash
+        0x87,  # Softboiled
+        0x8A,  # Dream eater
+        0x8F,  # Sky attack
+        0x9C,  # Rest
+        0x56,  # Thunder wave
+        0x95,  # Psywave
+        0x99,  # Explosion
+        0x9D,  # Rock slide
+        0xA1,  # Tri attack
+        0xA4,  # Substitute
+        0x0F,  # Cut
+        0x13,  # Fly
+        0x39,  # Surf
+        0x46,  # Strength
+        0x94,  # Flash
+    ]
+)
 
+RESET_MAP_IDS = set(
+    [
+        0x0,  # Pallet Town
+        0x1,  # Viridian City
+        0x2,  # Pewter City
+        0x3,  # Cerulean City
+        0x4,  # Lavender Town
+        0x5,  # Vermilion City
+        0x6,  # Celadon City
+        0x7,  # Fuchsia City
+        0x8,  # Cinnabar Island
+        0x9,  # Indigo Plateau
+        0xA,  # Saffron City
+        0xF,  # Route 4 (Mt Moon)
+        0x10,  # Route 10 (Rock Tunnel)
+        0xE9,  # Silph Co 9F (Heal station)
+    ]
+)
 
 def play():
     '''Creates an environment and plays it'''
@@ -141,6 +218,7 @@ class Environment(Base):
             reward_the_agent_for_completing_the_pokedex=True,
             reward_the_agent_for_the_normalize_gain_of_new_money = True,
             punish_wipe_out:bool = True,
+            perfect_ivs:bool = True,
             **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
         # https://github.com/xinpw8/pokegym/blob/d44ee5048d597d7eefda06a42326220dd9b6295f/pokegym/environment.py#L233
@@ -153,6 +231,7 @@ class Environment(Base):
         self.reset_count = 0
         self.seen_maps_no_reward = set()
         self.max_episode_steps: int = 100_000_000
+        self.perfect_ivs = perfect_ivs
         
         self.first = True # The reset method will be called first before nay step is occured
     
@@ -161,8 +240,11 @@ class Environment(Base):
     def reset(self, seed=None, options=None,  max_episode_steps = 100_000_000, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         if self.first:
-            self.recetn_screen = deque()
+            self.recent_screen = deque()
             self.init_mem()
+            self.moves_obtained = np.zeros(0xA5, dtype=np.uint8)
+        else:
+            self.moves_obtained.fill(0)
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
         # https://github.com/xinpw8/pokegym/blob/baseline_0.6/pokegym/environment.py
@@ -466,7 +548,9 @@ class Environment(Base):
         reward_for_teaching_a_pokemon_on_the_team_with_move_cuts: int  = self.check_if_party_has_cut() - self.taught_cut
         assert reward_for_teaching_a_pokemon_on_the_team_with_move_cuts >= 0
         self.taught_cut = self.check_if_party_has_cut()
-        
+       
+        if self.perfect_ivs:
+            self.set_perfect_iv_dvs() 
          
         
 
@@ -520,9 +604,17 @@ class Environment(Base):
                 'total_party_level': sum(next_state_party_levels),
                 'deaths': self.death_count,
                 'badge_1': ram_map.check_if_player_has_gym_one_badge(self.game),
-                #'badge_2': float(badges > 1),
+                #"badges": self.get_badges(), Fix it latter
+                "npc": sum(self.seen_npcs.values()),
+                "hidden_obj": sum(self.seen_hidden_objs.values()),
                 'event': events,
                 'money': money,
+                "met_bill": int(self.read_bit(0xD7F1, 0)),
+                "used_cell_separator_on_bill": int(self.read_bit(0xD7F2, 3)),
+                "ss_ticket": int(self.read_bit(0xD7F2, 4)),
+                "met_bill_2": int(self.read_bit(0xD7F2, 5)),
+                "bill_said_use_cell_separator": int(self.read_bit(0xD7F2, 6)),
+                "left_bills_house_after_helping": int(self.read_bit(0xD7F2, 7)),
                 'pokemon_exploration_map': self.counts_map,
                 "pokemon_seen": next_state_pokemon_seen,
                 "total_items": item_count,
@@ -706,6 +798,16 @@ class Environment(Base):
             for i in range(EVENT_FLAGS_START, EVENT_FLAGS_END)
             for bit in f"{self.read_m(i):08b}"
         ]
+    def get_badges(self):
+        return self.bit_count(self.read_m(0xD356))
+    # built-in since python 3.10
+    def bit_count(self, bits):
+        return bin(bits).count("1")
+    def set_perfect_iv_dvs(self):
+        party_size = self.read_m(PARTY_SIZE)
+        for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
+            for m in range(12):  # Number of offsets for IV/DV
+                self.game.set_memory_value(i + 17 + m, 0xFF)
 def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) -> float:
     """Normalize a value from its original range to a new specified range.
     
