@@ -158,7 +158,7 @@ class Base:
             state_path=None, headless=True, quiet=False, **kwargs):
         '''Creates a PokemonRed environment'''
         if state_path is None:
-            state_path = __file__.rstrip('environment.py') + 'has_pokedex_nballs.state'
+            state_path = __file__.rstrip('environment.py') + 'Bulbasaur.state'
 
         # Make the environment
         self.game, self.screen = make_env(rom_path, headless, quiet,
