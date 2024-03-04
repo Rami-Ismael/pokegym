@@ -176,14 +176,6 @@ class Base:
             "party_size": spaces.Discrete(6),
             "player_row": spaces.Box(low=0, high=444, shape=(1,), dtype=np.uint16),
             "player_column": spaces.Box(low=0, high=436, shape=(1,), dtype=np.uint16),
-            "total_party_hit_point" : spaces.Box(low=0, high=999, shape=(1,), dtype=np.uint16),
-            "total_party_max_hit_point" : spaces.Box(low=0, high=999, shape=(1,), dtype=np.uint16),
-            "party_health_ratio": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "total_party_level": spaces.Box(low=0, high=600, shape=(1,), dtype=np.uint16),
-            "each_pokemon_level": spaces.Box(low=0, high=100, shape=(6,), dtype=np.uint8),
-            "type_of_battle" :spaces.Box(low=-1, high=2, shape=(1,), dtype=np.int8),
-            "player_pokemon_party_id": spaces.Box(low=0, high=255, shape=(6,), dtype=np.uint8),
-            "opponent_pokemon_party_id": spaces.Box(low=0, high=255, shape=(6,), dtype=np.uint8),
         
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
@@ -287,17 +279,9 @@ class Environment(Base):
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
         return {"screen": self.render()[::2, ::2], 
-                "party_size": ram_map.party(self.game)[1],
                 "player_row": ram_map.position(self.game)[0],
                 "player_column": ram_map.position(self.game)[1],
-                "total_party_hit_point": ram_map.total_party_hit_point(self.game),
-                "total_party_max_hit_point": ram_map.total_party_max_hit_point(self.game),
-                "party_health_ratio": ram_map.party_health_ratio(self.game),
-                "total_party_level": sum(ram_map.party(self.game)[2]),
-                "each_pokemon_level": np.array(ram_map.party(self.game)[2]),
-                "type_of_battle": ram_map.is_in_battle(self.game).value, # 0 means not in battle, 1 means wild battle, 2 means trainer battle
-                "player_pokemon_party_id": ram_map.get_party_pokemon_id(self.game),
-                "opponent_pokemon_party_id": ram_map.get_opponent_party_pokemon_id(self.game),
+                "player_direction": np.array(self.game.get_memory_value(0xC109) // 4, dtype=np.uint8)
                 }, {}
 
     def step(self, action, fast_video=True):
@@ -324,6 +308,8 @@ class Environment(Base):
         # current opponent pokemon health points
         current_state_opponent_pokemon_health_points:np.array = ram_map.get_opponent_party_pokemon_hp(self.game)
         prev_seen_npcs:int  = sum(self.seen_npcs.values())
+        
+        prev_total_wipe_out = self.total_wipe_out
         
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
@@ -534,12 +520,14 @@ class Environment(Base):
         if ram_map.total_party_hit_point(self.game) == 0:
             self.total_wipe_out += 1 # Wipe out means the agent has lost all of its pokemon in battle or poison
             wipe_out += 1
+        else:
+            if prev_total_wipe_out != self.total_wipe_out:
+                ValueError("total_wipe_out has changed without the agent losing all of its pokemon in battle")
         opponent_level_reward = 0
         if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE or next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             if self.max_opponent_level < max(ram_map.opponent(self.game)):
                 self.max_opponent_level = max(ram_map.opponent(self.game))
                 opponent_level_reward += 1
-            elif
         discourage_running_from_battle = 0
         #if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE:
         #    self.total_numebr_attempted_to_run += 1
@@ -588,7 +576,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 1024 == 0 or done:
+        if self.time % 2048 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
@@ -697,17 +685,10 @@ class Environment(Base):
         assert isinstance(next_state_party_levels, list), f"next_state_party_levels: {next_state_party_levels}"
         observation = {
             'screen': self.render()[::2, ::2],
-            "party_size": next_state_party_size ,
+            
             "player_row": row,
             "player_column": column,
-            "total_party_hit_point" : ram_map.total_party_hit_point(self.game),
-            "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
-            "party_health_ratio": ram_map.party_health_ratio(self.game),
-            "total_party_level": sum(next_state_party_levels),
-            "each_pokemon_level": np.array(next_state_party_levels, dtype=np.uint8),
-            "type_of_battle": next_state_is_in_battle.value, # 0 means not in battle, 1 means wild battle, 2 means trainer battle
-            "player_pokemon_party_id": ram_map.get_party_pokemon_id(self.game),
-            "opponent_pokemon_party_id": ram_map.get_opponent_party_pokemon_id(self.game),
+            "player_direction": np.array(self.game.get_memory_value(0xC109) // 4, dtype=np.uint8)
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
