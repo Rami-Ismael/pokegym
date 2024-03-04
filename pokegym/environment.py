@@ -464,6 +464,7 @@ class Environment(Base):
         next_state_money = money = ram_map.money(self.game)
         assert next_state_money >= 0 and next_state_money <= 999999, f"next_state_money: {next_state_money}"
         normalize_gain_of_new_money_reward = normalize_value(next_state_money - current_state_money, -999999.0, 999999.0, 0, 1)
+        assert ( next_state_money - current_state_money ) == 0 or normalize_gain_of_new_money_reward == 0 # if the money is the same then the reward should be 0
         assert normalize_gain_of_new_money_reward >=  ( -1.0 - 1e5) and normalize_gain_of_new_money_reward <= 1.0, f"normalize_gain_of_new_money_reward: {normalize_gain_of_new_money_reward} the current state money is {current_state_money} and the next state money is {next_state_money}"
         
         
