@@ -159,7 +159,8 @@ class Base:
             state_path=None, headless=True, quiet=False, **kwargs):
         '''Creates a PokemonRed environment'''
         if state_path is None:
-            state_path = __file__.rstrip('environment.py') + 'Bulbasaur_fast_text_no_battle_animations_fixed_battle.state
+            state_path = __file__.rstrip('environment.py') + 'Bulbasaur_fast_text_no_battle_animations_fixed_battle.state'
+            assert os.path.exists(state_path), f"State file {state_path} does not exist"
 
         # Make the environment
         self.game, self.screen = make_env(rom_path, headless, quiet,
@@ -464,7 +465,7 @@ class Environment(Base):
         # Badge reward
         badges_reward = 0
         if not prev_badges_one and  ram_map.check_if_player_has_gym_one_badge(self.game):
-            badges_reward += 10
+            badges_reward += 8
 
         # Event reward
         events = ram_map.events(self.game)
@@ -484,12 +485,12 @@ class Environment(Base):
         # Seen Pokemon
         next_state_pokemon_seen = ram_map.pokemon_seen(self.game)
         reward_the_agent_seing_new_pokemon = next_state_pokemon_seen - current_state_pokemon_seen
-        assert ( reward_the_agent_seing_new_pokemon >= 0 and reward_the_agent_seing_new_pokemon <= 1) or reward_the_agent_seing_new_pokemon==3, f"reward_the_agent_seing_new_pokemon: {reward_the_agent_seing_new_pokemon}"
+        assert reward_the_agent_seing_new_pokemon == 0 or reward_the_agent_seing_new_pokemon == 1 or reward_the_agent_seing_new_pokemon==3, f"reward_the_agent_seing_new_pokemon: {reward_the_agent_seing_new_pokemon}"
         
         # Completing the pokedex
         next_state_completing_the_pokedex = ram_map.pokemon_caught(self.game)
         reward_for_completing_the_pokedex = next_state_completing_the_pokedex - current_state_completing_the_pokedex
-        assert reward_for_completing_the_pokedex >= 0 and reward_for_completing_the_pokedex <= 1
+        assert reward_for_completing_the_pokedex == 0 and reward_for_completing_the_pokedex == 1
         
         # Is in a trainer battle
         next_state_is_in_battle = ram_map.is_in_battle(self.game)
@@ -649,7 +650,7 @@ class Environment(Base):
                 "visited_pokemon_center": len(self.visited_pokemon_center),
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
-                "total_number_of_time_attempted_to_run": self.total_numebr_attempted_to_run,
+                "total_number_of_time_attempted_to_run":ram_map.get_number_of_run_attempts(),
                 "reset_count": self.reset_count,
                 "current_state_is_in_battle": current_state_is_in_battle.value , 
                 "next_state_is_in_battle": next_state_is_in_battle.value , 
