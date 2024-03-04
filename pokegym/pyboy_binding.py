@@ -41,7 +41,7 @@ class Select:
     RELEASE = WindowEvent.RELEASE_BUTTON_SELECT
 
 # TODO: Add start button to actions when we need it
-ACTIONS = (Down, Left, Right, Up, A, B, Start, Select)
+ACTIONS = (Down, Left, Right, Up, A, B, Start)
 
 def make_env(gb_path, headless=True, quiet=False, **kwargs):
     gb_path='pokemon_red.gb'
