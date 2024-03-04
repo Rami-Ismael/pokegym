@@ -237,7 +237,7 @@ class Environment(Base):
         self.pokecenter_ids: list[int] = [0x01, 0x02, 0x03, 0x0F, 0x15, 0x05, 0x06, 0x04, 0x07, 0x08, 0x0A, 0x09]
         
         self.first = True # The reset method will be called first before nay step is occured
-    
+        
 
 
     def reset(self, seed=None, options=None,  max_episode_steps = 100_000_000, reward_scale=1):
@@ -647,7 +647,7 @@ class Environment(Base):
                 "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
                 "number_of_time_gym_leader_music_is_playing": self.number_of_gym_leader_music_is_playing,
-                "visited_pokemon_center": len(self.visited_pokemon_center),
+                "visited_pokemon_center": len(self.visited_pokecenter_list),
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
                 "total_number_of_time_attempted_to_run":ram_map.get_number_of_run_attempts(),
