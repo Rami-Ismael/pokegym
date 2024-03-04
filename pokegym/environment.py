@@ -490,7 +490,7 @@ class Environment(Base):
         # Completing the pokedex
         next_state_completing_the_pokedex = ram_map.pokemon_caught(self.game)
         reward_for_completing_the_pokedex = next_state_completing_the_pokedex - current_state_completing_the_pokedex
-        assert reward_for_completing_the_pokedex == 0 and reward_for_completing_the_pokedex == 1
+        assert reward_for_completing_the_pokedex == 0 or reward_for_completing_the_pokedex == 1
         
         # Is in a trainer battle
         next_state_is_in_battle = ram_map.is_in_battle(self.game)
