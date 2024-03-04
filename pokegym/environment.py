@@ -587,7 +587,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 1024 == 0 or done:
+        if self.time % 2 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
@@ -650,7 +650,7 @@ class Environment(Base):
                 "visited_pokemon_center": len(self.visited_pokecenter_list),
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
-                "total_number_of_time_attempted_to_run":ram_map.get_number_of_run_attempts(),
+                "total_number_of_time_attempted_to_run": ram_map.get_number_of_run_attempts(self.game),
                 "reset_count": self.reset_count,
                 "current_state_is_in_battle": current_state_is_in_battle.value , 
                 "next_state_is_in_battle": next_state_is_in_battle.value , 

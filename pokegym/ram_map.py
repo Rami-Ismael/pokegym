@@ -214,13 +214,13 @@ def get_opponent_party_pokemon_hp(self) -> np.array:
     return np.array( [self.get_memory_value(single_pokemon_pokemon_hp_addr) for single_pokemon_pokemon_hp_addr in OPPONENT_HP_ADDR])
 
 def set_perfect_iv_dvs(self):
-    party_size:int = self.read_m(PARTY_SIZE_ADDR)
+    party_size:int = self.get_memory_value(PARTY_SIZE_ADDR)
     for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
         for m in range(12):  # Number of offsets for IV/DV
             self.pyboy.set_memory_value(i + 17 + m, 0xFF)
 
 def check_if_party_has_cut(self) -> bool:
-    party_size:int = self.read_m(PARTY_SIZE_ADDR)
+    party_size:int = self.get_memory_value(PARTY_SIZE_ADDR)
     for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
         for m in range(4):
             if self.pyboy.get_memory_value(i + 8 + m) == 15:
@@ -229,49 +229,49 @@ def check_if_party_has_cut(self) -> bool:
 
 def check_if_in_start_menu(self) -> bool:
     return (
-        self.read_m(0xD057) == 0
-        and self.read_m(0xCF13) == 0
-        and self.read_m(0xFF8C) == 6
-        and self.read_m(0xCF94) == 0
+        self.get_memory_value(0xD057) == 0
+        and self.get_memory_value(0xCF13) == 0
+        and self.get_memory_value(0xFF8C) == 6
+        and self.get_memory_value(0xCF94) == 0
     )
 
 def check_if_in_pokemon_menu(self) -> bool:
     return (
-        self.read_m(0xD057) == 0
-        and self.read_m(0xCF13) == 0
-        and self.read_m(0xFF8C) == 6
-        and self.read_m(0xCF94) == 2
+        self.get_memory_value(0xD057) == 0
+        and self.get_memory_value(0xCF13) == 0
+        and self.get_memory_value(0xFF8C) == 6
+        and self.get_memory_value(0xCF94) == 2
     )
 
 def check_if_in_stats_menu(self) -> bool:
     return (
-        self.read_m(0xD057) == 0
-        and self.read_m(0xCF13) == 0
-        and self.read_m(0xFF8C) == 6
-        and self.read_m(0xCF94) == 1
+        self.get_memory_value(0xD057) == 0
+        and self.get_memory_value(0xCF13) == 0
+        and self.get_memory_value(0xFF8C) == 6
+        and self.get_memory_value(0xCF94) == 1
     )
 
 def check_if_in_bag_menu(self) -> bool:
     return (
-        self.read_m(0xD057) == 0
-        and self.read_m(0xCF13) == 0
-        # and self.read_m(0xFF8C) == 6 # only sometimes
-        and self.read_m(0xCF94) == 3
+        self.get_memory_value(0xD057) == 0
+        and self.get_memory_value(0xCF13) == 0
+        # and self.get_memory_value(0xFF8C) == 6 # only sometimes
+        and self.get_memory_value(0xCF94) == 3
     )
 
-def check_if_cancel_bag_menu(self, action) -> bool:
+def check_if_cancel_bag_menu(game,  action) -> bool:
     return (
         action == WindowEvent.PRESS_BUTTON_A
-        and self.read_m(0xD057) == 0
-        and self.read_m(0xCF13) == 0
-        # and self.read_m(0xFF8C) == 6
-        and self.read_m(0xCF94) == 3
-        and self.read_m(0xD31D) == self.read_m(0xCC36) + self.read_m(0xCC26)
+        and game.get_memory_value(0xD057) == 0
+        and game.get_memory_value(0xCF13) == 0
+        # and self.get_memory_value(0xFF8C) == 6
+        and game.get_memory_value(0xCF94) == 3
+        and game.get_memory_value(0xD31D) == game.get_memory_value(0xCC36) + game.get_memory_value(0xCC26)
     )
 
-def check_if_in_overworld(self) -> bool:
-    return self.read_m(0xD057) == 0 and self.read_m(0xCF13) == 0 and self.read_m(0xFF8C) == 0
+def check_if_in_overworld(game) -> bool:
+    return game.get_memory_value(0xD057) == 0 and game.get_memory_value(0xCF13) == 0 and game.get_memory_value(0xFF8C) == 0
 
-def get_number_of_run_attempts(self) -> int:
-    return self.read_m(0xD120)
+def get_number_of_run_attempts(game) -> int:
+    return game.get_memory_value(NUMBER_RUN_ATTEMPTS_ADDR)
         
