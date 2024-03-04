@@ -539,6 +539,7 @@ class Environment(Base):
             if self.max_opponent_level < max(ram_map.opponent(self.game)):
                 self.max_opponent_level = max(ram_map.opponent(self.game))
                 opponent_level_reward += 1
+            elif
         discourage_running_from_battle = 0
         #if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE:
         #    self.total_numebr_attempted_to_run += 1
@@ -587,7 +588,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 2 == 0 or done:
+        if self.time % 1024 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
