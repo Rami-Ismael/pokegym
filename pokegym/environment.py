@@ -1,5 +1,6 @@
 from collections import deque
 from pdb import set_trace as T
+from typing import Literal
 from gymnasium import Env, spaces
 import numpy as np
 import os
@@ -232,6 +233,7 @@ class Environment(Base):
         self.seen_maps_no_reward = set()
         self.max_episode_steps: int = 100_000_000
         self.perfect_ivs = perfect_ivs
+        self.pokecenter_ids: list[int] = [0x01, 0x02, 0x03, 0x0F, 0x15, 0x05, 0x06, 0x04, 0x07, 0x08, 0x0A, 0x09]
         
         self.first = True # The reset method will be called first before nay step is occured
     
@@ -555,6 +557,8 @@ class Environment(Base):
         
         next_seen_npcs = sum(self.seen_npcs.values())
         reward_seeen_npcs:int  = next_seen_npcs - prev_seen_npcs
+        
+        reward_visiting_a_new_pokecenter: Literal[1, 0]  = self.update_visited_pokecenter_list()
          
         
 
@@ -577,6 +581,7 @@ class Environment(Base):
                 + wipe_out * -1 if self.punish_wipe_out else 0
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 + reward_seeen_npcs
+                + reward_visiting_a_new_pokecenter
         )
 
         info = {}
@@ -601,6 +606,7 @@ class Environment(Base):
                     "reward_the_agent_for_fainting_a_opponent_pokemon_during_battle": reward_the_agent_for_fainting_a_opponent_pokemon_during_battle,
                     "reaward_for_teaching_a_pokemon_on_the_team_with_move_cuts": reward_for_teaching_a_pokemon_on_the_team_with_move_cuts,
                     "reward_seeen_npcs": reward_seeen_npcs,
+                    "reward_visiting_a_new_pokecenter": reward_visiting_a_new_pokecenter,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
@@ -611,7 +617,7 @@ class Environment(Base):
                 'total_party_level': sum(next_state_party_levels),
                 'deaths': self.death_count,
                 'badge_1': ram_map.check_if_player_has_gym_one_badge(self.game),
-                #"badges": self.get_badges(), Fix it latter
+                "badges": self.get_badges(), # Fix it latter
                 "npc": sum(self.seen_npcs.values()),
                 "hidden_obj": sum(self.seen_hidden_objs.values()),
                 'event': events,
@@ -640,6 +646,7 @@ class Environment(Base):
                 "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
                 "number_of_time_gym_leader_music_is_playing": self.number_of_gym_leader_music_is_playing,
+                "visited_pokemon_center": len(self.visited_pokemon_center),
                 "total_wipe_out": self.total_wipe_out,
                 "wipe_out:": wipe_out,
                 "total_number_of_time_attempted_to_run": self.total_numebr_attempted_to_run,
@@ -771,6 +778,8 @@ class Environment(Base):
         self.seen_stats_menu = 0
         self.seen_bag_menu = 0
         self.seen_cancel_bag_menu = 0
+        
+        self.visited_pokecenter_list = []
     def find_neighboring_npc(self, npc_id, player_direction, player_x, player_y) -> int:
         npc_y = self.game.get_memory_value(0xC104 + (npc_id * 0x10))
         npc_x = self.game.get_memory_value(0xC106 + (npc_id * 0x10))
@@ -817,6 +826,25 @@ class Environment(Base):
         for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
             for m in range(12):  # Number of offsets for IV/DV
                 self.game.set_memory_value(i + 17 + m, 0xFF)
+    
+    def get_last_pokecenter_id(self):
+        
+        last_pokecenter = self.read_m(0xD719)
+        # will throw error if last_pokecenter not in pokecenter_ids, intended
+        if last_pokecenter == 0:
+            # no pokecenter visited yet
+            return -1
+        if last_pokecenter not in self.pokecenter_ids:
+            print(f'\nERROR: last_pokecenter: {last_pokecenter} not in pokecenter_ids')
+            return -1
+        else:
+            return self.pokecenter_ids.index(last_pokecenter)
+    def update_visited_pokecenter_list(self) -> Literal[1, 0]:
+        last_pokecenter_id = self.get_last_pokecenter_id()
+        if last_pokecenter_id != -1 and last_pokecenter_id not in self.visited_pokecenter_list:
+            self.visited_pokecenter_list.append(last_pokecenter_id)
+            return 1
+        return 0
 def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) -> float:
     """Normalize a value from its original range to a new specified range.
     
