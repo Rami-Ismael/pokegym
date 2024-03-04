@@ -158,7 +158,7 @@ class Base:
             state_path=None, headless=True, quiet=False, **kwargs):
         '''Creates a PokemonRed environment'''
         if state_path is None:
-            state_path = __file__.rstrip('environment.py') + 'Bulbasaur.state'
+            state_path = __file__.rstrip('environment.py') + 'Bulbasaur_fast_text_no_battle_animations_fixed_battle.state
 
         # Make the environment
         self.game, self.screen = make_env(rom_path, headless, quiet,
@@ -631,6 +631,8 @@ class Environment(Base):
                 "money": next_state_money,
                 "pokemon_seen": next_state_pokemon_seen,
                 "taught_cut": int(self.check_if_party_has_cut()),
+                "cut_coords": sum(self.cut_coords.values()),
+                "cut_tiles": len(self.cut_tiles),
                 "pokedex": next_state_completing_the_pokedex,
                 "number_of_wild_battle": self.number_of_wild_battle,
                 "number_of_trainer_battle": self.number_of_trainer_battle,
