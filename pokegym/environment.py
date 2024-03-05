@@ -614,7 +614,7 @@ class Environment(Base):
                 "npc": sum(self.seen_npcs.values()),
                 "hidden_obj": sum(self.seen_hidden_objs.values()),
                 'event': events,
-                'money': money,
+                'money': ram_map.money(self.game),
                 "met_bill": int(self.read_bit(0xD7F1, 0)),
                 "used_cell_separator_on_bill": int(self.read_bit(0xD7F2, 3)),
                 "ss_ticket": int(self.read_bit(0xD7F2, 4)),
