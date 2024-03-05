@@ -461,10 +461,12 @@ class Environment(Base):
             self.max_events = events
             
         # Money Reward
-        next_state_money = money = ram_map.money(self.game)
+        next_state_money = ram_map.money(self.game)
         assert next_state_money >= 0 and next_state_money <= 999999, f"next_state_money: {next_state_money}"
-        normalize_gain_of_new_money_reward = normalize_value(next_state_money - current_state_money, -999999.0, 999999.0, 0, 1)
-        assert ( next_state_money - current_state_money ) == 0 or normalize_gain_of_new_money_reward == 0 # if the money is the same then the reward should be 0
+        normalize_gain_of_new_money_reward = normalize_value(next_state_money - current_state_money, -999999, 999999, -1, 1)
+        if next_state_money - current_state_money == 0 and normalize_gain_of_new_money_reward == .5:
+            assert False, f"next_state_money: {next_state_money} current_state_money: {current_state_money} and the normalize_gain_of_new_money_reward is {normalize_gain_of_new_money_reward}"
+        assert ( next_state_money - current_state_money ) == 0 and normalize_gain_of_new_money_reward == 0 # if the money is the same then the reward should be 0
         assert normalize_gain_of_new_money_reward >=  ( -1.0 - 1e5) and normalize_gain_of_new_money_reward <= 1.0, f"normalize_gain_of_new_money_reward: {normalize_gain_of_new_money_reward} the current state money is {current_state_money} and the next state money is {next_state_money}"
         
         
@@ -843,4 +845,4 @@ def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) ->
         float: The normalized value.
     """
     
-    return  (x - min_x) / (max_x - min_x)
+    return  (x - min_x) / (max_x - min_x) * (b - a) + a
