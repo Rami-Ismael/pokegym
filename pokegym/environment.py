@@ -466,7 +466,6 @@ class Environment(Base):
         normalize_gain_of_new_money_reward = normalize_value(next_state_money - current_state_money, -999999, 999999, -1, 1)
         if next_state_money - current_state_money == 0 and normalize_gain_of_new_money_reward == .5:
             assert False, f"next_state_money: {next_state_money} current_state_money: {current_state_money} and the normalize_gain_of_new_money_reward is {normalize_gain_of_new_money_reward}"
-        assert ( next_state_money - current_state_money ) == 0 and normalize_gain_of_new_money_reward == 0 # if the money is the same then the reward should be 0
         assert normalize_gain_of_new_money_reward >=  ( -1.0 - 1e5) and normalize_gain_of_new_money_reward <= 1.0, f"normalize_gain_of_new_money_reward: {normalize_gain_of_new_money_reward} the current state money is {current_state_money} and the next state money is {next_state_money}"
         
         
@@ -579,7 +578,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 2048 == 0 or done:
+        if self.time % 8 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
@@ -688,7 +687,6 @@ class Environment(Base):
         assert isinstance(next_state_party_levels, list), f"next_state_party_levels: {next_state_party_levels}"
         observation = {
             'screen': self.render()[::2, ::2],
-            
             "player_row": row,
             "player_column": column,
             "player_direction": np.array(self.game.get_memory_value(0xC109) // 4, dtype=np.uint8)
