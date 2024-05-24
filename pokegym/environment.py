@@ -173,7 +173,6 @@ class Base:
                 low=0, high=255, dtype=np.uint8,
                 shape=(R // 2, C // 2, 3),
             ),
-            "party_size": spaces.Discrete(6),
             "player_row": spaces.Box(low=0, high=444, shape=(1,), dtype=np.uint16),
             "player_column": spaces.Box(low=0, high=436, shape=(1,), dtype=np.uint16),
         
@@ -278,10 +277,10 @@ class Environment(Base):
 
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
+        assert isinstance(self.render()[::2 , ::2], np.ndarray)
         return {"screen": self.render()[::2, ::2], 
-                "player_row": ram_map.position(self.game)[0],
-                "player_column": ram_map.position(self.game)[1],
-                "player_direction": np.array(self.game.get_memory_value(0xC109) // 4, dtype=np.uint8)
+                "player_row": np.array( ram_map.position(self.game)[0]),
+                "player_column": np.array(ram_map.position(self.game)[1]),
                 }, {}
 
     def step(self, action, fast_video=True):
@@ -685,11 +684,11 @@ class Environment(Base):
             )
         # Observation , reward, done, info
         assert isinstance(next_state_party_levels, list), f"next_state_party_levels: {next_state_party_levels}"
+        assert isinstance(self.render()[::2, ::2], np.ndarray), f"self.render()[::2, ::2]: {self.render()[::2, ::2]}"
         observation = {
             'screen': self.render()[::2, ::2],
-            "player_row": row,
-            "player_column": column,
-            "player_direction": np.array(self.game.get_memory_value(0xC109) // 4, dtype=np.uint8)
+            "player_row": np.array(row),
+            "player_column": np.array(column),
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
