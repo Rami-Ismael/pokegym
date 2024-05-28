@@ -173,8 +173,8 @@ class Base:
                 low=0, high=255, dtype=np.uint8,
                 shape=(R // 2, C // 2, 3),
             ),
-            "player_row": spaces.Box(low=0, high=444, shape=(1,), dtype=np.uint16),
-            "player_column": spaces.Box(low=0, high=436, shape=(1,), dtype=np.uint16),
+            #"player_row": spaces.Box(low=0, high=444, shape=(1,), dtype=np.uint16),
+            #"player_column": spaces.Box(low=0, high=436, shape=(1,), dtype=np.uint16),
         
         })
         self.action_space = spaces.Discrete(len(ACTIONS))
@@ -278,10 +278,7 @@ class Environment(Base):
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
         assert isinstance(self.render()[::2 , ::2], np.ndarray)
-        return {"screen": self.render()[::2, ::2], 
-                "player_row": np.array( ram_map.position(self.game)[0]),
-                "player_column": np.array(ram_map.position(self.game)[1]),
-                }, {}
+        return {"screen": self.render()[::2, ::2]}, {}
 
     def step(self, action, fast_video=True):
         # Reward the agent for seeing new pokemon that it never had seen 
@@ -514,7 +511,7 @@ class Environment(Base):
             reward_for_battle -= .5 # Punished the agent for losing a trainer battle a bit not to lose but still want to fight
             self.death_count += 1
         if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
-            reward_for_battle -= .5 # Punished the agent for losing a wild battle
+            reward_for_battle -= 1 # Punished the agent for losing a wild battle
             self.death_count += 1
         
         wipe_out = 0
@@ -687,8 +684,8 @@ class Environment(Base):
         assert isinstance(self.render()[::2, ::2], np.ndarray), f"self.render()[::2, ::2]: {self.render()[::2, ::2]}"
         observation = {
             'screen': self.render()[::2, ::2],
-            "player_row": np.array(row),
-            "player_column": np.array(column),
+            #"player_row": np.array(row),
+            #"player_column": np.array(column),
         }
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
