@@ -11,7 +11,10 @@ from pokegym import ram_map, game_map
 from pokegym.environment import Environment
 
 from pyboy import PyBoy
-from pyboy import logger
+try:
+    from pyboy import logger
+except ImportError:
+    print('pyboy logger not found')
 from pyboy.utils import WindowEvent
 from rich import print
 from pokegym.environment import play
