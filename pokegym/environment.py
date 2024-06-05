@@ -247,7 +247,6 @@ class Environment(Base):
         self.time = 0
         self.reward_scale = reward_scale
         self.max_episode_steps: int = max_episode_steps  # 65536 or 2^16
-        print(f"self.max_episode_steps: {self.max_episode_steps}")
          
         self.max_events = 0
         self.max_level_sum = 0
@@ -545,6 +544,7 @@ class Environment(Base):
         
         next_seen_npcs = sum(self.seen_npcs.values())
         reward_seeen_npcs:int  = next_seen_npcs - prev_seen_npcs
+        assert reward_seeen_npcs == 1 or reward_seeen_npcs == 0, T()
         
         reward_visiting_a_new_pokecenter: Literal[1, 0]  = self.update_visited_pokecenter_list()
          
@@ -558,7 +558,7 @@ class Environment(Base):
                 + death_reward 
                 + badges_reward 
                 + reward_for_healing 
-                +  ( exploration_reward * 2 )
+                +  ( exploration_reward * 8 )
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
@@ -568,7 +568,7 @@ class Environment(Base):
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + wipe_out * -1 if self.punish_wipe_out else 0
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
-                + reward_seeen_npcs
+                + ( reward_seeen_npcs * 16 )
                 + reward_visiting_a_new_pokecenter
         )
 
@@ -607,6 +607,8 @@ class Environment(Base):
                 'badge_1': ram_map.check_if_player_has_gym_one_badge(self.game),
                 "badges": self.get_badges(), # Fix it latter
                 "npc": sum(self.seen_npcs.values()),
+                "prev_npc": prev_seen_npcs,
+                "next_npc": next_seen_npcs,
                 "hidden_obj": sum(self.seen_hidden_objs.values()),
                 'event': events,
                 'money': ram_map.money(self.game),
@@ -627,6 +629,7 @@ class Environment(Base):
                 "taught_cut": int(self.check_if_party_has_cut()),
                 "cut_coords": sum(self.cut_coords.values()),
                 "cut_tiles": len(self.cut_tiles),
+                "number_run_attempts": ram_map.get_number_of_run_attempts(self.game),
                 "pokedex": next_state_completing_the_pokedex,
                 "number_of_wild_battle": self.number_of_wild_battle,
                 "number_of_trainer_battle": self.number_of_trainer_battle,
