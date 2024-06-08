@@ -281,7 +281,7 @@ def get_player_direction(game) -> int:
     return game.get_memory_value(0xC109) 
 def get_last_pokecenter_id(self):
     
-    last_pokecenter = self.read_m(LAST_BLACKOUT_MAP)
+    last_pokecenter = self.get_memory_value(LAST_BLACKOUT_MAP)
     # will throw error if last_pokecenter not in pokecenter_ids, intended
     if last_pokecenter == 0:
         # no pokecenter visited yet
