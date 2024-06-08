@@ -660,9 +660,9 @@ class Environment(Base):
         if prev_party_size != next_state_party_size or ram_map.total_party_hit_point(self.game) or prev_health_ratio < next_health_ratio:
             reward_for_healing = 0
         reward_for_battle = 0
-        enter_a_trainer_battle = 0 
+        reward_for_entering_a_trainer_battle = 0 
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
-            enter_a_trainer_battle = 5
+            reward_for_entering_a_trainer_battle = 8
         # Reward the Agent for choosing to be in a trainer battle and not losing
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             reward_for_battle += 2
@@ -689,7 +689,7 @@ class Environment(Base):
         if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE or next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             if self.max_opponent_level < max(ram_map.opponent(self.game)):
                 self.max_opponent_level = max(ram_map.opponent(self.game))
-                opponent_level_reward += 1
+                opponent_level_reward += 2
         discourage_running_from_battle = 0
         #if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE:
         #    self.total_numebr_attempted_to_run += 1
@@ -736,7 +736,7 @@ class Environment(Base):
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 + ( reward_seeen_npcs * 16 )
                 + reward_visiting_a_new_pokecenter
-                + enter_a_trainer_battle
+                + reward_for_entering_a_trainer_battle 
         )
 
         info = {}
@@ -762,7 +762,7 @@ class Environment(Base):
                     "reaward_for_teaching_a_pokemon_on_the_team_with_move_cuts": reward_for_teaching_a_pokemon_on_the_team_with_move_cuts,
                     "reward_seeen_npcs": reward_seeen_npcs,
                     "reward_visiting_a_new_pokecenter": reward_visiting_a_new_pokecenter,
-                    "enter_a_trainer_abttle" : enter_a_trainer_battle,
+                    "enter_a_trainer_abttle" : reward_for_entering_a_trainer_battle,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
