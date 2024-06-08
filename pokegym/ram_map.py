@@ -193,7 +193,7 @@ def is_in_battle(game):
     bflag = game.get_memory_value(BATTLE_FLAG)
     try:
         return BattleState(bflag)
-    except ValueError as e:
+    except ValueError:
         # We will solve this error later
         return BattleState.NOT_IN_BATTLE
 def pokecenter(game):
@@ -274,4 +274,7 @@ def check_if_in_overworld(game) -> bool:
 
 def get_number_of_run_attempts(game) -> int:
     return game.get_memory_value(NUMBER_RUN_ATTEMPTS_ADDR)
+def get_player_direction(game) -> int:
+    # C1x9: facing direction (0: down, 4: up, 8: left, $c: right)
+    return game.get_memory_value(0xC109) 
         

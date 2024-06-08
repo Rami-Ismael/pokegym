@@ -1,15 +1,19 @@
 from collections import deque
 from pdb import set_trace as T
+from turtle import Screen
 from typing import Literal
 from gymnasium import Env, spaces
 import numpy as np
 import os
 import io, os
+from skimage.transform import resize
 
 from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
     load_pyboy_state, run_action_on_emulator)
-from pokegym import ram_map, game_map
+from pokegym import ram_map, game_map 
+from pokegym.global_map import GLOBAL_MAP_SHAPE , local_to_global
 from rich import print
+PIXEL_VALUES = np.array([0, 85, 153, 255], dtype=np.uint8)
 
 EVENT_FLAGS_START = 0xD747
 EVENT_FLAGS_END = (
@@ -167,16 +171,6 @@ class Base:
                                           save_video=False, **kwargs)
         self.initial_states = open_state_file(state_path)
         self.headless = headless
-        R, C = self.screen.raw_screen_buffer_dims()
-        self.observation_space = spaces.Dict({
-            'screen': spaces.Box(
-                low=0, high=255, dtype=np.uint8,
-                shape=(R // 2, C // 2, 3),
-            ),
-            #"player_row": spaces.Box(low=0, high=444, shape=(1,), dtype=np.uint16),
-            #"player_column": spaces.Box(low=0, high=436, shape=(1,), dtype=np.uint16),
-        
-        })
         self.action_space = spaces.Discrete(len(ACTIONS))
 
     def reset(self, seed=None, options=None):
@@ -188,6 +182,7 @@ class Base:
     You can view this where the update of observation is done because in every step 
     the render is called which display the observation 
     '''
+    # https://github.com/thatguy11325/pokemonred_puffer/blob/b5b0d0960661ed96e05b08fdbafeb9e8ba803ffa/pokemonred_puffer/environment.py#L582https://github.com/thatguy11325/pokemonred_puffer/blob/b5b0d0960661ed96e05b08fdbafeb9e8ba803ffa/pokemonred_puffer/environment.py#L582
     def render(self):
         return self.screen.screen_ndarray()
 
@@ -226,8 +221,33 @@ class Environment(Base):
         self.max_episode_steps: int = 100_000_000
         self.perfect_ivs = perfect_ivs
         self.pokecenter_ids: list[int] = [0x01, 0x02, 0x03, 0x0F, 0x15, 0x05, 0x06, 0x04, 0x07, 0x08, 0x0A, 0x09]
-        
+        R, C = self.screen.raw_screen_buffer_dims()
+        self.two_bit = False 
         self.first = True # The reset method will be called first before nay step is occured
+        
+        self.reduce_res = True
+        # Obs space-related. TODO: avoid hardcoding?
+        if self.reduce_res:
+            self.screen_output_shape = (72, 80, 1)
+        else:
+            self.screen_output_shape = (144, 160, 1)
+        self.observation_space = spaces.Dict({
+            'screen': spaces.Box(
+                low=0, high=255, dtype=np.uint8,
+                shape=(R // 2, C // 2, 3),
+            ),
+            "visited_mask": spaces.Box(
+                    low=0, high=255, shape=self.screen_output_shape, dtype=np.uint8
+            ),
+            "global_map": spaces.Box(
+                    low=0, high=255, shape=self.screen_output_shape, dtype=np.uint8
+            ),
+            # Discrete is more apt, but pufferlib is slower at processing Discrete
+            "direction": spaces.Box(low=0, high=4, shape=(1,), dtype=np.uint8),
+            "x": spaces.Box(low=0, high=255, shape=(1,), dtype=np.uint8),
+            "y": spaces.Box(low=0, high=255, shape=(1,), dtype=np.uint8),
+            "map_id": spaces.Box(low=0, high=0xF7, shape=(1,), dtype=np.uint8),
+        })
         
 
 
@@ -237,6 +257,7 @@ class Environment(Base):
             self.recent_screen = deque()
             self.init_mem()
             self.moves_obtained = np.zeros(0xA5, dtype=np.uint8)
+            self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
         else:
             self.moves_obtained.fill(0)
         #load_pyboy_state(self.game, self.initial_state)
@@ -273,12 +294,155 @@ class Environment(Base):
         
         self.max_map_progress = 0 
         self.first = False
+        
+        self.explore_map_dim = 384
+        self.explore_map *= 0
 
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
-        assert isinstance(self.render()[::2 , ::2], np.ndarray)
-        return {"screen": self.render()[::2, ::2]}, {}
+        return self._get_obs(), {}
+    def get_game_coords(self):
+            return (self.read_m(0xD362), self.read_m(0xD361), self.read_m(0xD35E))
+    def update_seen_coords(self):
+        x_pos, y_pos, map_n = self.get_game_coords()
+        self.seen_coords.add((x_pos, y_pos, map_n))
+        self.explore_map[local_to_global(y_pos, x_pos, map_n)] = 1
+        # self.seen_global_coords[local_to_global(y_pos, x_pos, map_n)] = 1
+        self.seen_map_ids[map_n] = 1
+    def render(self):
+        # (144, 160, 3)
+        try:
+            game_pixels_render = np.expand_dims(self.screen.screen_ndarray()[:, :, 1], axis=-1)
+        except Exception as e:
+            print(e)
+            T()
 
+        if self.reduce_res:
+            game_pixels_render = game_pixels_render[::2, ::2, :] # # x, y, map_id
+            # game_pixels_render = skimage.measure.block_reduce(game_pixels_render, (2, 2, 1), np.min)
+
+        # place an overlay on top of the screen greying out places we haven't visited
+        # first get our location
+        player_x, player_y, map_n = self.get_game_coords()
+
+        # player is centered at 68, 72 in pixel units
+        # 68 -> player y, 72 -> player x
+        # guess we want to attempt to map the pixels to player units or vice versa
+        # Experimentally determined magic numbers below. Beware
+        # visited_mask = np.zeros(VISITED_MASK_SHAPE, dtype=np.float32)
+        visited_mask = np.zeros_like(game_pixels_render)
+        """
+        if self.taught_cut:
+            cut_mask = np.zeros_like(game_pixels_render)
+        else:
+            cut_mask = np.random.randint(0, 255, game_pixels_render.shape, dtype=np.uint8)
+        """
+        # If not in battle, set the visited mask. There's no reason to process it when in battle
+        scale = 2 if self.reduce_res else 1
+        if self.read_m(0xD057) == 0:
+            for y in range(-72 // 16, 72 // 16):
+                for x in range(-80 // 16, 80 // 16):
+                    # y-y1 = m (x-x1)
+                    # map [(0,0),(1,1)] -> [(0,.5),(1,1)] (cause we dont wnat it to be fully black)
+                    # y = 1/2 x + .5
+                    # current location tiles - player_y*8, player_x*8
+                    """
+                    visited_mask[y, x, 0] = self.seen_coords.get(
+                        (
+                            player_x + x + 1,
+                            player_y + y + 1,
+                            map_n,
+                        ),
+                        0.15,
+                    )
+                    """
+
+                    visited_mask[
+                        (16 * y + 76) // scale : (16 * y + 16 + 76) // scale,
+                        (16 * x + 80) // scale : (16 * x + 16 + 80) // scale,
+                        :,
+                    ] = int(
+                        (
+                            (player_x + x + 1, player_y + y + 1, map_n) in self.seen_coords
+                        )
+                        * 255
+                    )
+
+                    """
+                    if self.taught_cut:
+                        cut_mask[
+                            16 * y + 76 : 16 * y + 16 + 76,
+                            16 * x + 80 : 16 * x + 16 + 80,
+                            :,
+                        ] = int(
+                            255
+                            * (
+                                self.cut_coords.get(
+                                    (
+                                        player_x + x + 1,
+                                        player_y + y + 1,
+                                        map_n,
+                                    ),
+                                    0,
+                                )
+                            )
+                        )
+                        """
+        """
+        gr, gc = local_to_global(player_y, player_x, map_n)
+        visited_mask = (
+            255
+            * np.repeat(
+                np.repeat(self.seen_global_coords[gr - 4 : gr + 5, gc - 4 : gc + 6], 16, 0), 16, -1
+            )
+        ).astype(np.uint8)
+        visited_mask = np.expand_dims(visited_mask, -1)
+        """
+
+        global_map = (255 * resize(self.explore_map, game_pixels_render.shape, anti_aliasing=False)).astype(np.uint8)
+        assert game_pixels_render.shape == visited_mask.shape == global_map.shape , T(header=f"game_pixels_render.shape: {game_pixels_render.shape}, visited_mask.shape: {visited_mask.shape}, global_map.shape: {global_map.shape}")
+
+        if self.two_bit:
+            game_pixels_render = (
+                (
+                    np.digitize(
+                        game_pixels_render.reshape((-1, 4)), PIXEL_VALUES, right=True
+                    ).astype(np.uint8)
+                    << np.array([6, 4, 2, 0], dtype=np.uint8)
+                )
+                .sum(axis=1, dtype=np.uint8)
+                .reshape((-1, game_pixels_render.shape[1] // 4, 1))
+            )
+            visited_mask = (
+                (
+                    np.digitize(
+                        visited_mask.reshape((-1, 4)),
+                        np.array([0, 64, 128, 255], dtype=np.uint8),
+                        right=True,
+                    ).astype(np.uint8)
+                    << np.array([6, 4, 2, 0], dtype=np.uint8)
+                )
+                .sum(axis=1, dtype=np.uint8)
+                .reshape(game_pixels_render.shape)
+                .astype(np.uint8)
+            )
+            global_map = (
+                (
+                    np.digitize(
+                        global_map.reshape((-1, 4)),
+                        np.array([0, 64, 128, 255], dtype=np.uint8),
+                        right=True,
+                    ).astype(np.uint8)
+                    << np.array([6, 4, 2, 0], dtype=np.uint8)
+                )
+                .sum(axis=1, dtype=np.uint8)
+                .reshape(game_pixels_render.shape)
+            )
+        return {
+            "screen": game_pixels_render,
+            "visited_mask": visited_mask,
+            "global_map": global_map,
+        }
     def step(self, action, fast_video=True):
         # Reward the agent for seeing new pokemon that it never had seen 
         current_state_pokemon_seen = ram_map.pokemon_seen(self.game) # this is new pokemon you have seen
@@ -310,6 +474,8 @@ class Environment(Base):
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
             self.headless, fast_video=fast_video)
         self.time += 1
+        # Seen Coordinate
+        self.update_seen_coords()
         ### Cut and Talking to NPCS
         
         # Cut check
@@ -431,8 +597,8 @@ class Environment(Base):
         reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)
         if np.count_nonzero(next_state_party_levels) != np.count_nonzero(prev_party_levels):  
             reward_the_agent_increase_the_level_of_the_pokemon = 0 # you should get a reward only if you increase the level of the pokemon not by capturing new pokemon 
-        reward_the_agent_increase_the_level_of_the_pokemon: float = reward_the_agent_increase_the_level_of_the_pokemon / 600
-        reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size ) / 6
+        reward_the_agent_increase_the_level_of_the_pokemon: float = reward_the_agent_increase_the_level_of_the_pokemon
+        reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size )
         #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
 
 
@@ -684,12 +850,8 @@ class Environment(Base):
             )
         # Observation , reward, done, info
         assert isinstance(next_state_party_levels, list), f"next_state_party_levels: {next_state_party_levels}"
-        assert isinstance(self.render()[::2, ::2], np.ndarray), f"self.render()[::2, ::2]: {self.render()[::2, ::2]}"
-        observation = {
-            'screen': self.render()[::2, ::2],
-            #"player_row": np.array(row),
-            #"player_column": np.array(column),
-        }
+        observation = self._get_obs()
+        
         return observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
         '''
@@ -828,6 +990,15 @@ class Environment(Base):
             self.visited_pokecenter_list.append(last_pokecenter_id)
             return 1
         return 0
+    def _get_obs(self):
+        player_x, player_y, map_n = ram_map.position(self.game)
+        return {
+            **self.render(),
+            "direction": np.array(ram_map.get_player_direction(self.game) // 4, dtype=np.uint8), 
+            "x": np.array(player_x, dtype=np.uint8),
+            "y": np.array(player_y, dtype=np.uint8),
+            "map_id": np.array(self.read_m(0xD35E), dtype=np.uint8),
+        }
 def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) -> float:
     """Normalize a value from its original range to a new specified range.
     
