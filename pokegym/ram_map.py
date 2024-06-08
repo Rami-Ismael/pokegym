@@ -38,7 +38,7 @@ NUMBER_RUN_ATTEMPTS_ADDR = 0xD120
 POKEMONI_PARTY_IDS_ADDR: list[int] = [0xD164, 0xD165, 0xD166, 0xD167, 0xD168, 0xD169]
 OPPONENT_PARRTY_IDS_ADDR: list[int] = [0xD89D, 0xD89E, 0xD89F, 0xD8A0, 0xD8A1, 0xD8A2]
 NUMBER_RUN_ATTEMPTS_ADDR = 0xD120
-LAST_BLACKOUT_MAP = wLastBlackoutMap = 0xd719
+LAST_BLACKOUT_MAP = wLastBlackoutMap = 0xD719
 
 
 class BattleState(Enum):
@@ -281,7 +281,7 @@ def get_player_direction(game) -> int:
     return game.get_memory_value(0xC109) 
 def get_last_pokecenter_id(self):
     
-    last_pokecenter = self.read_m(0xD719)
+    last_pokecenter = self.read_m(LAST_BLACKOUT_MAP)
     # will throw error if last_pokecenter not in pokecenter_ids, intended
     if last_pokecenter == 0:
         # no pokecenter visited yet
