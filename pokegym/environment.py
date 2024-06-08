@@ -1,6 +1,5 @@
 from collections import deque
 from pdb import set_trace as T
-from turtle import Screen
 from typing import Literal
 from gymnasium import Env, spaces
 import numpy as np
@@ -595,9 +594,6 @@ class Environment(Base):
         next_state_party, next_state_party_size, next_state_party_levels = ram_map.party(self.game)
         self.max_level_sum = sum(next_state_party_levels)
         reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)
-        if np.count_nonzero(next_state_party_levels) != np.count_nonzero(prev_party_levels):  
-            reward_the_agent_increase_the_level_of_the_pokemon = 0 # you should get a reward only if you increase the level of the pokemon not by capturing new pokemon 
-        reward_the_agent_increase_the_level_of_the_pokemon: float = reward_the_agent_increase_the_level_of_the_pokemon
         reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size )
         #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
 
@@ -664,10 +660,13 @@ class Environment(Base):
         if prev_party_size != next_state_party_size or ram_map.total_party_hit_point(self.game) or prev_health_ratio < next_health_ratio:
             reward_for_healing = 0
         reward_for_battle = 0
+        enter_a_trainer_battle = 0 
+        if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
+            enter_a_trainer_battle = 5
         # Reward the Agent for choosing to be in a trainer battle and not losing
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
-            reward_for_battle += 1
-            self.number_of_trainer_battle += 1
+            reward_for_battle += 2
+            self.number_of_trainer_battle += 2
             # Reward the Agent for choosing to be in a gym battle
             if ram_map.check_if_gym_leader_music_is_playing(self.game):
                 reward_for_battle += 1
@@ -728,7 +727,7 @@ class Environment(Base):
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
-                + reward_the_agent_increase_the_level_of_the_pokemon   
+                + ( reward_the_agent_increase_the_level_of_the_pokemon   *  4 )
                 + reward_the_agent_for_increasing_the_party_size
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
@@ -736,6 +735,7 @@ class Environment(Base):
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 + ( reward_seeen_npcs * 16 )
                 + reward_visiting_a_new_pokecenter
+                + enter_a_trainer_battle
         )
 
         info = {}
@@ -761,6 +761,7 @@ class Environment(Base):
                     "reaward_for_teaching_a_pokemon_on_the_team_with_move_cuts": reward_for_teaching_a_pokemon_on_the_team_with_move_cuts,
                     "reward_seeen_npcs": reward_seeen_npcs,
                     "reward_visiting_a_new_pokecenter": reward_visiting_a_new_pokecenter,
+                    "enter_a_trainer_abttle" : enter_a_trainer_battle,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
@@ -971,25 +972,6 @@ class Environment(Base):
         for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
             for m in range(12):  # Number of offsets for IV/DV
                 self.game.set_memory_value(i + 17 + m, 0xFF)
-    
-    def get_last_pokecenter_id(self):
-        
-        last_pokecenter = self.read_m(0xD719)
-        # will throw error if last_pokecenter not in pokecenter_ids, intended
-        if last_pokecenter == 0:
-            # no pokecenter visited yet
-            return -1
-        if last_pokecenter not in self.pokecenter_ids:
-            print(f'\nERROR: last_pokecenter: {last_pokecenter} not in pokecenter_ids')
-            return -1
-        else:
-            return self.pokecenter_ids.index(last_pokecenter)
-    def update_visited_pokecenter_list(self) -> Literal[1, 0]:
-        last_pokecenter_id = self.get_last_pokecenter_id()
-        if last_pokecenter_id != -1 and last_pokecenter_id not in self.visited_pokecenter_list:
-            self.visited_pokecenter_list.append(last_pokecenter_id)
-            return 1
-        return 0
     def _get_obs(self):
         player_x, player_y, map_n = ram_map.position(self.game)
         return {
@@ -999,6 +981,12 @@ class Environment(Base):
             "y": np.array(player_y, dtype=np.uint8),
             "map_id": np.array(self.read_m(0xD35E), dtype=np.uint8),
         }
+    def get_last_pokecenter_list(self):
+        pc_list = [0, ] * len(self.pokecenter_ids)
+        last_pokecenter_id = self.get_last_pokecenter_id()
+        if last_pokecenter_id != -1:
+            pc_list[last_pokecenter_id] = 1
+        return pc_list
 def normalize_value(x: float, min_x: float, max_x: float, a: float, b: float) -> float:
     """Normalize a value from its original range to a new specified range.
     

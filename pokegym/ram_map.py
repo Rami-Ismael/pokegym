@@ -38,6 +38,8 @@ NUMBER_RUN_ATTEMPTS_ADDR = 0xD120
 POKEMONI_PARTY_IDS_ADDR: list[int] = [0xD164, 0xD165, 0xD166, 0xD167, 0xD168, 0xD169]
 OPPONENT_PARRTY_IDS_ADDR: list[int] = [0xD89D, 0xD89E, 0xD89F, 0xD8A0, 0xD8A1, 0xD8A2]
 NUMBER_RUN_ATTEMPTS_ADDR = 0xD120
+LAST_BLACKOUT_MAP = wLastBlackoutMap = 0xd719
+
 
 class BattleState(Enum):
     NOT_IN_BATTLE = 0
@@ -277,4 +279,16 @@ def get_number_of_run_attempts(game) -> int:
 def get_player_direction(game) -> int:
     # C1x9: facing direction (0: down, 4: up, 8: left, $c: right)
     return game.get_memory_value(0xC109) 
+def get_last_pokecenter_id(self):
+    
+    last_pokecenter = self.read_m(0xD719)
+    # will throw error if last_pokecenter not in pokecenter_ids, intended
+    if last_pokecenter == 0:
+        # no pokecenter visited yet
+        return -1
+    if last_pokecenter not in self.pokecenter_ids:
+        print(f'\nERROR: last_pokecenter: {last_pokecenter} not in pokecenter_ids')
+        return -1
+    else:
+        return self.pokecenter_ids.index(last_pokecenter)
         
