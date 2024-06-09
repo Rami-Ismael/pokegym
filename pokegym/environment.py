@@ -250,6 +250,9 @@ class Environment(Base):
             "y": spaces.Box(low=0, high=255, shape=(1,), dtype=np.uint8),
             "map_id": spaces.Box(low=0, high=0xF7, shape=(1,), dtype=np.uint8),
             "map_music_sound_bank": spaces.Box(low=0, high=3, shape=(1,), dtype=np.uint8),
+            "party_size": spaces.Box(low = 1 , high = 6, shape=(1,), dtype=np.uint8),
+            "each_pokemon_level": spaces.Box(low = 1, high = 100, shape=(6,), dtype=np.uint8),
+            "total_party_level": spaces.Box(low = 0, high = 100, shape=(1,), dtype=np.uint8),
         })
         
 
@@ -839,8 +842,8 @@ class Environment(Base):
                 "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
                 "next_state_completing_the_pokedex": next_state_completing_the_pokedex,
             }
+            info.update(next_state_internal_game.to_json())
             ## add next state internal game state into the infos section
-            info["next_state"] = next_state_internal_game.to_json()
             for index , level in enumerate(next_state_party_levels):
                 info[f'pokemon_{ index +1 }_level'] = level
             try:
