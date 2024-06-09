@@ -2,16 +2,19 @@ from collections import deque
 from pdb import set_trace as T
 from typing import Literal
 from gymnasium import Env, spaces
+from matplotlib.dates import TU
 import numpy as np
 import os
 import io, os
+from pokegym import game_state, observation
+from pokegym.game_state import External_Game_State, Internal_Game_State
 from skimage.transform import resize
 
 from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
     load_pyboy_state, run_action_on_emulator)
 from pokegym import ram_map, game_map 
 from pokegym.global_map import GLOBAL_MAP_SHAPE , local_to_global
-from rich import print
+from rich import print as print
 PIXEL_VALUES = np.array([0, 85, 153, 255], dtype=np.uint8)
 
 EVENT_FLAGS_START = 0xD747
@@ -246,6 +249,7 @@ class Environment(Base):
             "x": spaces.Box(low=0, high=255, shape=(1,), dtype=np.uint8),
             "y": spaces.Box(low=0, high=255, shape=(1,), dtype=np.uint8),
             "map_id": spaces.Box(low=0, high=0xF7, shape=(1,), dtype=np.uint8),
+            "map_music_sound_bank": spaces.Box(low=0, high=3, shape=(1,), dtype=np.uint8),
         })
         
 
@@ -263,6 +267,9 @@ class Environment(Base):
         """Resets the game. Seeding is NOT supported"""
         # https://github.com/xinpw8/pokegym/blob/baseline_0.6/pokegym/environment.py
         load_pyboy_state(self.game, self.load_last_state()) # load a saved state
+        self.external_game_state = External_Game_State()
+        internal_game_state: Internal_Game_State = Internal_Game_State(self.game)
+        observation_game_state = observation.Observation(internal_game_state)
 
         self.time = 0
         self.reward_scale = reward_scale
@@ -299,7 +306,9 @@ class Environment(Base):
 
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
-        return self._get_obs(), {}
+        old_observation = self._get_obs()
+        old_observation.update(observation_game_state.to_json())
+        return old_observation, {}
     def get_game_coords(self):
             return (self.read_m(0xD362), self.read_m(0xD361), self.read_m(0xD35E))
     def update_seen_coords(self):
@@ -469,10 +478,15 @@ class Environment(Base):
         
         prev_total_wipe_out = self.total_wipe_out
         
+        state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
+        
         
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
             self.headless, fast_video=fast_video)
         self.time += 1
+        next_state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
+        self.external_game_state.update( game = self.game , game_state = next_state_internal_game)
+
         # Seen Coordinate
         self.update_seen_coords()
         ### Cut and Talking to NPCS
@@ -712,7 +726,7 @@ class Environment(Base):
         assert reward_seeen_npcs == 1 or reward_seeen_npcs == 0, T()
         
         # reward_visiting_a_new_pokecenter: Literal[1, 0]  = self.update_visited_pokecenter_list()
-        reward_visiting_a_new_pokecenter: Literal[8, 0]  = 8 if ram_map.get_last_pokecenter_id(self.game) != -1 else 0
+        reward_visiting_a_new_pokecenter: Literal[8, 0]  = 8 if ram_map.get_last_pokecenter_id(self.game , pokecenter_ids = self.pokecenter_ids) != -1 else 0
          
         
 
@@ -728,7 +742,7 @@ class Environment(Base):
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
-                + ( reward_the_agent_increase_the_level_of_the_pokemon   *  4 )
+                + ( reward_the_agent_increase_the_level_of_the_pokemon   *  16 )
                 + reward_the_agent_for_increasing_the_party_size
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
@@ -741,7 +755,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 8 == 0 or done:
+        if self.time % 1 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
@@ -825,6 +839,8 @@ class Environment(Base):
                 "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
                 "next_state_completing_the_pokedex": next_state_completing_the_pokedex,
             }
+            ## add next state internal game state into the infos section
+            info["next_state"] = next_state_internal_game.to_json()
             for index , level in enumerate(next_state_party_levels):
                 info[f'pokemon_{ index +1 }_level'] = level
             try:
@@ -844,7 +860,6 @@ class Environment(Base):
                 f'op_level: {opponent_level_reward}',
                 f'badges reward: {badges_reward}',
                 f'event reward: {event_reward}',
-                f'money: {money}',
                 f'ai reward: {reward}',
                 f"In a trainer battle: {current_state_is_in_battle}",
                 f"Gym Leader Music is playing: {ram_map.check_if_gym_leader_music_is_playing(self.game)}",
@@ -852,9 +867,12 @@ class Environment(Base):
             )
         # Observation , reward, done, info
         assert isinstance(next_state_party_levels, list), f"next_state_party_levels: {next_state_party_levels}"
-        observation = self._get_obs()
         
-        return observation, reward, done, done, info
+        observation_data_class = observation.Observation(next_state_internal_game_state = next_state_internal_game)
+        old_observation = self._get_obs()
+        old_observation.update(observation_data_class.get_obs())
+        
+        return old_observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
         '''
         Updates the heat map based on the agent's current position.

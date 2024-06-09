@@ -39,6 +39,9 @@ POKEMONI_PARTY_IDS_ADDR: list[int] = [0xD164, 0xD165, 0xD166, 0xD167, 0xD168, 0x
 OPPONENT_PARRTY_IDS_ADDR: list[int] = [0xD89D, 0xD89E, 0xD89F, 0xD8A0, 0xD8A1, 0xD8A2]
 NUMBER_RUN_ATTEMPTS_ADDR = 0xD120
 LAST_BLACKOUT_MAP = wLastBlackoutMap = 0xD719
+BATTLE_RESULT_FLAG = 0XCF0B
+MAP_MUSIC_ID = 0xD35B
+MAP_MUSIC_ROM_BANK = 0xD35C
 
 
 class BattleState(Enum):
@@ -46,6 +49,10 @@ class BattleState(Enum):
     WILD_BATTLE = 1
     TRAINER_BATTLE = 2
     LOST_BATTLE = -1
+class BattleResult(Enum):
+    WIN = 0
+    LOSE = 1
+    DRAW = 2
 
 
 def bcd(num):
@@ -279,16 +286,26 @@ def get_number_of_run_attempts(game) -> int:
 def get_player_direction(game) -> int:
     # C1x9: facing direction (0: down, 4: up, 8: left, $c: right)
     return game.get_memory_value(0xC109) 
-def get_last_pokecenter_id(self):
-    
-    last_pokecenter = self.get_memory_value(LAST_BLACKOUT_MAP)
+def get_battle_result(game)-> BattleResult:
+    battle_result_flag = game.get_memory_value(BATTLE_RESULT_FLAG)
+    try:
+        return BattleResult(battle_result_flag)
+    except ValueError:
+        return BattleResult.DRAW
+## https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/wram.asm#L2361C1-L2368C1
+def get_map_music_id(game):
+    return game.get_memory_value(MAP_MUSIC_ID)
+def get_map_music_rom_bank(game):
+    return game.get_memory_value(MAP_MUSIC_ROM_BANK)
+def get_last_pokecenter_id(game , pokecenter_ids) -> int:
+    last_pokecenter = game.get_memory_value(LAST_BLACKOUT_MAP)
     # will throw error if last_pokecenter not in pokecenter_ids, intended
     if last_pokecenter == 0:
         # no pokecenter visited yet
         return -1
-    if last_pokecenter not in self.pokecenter_ids:
+    if last_pokecenter not in pokecenter_ids:
         print(f'\nERROR: last_pokecenter: {last_pokecenter} not in pokecenter_ids')
         return -1
     else:
-        return self.pokecenter_ids.index(last_pokecenter)
+        return pokecenter_ids.index(last_pokecenter)
         
