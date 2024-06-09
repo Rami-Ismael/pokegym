@@ -741,17 +741,17 @@ class Environment(Base):
                 + death_reward 
                 + badges_reward 
                 + reward_for_healing 
-                +  ( exploration_reward * 8 )
+                +  ( exploration_reward )
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
-                + ( reward_the_agent_increase_the_level_of_the_pokemon   *  16 )
+                + ( reward_the_agent_increase_the_level_of_the_pokemon  )
                 + reward_the_agent_for_increasing_the_party_size
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + wipe_out * -1 if self.punish_wipe_out else 0
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
-                + ( reward_seeen_npcs * 16 )
+                + ( reward_seeen_npcs  )
                 + reward_visiting_a_new_pokecenter
                 + reward_for_entering_a_trainer_battle 
         )
