@@ -706,7 +706,7 @@ class Environment(Base):
         if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE or next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             if self.max_opponent_level < max(ram_map.opponent(self.game)):
                 self.max_opponent_level = max(ram_map.opponent(self.game))
-                opponent_level_reward += 2
+                opponent_level_reward += 1
         discourage_running_from_battle = 0
         #if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE:
         #    self.total_numebr_attempted_to_run += 1
