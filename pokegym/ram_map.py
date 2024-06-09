@@ -7,7 +7,7 @@ HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248]
 MAX_HP_ADDR = [0xD18D, 0xD1B9, 0xD1E5, 0xD211, 0xD23D, 0xD269]
 PARTY_SIZE_ADDR = 0xD163
 PARTY_ADDR = [0xD164, 0xD165, 0xD166, 0xD167, 0xD168, 0xD169]
-PARTY_LEVEL_ADDR = [0xD18C, 0xD1B8, 0xD1E4, 0xD210, 0xD23C, 0xD268]
+PARTY_LEVEL_ADDR = [0xD18C, 0xD1B8, 0xD1E4, 0xD210, 0xD23C, 0xD268] # https://github.com/JumpyWizard-projects/Pokemon-Team-Randomizer-Red-Blue/blob/master/Pokemon%20Team%20Randomizer%20Red%20and%20Blue.lua#L1265
 POKE_XP_ADDR = [0xD179, 0xD1A5, 0xD1D1, 0xD1FD, 0xD229, 0xD255]
 CAUGHT_POKE_ADDR = range(0xD2F7, 0xD309) # base on the pokemon did you caught the pokemon
 SEEN_POKE_ADDR = range(0xD30A, 0xD31D) # base on the pokemon did you seen the pokemon
@@ -82,6 +82,8 @@ def party(game):
     party_size = game.get_memory_value(PARTY_SIZE_ADDR)
     party_levels = [game.get_memory_value(addr) for addr in PARTY_LEVEL_ADDR]
     return party, party_size, party_levels
+def get_party_pokemon_level(game)-> list[int]:
+    return [game.get_memory_value(addr) for addr in PARTY_LEVEL_ADDR]
 def get_party_size(game)-> int:
     return game.get_memory_value(PARTY_SIZE_ADDR)
 
