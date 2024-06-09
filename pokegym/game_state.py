@@ -8,6 +8,13 @@ class Internal_Game_State:
     batle_result: ram_map.BattleResult = field(default_factory=lambda: ram_map.BattleResult.DRAW)  # Default to NOT_IN_BATTLE or any other default state
     map_music_sound_id: int = field(default_factory=int)
     map_music_rom_bank: int = field(default_factory=int)
+    
+    party_size: int = field(default_factory=int)
+    each_pokemon_level: List[int] = field(default_factory=list)
+    lowest_pokemon_level: int = field(default_factory=int)
+    highest_pokemon_level: int = field(default_factory=int)
+    total_party_level: int = field(default_factory=int)
+    average_pokemon_level: float = field(default_factory=float)
 
     def __init__(self, game=None):
         #self.last_pokecenter_id = ram_map.get_last_pokecenter_id(game) if game else 0
@@ -15,6 +22,12 @@ class Internal_Game_State:
         self.batle_result = ram_map.get_battle_result(game)
         self.map_music_sound_id = ram_map.get_map_music_id(game)
         self.map_music_rom_bank = ram_map.get_map_music_rom_bank(game)
+        self.each_pokemon_level = ram_map.get_party_pokemon_level(game)
+        self.party_size = ram_map.get_party_size(game)
+        self.lowest_pokemon_level = min(self.each_pokemon_level)
+        self.highest_pokemon_level = max(self.each_pokemon_level)
+        self.total_party_level = sum(self.each_pokemon_level)
+        self.average_pokemon_level = self.total_party_level/self.party_size
         ## assert all value are not none
     def to_json(self) -> dict:
         for k, v in asdict(self).items():
