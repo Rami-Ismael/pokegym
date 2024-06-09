@@ -679,7 +679,7 @@ class Environment(Base):
         reward_for_battle = 0
         reward_for_entering_a_trainer_battle = 0 
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
-            reward_for_entering_a_trainer_battle = 8
+            reward_for_entering_a_trainer_battle = 1
         # Reward the Agent for choosing to be in a trainer battle and not losing
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             reward_for_battle += 2
