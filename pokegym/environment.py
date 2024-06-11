@@ -253,6 +253,8 @@ class Environment(Base):
             "party_size": spaces.Box(low = 1 , high = 6, shape=(1,), dtype=np.uint8),
             "each_pokemon_level": spaces.Box(low = 1, high = 100, shape=(6,), dtype=np.uint8),
             "total_party_level": spaces.Box(low = 0, high = 100, shape=(1,), dtype=np.uint8),
+            "battle_stats": spaces.Box(low = 0, high = 4, shape=(1,), dtype=np.uint8),
+            "number_of_turns_in_current_battle": spaces.Box(low = 0, high = 255, shape=(1,), dtype=np.uint8),
         })
         
 

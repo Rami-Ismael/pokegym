@@ -1,3 +1,4 @@
+from ast import List
 import numpy as np
 from enum import Enum
 from pyboy.utils import WindowEvent
@@ -42,6 +43,7 @@ LAST_BLACKOUT_MAP = wLastBlackoutMap = 0xD719
 BATTLE_RESULT_FLAG = 0XCF0B
 MAP_MUSIC_ID = 0xD35B
 MAP_MUSIC_ROM_BANK = 0xD35C
+NUMBER_OF_TURNS_IN_CURRENT_BATTLE = 0xCCD5
 
 
 class BattleState(Enum):
@@ -53,6 +55,7 @@ class BattleResult(Enum):
     WIN = 0
     LOSE = 1
     DRAW = 2
+    IDK = 3
 
 
 def bcd(num):
@@ -117,6 +120,11 @@ def party_health_ratio(game) -> float:
     if party_hp == 0 or party_max_hp == 0:
         return 0
     return party_hp / party_max_hp
+
+def each_pokemon_hit_points(game):
+    '''Percentage of total party HP'''
+    return [read_uint16(game, addr) for addr in HP_ADDR]
+    
 
 def total_party_hit_point(game) -> int:
     '''Percentage of total party HP'''
@@ -310,4 +318,6 @@ def get_last_pokecenter_id(game , pokecenter_ids) -> int:
         return -1
     else:
         return pokecenter_ids.index(last_pokecenter)
+def get_number_of_turns_in_current_battle(game):
+    return game.get_memory_value(NUMBER_OF_TURNS_IN_CURRENT_BATTLE)
         
