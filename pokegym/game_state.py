@@ -5,7 +5,7 @@ from pokegym import ram_map
 class Internal_Game_State:
     #last_pokecenter_id: int = field(default_factory=int)
     battle_stats: ram_map.BattleState = field(default_factory=lambda: ram_map.BattleState.NOT_IN_BATTLE)  # Default to NOT_IN_BATTLE or any other default state
-    batle_result: ram_map.BattleResult = field(default_factory=lambda: ram_map.BattleResult.DRAW)  # Default to NOT_IN_BATTLE or any other default state
+    batle_result: ram_map.BattleResult = field(default_factory=lambda: ram_map.BattleResult.IDK)  # Default to NOT_IN_BATTLE or any other default state
     map_music_sound_id: int = field(default_factory=int)
     map_music_rom_bank: int = field(default_factory=int)
     
@@ -15,6 +15,19 @@ class Internal_Game_State:
     highest_pokemon_level: int = field(default_factory=int)
     total_party_level: int = field(default_factory=int)
     average_pokemon_level: float = field(default_factory=float)
+    
+    number_of_turn_in_pokemon_battle: int = field(default_factory=int)
+    
+    # Health Points
+    #each_pokemon_health_points: List[int] = field(default_factory=list)
+    #each_pokemon_health_points_max: List[int] = field(default_factory=list)
+    #lowest_pokemon_health_points: int = field(default_factory=int)
+    #highest_pokemon_health_points: int = field(default_factory=int)
+    #total_party_health_points: int = field(default_factory=int)
+    #total_parth_max_hit_points: int = field(default_factory=int)
+    #average_pokemon_health_points: float = field(default_factory=float)
+    
+
 
     def __init__(self, game=None):
         #self.last_pokecenter_id = ram_map.get_last_pokecenter_id(game) if game else 0
@@ -28,8 +41,10 @@ class Internal_Game_State:
         self.highest_pokemon_level = max(self.each_pokemon_level)
         self.total_party_level = sum(self.each_pokemon_level)
         self.average_pokemon_level = self.total_party_level/self.party_size
+        self.number_of_turn_in_pokemon_battle = ram_map.get_number_of_turns_in_current_battle(game)
         ## assert all value are not none
     def to_json(self) -> dict:
+        assert all(v is not None for v in self.each_pokemon_level)
         for k, v in asdict(self).items():
             if v is None:
                 raise ValueError(f"Value of {k} is None")
