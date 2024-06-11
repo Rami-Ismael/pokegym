@@ -1,6 +1,7 @@
 from dataclasses import asdict, dataclass , field 
 from typing import List
 from pokegym import ram_map
+import numpy as np
 @dataclass
 class Internal_Game_State:
     #last_pokecenter_id: int = field(default_factory=int)
@@ -19,13 +20,14 @@ class Internal_Game_State:
     number_of_turn_in_pokemon_battle: int = field(default_factory=int)
     
     # Health Points
-    #each_pokemon_health_points: List[int] = field(default_factory=list)
-    #each_pokemon_health_points_max: List[int] = field(default_factory=list)
-    #lowest_pokemon_health_points: int = field(default_factory=int)
-    #highest_pokemon_health_points: int = field(default_factory=int)
-    #total_party_health_points: int = field(default_factory=int)
-    #total_parth_max_hit_points: int = field(default_factory=int)
-    #average_pokemon_health_points: float = field(default_factory=float)
+    each_pokemon_health_points: List[int] = field(default_factory=list)
+    each_pokemon_max_health_points: List[int] = field(default_factory=list)
+    lowest_pokemon_health_points: int = field(default_factory=int)
+    highest_pokemon_health_points: int = field(default_factory=int)
+    total_party_health_points: int = field(default_factory=int)
+    total_party_max_hit_points: int = field(default_factory=int)
+    average_pokemon_health_points: float = field(default_factory=float)
+    average_pokemon_max_health_points: float = field(default_factory=float)
     
 
 
@@ -42,6 +44,16 @@ class Internal_Game_State:
         self.total_party_level = sum(self.each_pokemon_level)
         self.average_pokemon_level = self.total_party_level/self.party_size
         self.number_of_turn_in_pokemon_battle = ram_map.get_number_of_turns_in_current_battle(game)
+        # Health 
+        self.each_pokemon_health_points = ram_map.each_pokemon_hit_points(game)
+        self.each_pokemon_max_health_points = ram_map.get_each_pokemon_max_hit_points(game)
+        self.lowest_pokemon_health_points = min(self.each_pokemon_health_points)
+        self.highest_pokemon_health_points = max(self.each_pokemon_health_points)
+        self.total_party_health_points = sum(self.each_pokemon_health_points)
+        self.total_party_max_hit_points = sum(self.each_pokemon_max_health_points)
+        self.average_pokemon_health_points = self.total_party_health_points/self.party_size
+        self.average_pokemon_max_health_points = self.total_party_max_hit_points/self.party_size
+        
         ## assert all value are not none
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)

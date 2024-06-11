@@ -254,7 +254,12 @@ class Environment(Base):
             "each_pokemon_level": spaces.Box(low = 1, high = 100, shape=(6,), dtype=np.uint8),
             "total_party_level": spaces.Box(low = 0, high = 100, shape=(1,), dtype=np.uint8),
             "battle_stats": spaces.Box(low = 0, high = 4, shape=(1,), dtype=np.uint8),
+            "battle_result": spaces.Box(low = 0, high = 4, shape=(1,), dtype=np.uint8),
             "number_of_turns_in_current_battle": spaces.Box(low = 0, high = 255, shape=(1,), dtype=np.uint8),
+            "each_pokemon_health_points": spaces.Box(low = 0, high = 99, shape=(6,), dtype=np.uint8),
+            "each_pokemon_max_health_points": spaces.Box(low = 0, high = 99, shape=(6,), dtype=np.uint8),
+            "total_party_health_points": spaces.Box(low = 0, high = 99, shape=(1,), dtype=np.uint8),
+            "total_party_max_hit_points": spaces.Box(low = 0, high = 99, shape=(1,), dtype=np.uint8),
         })
         
 

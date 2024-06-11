@@ -1,10 +1,11 @@
 from ast import List
 import numpy as np
 from enum import Enum
+from pokegym.red_memory_player import POKEMON_1_CURRENT_HP, POKEMON_1_MAX_HP
 from pyboy.utils import WindowEvent
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
-HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248]
+HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248] # This work fine
 MAX_HP_ADDR = [0xD18D, 0xD1B9, 0xD1E5, 0xD211, 0xD23D, 0xD269]
 PARTY_SIZE_ADDR = 0xD163
 PARTY_ADDR = [0xD164, 0xD165, 0xD166, 0xD167, 0xD168, 0xD169]
@@ -50,7 +51,7 @@ class BattleState(Enum):
     NOT_IN_BATTLE = 0
     WILD_BATTLE = 1
     TRAINER_BATTLE = 2
-    LOST_BATTLE = -1
+    LOST_BATTLE = 3
 class BattleResult(Enum):
     WIN = 0
     LOSE = 1
@@ -121,19 +122,7 @@ def party_health_ratio(game) -> float:
         return 0
     return party_hp / party_max_hp
 
-def each_pokemon_hit_points(game):
-    '''Percentage of total party HP'''
-    return [read_uint16(game, addr) for addr in HP_ADDR]
-    
 
-def total_party_hit_point(game) -> int:
-    '''Percentage of total party HP'''
-    party_hp = [read_uint16(game, addr) for addr in HP_ADDR]
-    return sum(party_hp)
-def total_party_max_hit_point(game) -> int:
-    '''Percentage of total party HP'''
-    party_max_hp = [read_uint16(game, addr) for addr in MAX_HP_ADDR]
-    return sum(party_max_hp)
 
 def money(game):
     return (100 * 100 * bcd(game.get_memory_value(MONEY_ADDR_1))
@@ -320,4 +309,24 @@ def get_last_pokecenter_id(game , pokecenter_ids) -> int:
         return pokecenter_ids.index(last_pokecenter)
 def get_number_of_turns_in_current_battle(game):
     return game.get_memory_value(NUMBER_OF_TURNS_IN_CURRENT_BATTLE)
-        
+'''
+That guy  code ideas
+def get_pokemon_health(self , offset):
+        hp_total = (self.env.ram_interface.read_memory(POKEMON_1_MAX_HP[0] + offset) << 8) + self.env.ram_interface.read_memory(POKEMON_1_MAX_HP[1] + offset)
+        hp_avail = (self.env.ram_interface.read_memory(POKEMON_1_CURRENT_HP[0] + offset) << 8) + self.env.ram_interface.read_memory(POKEMON_1_CURRENT_HP[1] + offset)
+        return hp_total, hp_avail
+'''
+def get_each_pokemon_max_hit_points(game):
+    return [read_uint16(game, addr) for addr in MAX_HP_ADDR]
+def each_pokemon_hit_points(game):
+    '''Percentage of total party HP'''
+    return [read_uint16(game, addr) for addr in HP_ADDR]
+def total_party_hit_point(game) -> int:
+    '''Percentage of total party HP'''
+    party_hp = [read_uint16(game, addr) for addr in HP_ADDR]
+    return sum(party_hp)
+def total_party_max_hit_point(game) -> int:
+    '''Percentage of total party HP'''
+    party_max_hp = [read_uint16(game, addr) for addr in MAX_HP_ADDR]
+    return sum(party_max_hp)
+    
