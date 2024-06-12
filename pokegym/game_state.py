@@ -29,6 +29,10 @@ class Internal_Game_State:
     average_pokemon_health_points: float = field(default_factory=float)
     average_pokemon_max_health_points: float = field(default_factory=float)
     
+    # Items
+    total_number_of_items: int = field(default_factory=int)
+    money: int = field(default_factory=int)
+    
 
 
     def __init__(self, game=None):
@@ -53,6 +57,12 @@ class Internal_Game_State:
         self.total_party_max_hit_points = sum(self.each_pokemon_max_health_points)
         self.average_pokemon_health_points = self.total_party_health_points/self.party_size
         self.average_pokemon_max_health_points = self.total_party_max_hit_points/self.party_size
+        
+        # Items 
+        self.total_number_of_items = ram_map.total_items(game)  # # The count of all the items held in players bag
+        self.money = ram_map.money(game)  # # The count of all the items held in players bag
+
+        
         
         ## assert all value are not none
     def to_json(self) -> dict:

@@ -260,6 +260,9 @@ class Environment(Base):
             "each_pokemon_max_health_points": spaces.Box(low = 0, high = 99, shape=(6,), dtype=np.uint8),
             "total_party_health_points": spaces.Box(low = 0, high = 99, shape=(1,), dtype=np.uint8),
             "total_party_max_hit_points": spaces.Box(low = 0, high = 99, shape=(1,), dtype=np.uint8),
+            "total_number_of_items": spaces.Box(low = 0, high = 64, shape=(1,), dtype=np.uint8),
+            "money": spaces.Box(low = 0, high = 999999, shape=(1,), dtype=np.uint16),
+            #"total_number_of_unique_moves_in_the_teams": spaces.Box(low = 0, high = 24, shape=(1,), dtype=np.uint8)
         })
         
 
