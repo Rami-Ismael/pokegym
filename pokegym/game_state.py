@@ -33,6 +33,10 @@ class Internal_Game_State:
     total_number_of_items: int = field(default_factory=int)
     money: int = field(default_factory=int)
     
+    # Moves
+    player_selected_move_id: int = field(default_factory=int)
+    enemy_selected_move_id: int = field(default_factory=int)
+    
 
 
     def __init__(self, game=None):
@@ -61,6 +65,9 @@ class Internal_Game_State:
         # Items 
         self.total_number_of_items = ram_map.total_items(game)  # # The count of all the items held in players bag
         self.money = ram_map.money(game)  # # The count of all the items held in players bag
+        
+        # Moves
+        self.player_selected_move_id , self.enemy_selected_move_id = ram_map.get_battle_turn_moves(game)
 
         
         

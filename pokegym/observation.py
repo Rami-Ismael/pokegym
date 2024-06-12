@@ -5,6 +5,7 @@ from rich import print
 @dataclass
 class Observation:
     map_music_sound_bank: int = field(default_factory=int)
+    map_music_sound_id: int = field(default_factory=int)
     party_size: int = field(default_factory=int)
     each_pokemon_level: List[float] = field(default_factory=list)
     total_party_level: float = field(default_factory=float)
@@ -20,9 +21,14 @@ class Observation:
     
     total_number_of_items: int = field(default_factory=int)
     money: int = field(default_factory=int)
+    
+    # Moves
+    player_selected_move_id: int = field(default_factory=int)
+    enemy_selected_move_id: int = field(default_factory=int)
    
     def __init__( self , next_state_internal_game_state):
        self.map_music_sound_bank = next_state_internal_game_state.map_music_rom_bank
+       self.map_music_sound_id = next_state_internal_game_state.map_music_sound_id
        self.party_size = next_state_internal_game_state.party_size
        self.each_pokemon_level = next_state_internal_game_state.each_pokemon_level
        self.total_party_level = next_state_internal_game_state.total_party_level
@@ -35,12 +41,16 @@ class Observation:
        self.total_party_max_hit_points = next_state_internal_game_state.total_party_max_hit_points
        self.total_number_of_items = next_state_internal_game_state.total_number_of_items
        self.money = next_state_internal_game_state.money
+       self.player_selected_move_id = next_state_internal_game_state.player_selected_move_id
+       self.enemy_selected_move_id = next_state_internal_game_state.enemy_selected_move_id
        self.encode()
        self.normalize()
     
     def encode(self):
         stuff  = { 2: 0 , 8:1 , 31:2}
         self.map_music_sound_bank = stuff[self.map_music_sound_bank]
+        # A bad way to encode on the map music sound id so far will later get a better way in these method 
+        self.map_music_sound_id = self.map_music_sound_id - 176
     def normalize(self):
         for index in range(len(self.each_pokemon_health_points)):
             if self.each_pokemon_max_health_points[index] >0:

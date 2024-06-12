@@ -45,6 +45,11 @@ BATTLE_RESULT_FLAG = 0XCF0B
 MAP_MUSIC_ID = 0xD35B
 MAP_MUSIC_ROM_BANK = 0xD35C
 NUMBER_OF_TURNS_IN_CURRENT_BATTLE = 0xCCD5
+# Battle Turn Info
+TURNS_IN_CURRENT_BATTLE = 0xCCD5 # Player + Enemy Move = 1 Turn (Resets only on next battle)
+PLAYER_SELECTED_MOVE = 0xCCDC # Stale out of battle
+ENEMY_SELECTED_MOVE = 0xCCDD # Stale out of battle
+BATTLE_TEXT_PAUSE_FLAG = 0xCC52
 
 
 class BattleState(Enum):
@@ -329,4 +334,9 @@ def total_party_max_hit_point(game) -> int:
     '''Percentage of total party HP'''
     party_max_hp = [read_uint16(game, addr) for addr in MAX_HP_ADDR]
     return sum(party_max_hp)
+def get_battle_turn_moves(game):
+        player_selected_move = game.get_memory_value(PLAYER_SELECTED_MOVE)
+        enemy_selected_move = game.get_memory_value(ENEMY_SELECTED_MOVE)
+
+        return player_selected_move, enemy_selected_move 
     

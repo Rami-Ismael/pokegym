@@ -250,6 +250,7 @@ class Environment(Base):
             "y": spaces.Box(low=0, high=255, shape=(1,), dtype=np.uint8),
             "map_id": spaces.Box(low=0, high=0xF7, shape=(1,), dtype=np.uint8),
             "map_music_sound_bank": spaces.Box(low=0, high=3, shape=(1,), dtype=np.uint8),
+            "map_music_sound_id": spaces.Box(low=0, high=84, shape=(1,), dtype=np.uint8),
             "party_size": spaces.Box(low = 1 , high = 6, shape=(1,), dtype=np.uint8),
             "each_pokemon_level": spaces.Box(low = 1, high = 100, shape=(6,), dtype=np.uint8),
             "total_party_level": spaces.Box(low = 0, high = 100, shape=(1,), dtype=np.uint8),
@@ -262,6 +263,8 @@ class Environment(Base):
             "total_party_max_hit_points": spaces.Box(low = 0, high = 99, shape=(1,), dtype=np.uint8),
             "total_number_of_items": spaces.Box(low = 0, high = 64, shape=(1,), dtype=np.uint8),
             "money": spaces.Box(low = 0, high = 999999, shape=(1,), dtype=np.uint16),
+            "player_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
+            "enemy_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
             #"total_number_of_unique_moves_in_the_teams": spaces.Box(low = 0, high = 24, shape=(1,), dtype=np.uint8)
         })
         
