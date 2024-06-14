@@ -50,6 +50,33 @@ TURNS_IN_CURRENT_BATTLE = 0xCCD5 # Player + Enemy Move = 1 Turn (Resets only on 
 PLAYER_SELECTED_MOVE = 0xCCDC # Stale out of battle
 ENEMY_SELECTED_MOVE = 0xCCDD # Stale out of battle
 BATTLE_TEXT_PAUSE_FLAG = 0xCC52
+# Player Party Overview
+PARTY_OFFSET = 0x2C
+POKEMON_PARTY_COUNT = 0xD163
+POKEMON_1_ID = 0xD164 # ID of mon or 0x00 when none
+POKEMON_2_ID = 0xD165 # 0xFF marks end of list, but prev EoL isn't cleared when party size shrinks, must
+POKEMON_3_ID = 0xD166 # use LSB as 0xFF marker
+POKEMON_4_ID = 0xD167
+POKEMON_5_ID = 0xD168
+POKEMON_6_ID = 0xD169
+
+# Player Constants
+POKEMON_TOTAL_ATTRIBUTES = 20
+MAX_MONEY = 999999.0
+
+# Pokemon 1 Details
+POKEMON_1 = 0xD16B
+POKEMON_1_STATUS = 0xD16F
+POKEMON_1_TYPES = (0xD170,0xD171)
+POKEMON_1_MOVES = (0xD173, 0xD174, 0xD175, 0xD176)
+POKEMON_1_EXPERIENCE = (0xD179, 0xD17A, 0xD17B) # Current XP @ l as 3 hex concat numbers ie. 0x00 0x01 0x080 == 348
+POKEMON_1_PP_MOVES = (0xD188, 0xD189, 0xD18A, 0xD18B)
+POKEMON_1_LEVEL_ACTUAL = 0xD18C
+POKEMON_1_ATTACK = (0xD18F, 0xD190)
+POKEMON_1_DEFENSE = (0xD191, 0xD192)
+POKEMON_1_SPEED = (0xD193, 0xD194)
+POKEMON_1_SPECIAL = (0xD195, 0xD196)
+
 
 
 class BattleState(Enum):
@@ -338,5 +365,17 @@ def get_battle_turn_moves(game):
         player_selected_move = game.get_memory_value(PLAYER_SELECTED_MOVE)
         enemy_selected_move = game.get_memory_value(ENEMY_SELECTED_MOVE)
 
-        return player_selected_move, enemy_selected_move 
+        return player_selected_move, enemy_selected_move
+def read_memory(game , address):
+    return game.get_memory_value(address)
+def get_pokemon_xp(game, offset):
+    xp = ((read_memory( game , POKEMON_1_EXPERIENCE[0] + offset) << 16) +
+            (read_memory( game , POKEMON_1_EXPERIENCE[1] + offset) << 8) +
+            read_memory( game , POKEMON_1_EXPERIENCE[2] + offset))
+
+    return xp
+def _get_lineup_size(game):
+    return read_memory( game , POKEMON_PARTY_COUNT)
+def get_player_lineup_xp(game ):
+    return [get_pokemon_xp( game , i * PARTY_OFFSET) for i in range(_get_lineup_size(game))]
     

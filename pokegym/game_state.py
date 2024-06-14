@@ -68,6 +68,8 @@ class Internal_Game_State:
         
         # Moves
         self.player_selected_move_id , self.enemy_selected_move_id = ram_map.get_battle_turn_moves(game)
+        # Pokemon
+        self.player_lineup_xp = ram_map.get_player_lineup_xp(game)
 
         
         

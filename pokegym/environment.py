@@ -8,6 +8,8 @@ import os
 import io, os
 from pokegym import game_state, observation
 from pokegym.game_state import External_Game_State, Internal_Game_State
+from pokegym.red_gym_player import RedGymPlayer
+from pokegym.red_ram_api import Game
 from skimage.transform import resize
 
 from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
@@ -266,6 +268,7 @@ class Environment(Base):
             "player_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
             "enemy_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
             #"total_number_of_unique_moves_in_the_teams": spaces.Box(low = 0, high = 24, shape=(1,), dtype=np.uint8)
+            "player_xp": spaces.Box(low=0, high=1, shape=(6, ), dtype=np.float32),
         })
         
 
@@ -275,6 +278,7 @@ class Environment(Base):
         if self.first:
             self.recent_screen = deque()
             self.init_mem()
+            self._reset_env_state()
             self.moves_obtained = np.zeros(0xA5, dtype=np.uint8)
             self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
         else:
@@ -325,6 +329,12 @@ class Environment(Base):
         old_observation = self._get_obs()
         old_observation.update(observation_game_state.to_json())
         return old_observation, {}
+
+    def _reset_env_state(self):
+        #self.player = RedGymPlayer(self)
+        #self.red_gym_api = Game(self.game)
+        y = 2
+    
     def get_game_coords(self):
             return (self.read_m(0xD362), self.read_m(0xD361), self.read_m(0xD35E))
     def update_seen_coords(self):

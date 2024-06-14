@@ -2,6 +2,7 @@ from dataclasses import dataclass , field , asdict
 from typing import Any, List
 from pokegym import ram_map
 from rich import print
+import numpy as np
 @dataclass
 class Observation:
     map_music_sound_bank: int = field(default_factory=int)
@@ -43,8 +44,21 @@ class Observation:
        self.money = next_state_internal_game_state.money
        self.player_selected_move_id = next_state_internal_game_state.player_selected_move_id
        self.enemy_selected_move_id = next_state_internal_game_state.enemy_selected_move_id
+       self.player_xp = self.obs_player_xp(next_state_internal_game_state.player_lineup_xp)
        self.encode()
        self.normalize()
+    def normalize_np_array(self , np_array, lookup=True, size=256.0):
+        if lookup:
+            #Anp_array = np.vectorize(lambda x: self.env.memory.byte_to_float_norm[int(x)])(np_array)
+            p = 2
+        else:
+            np_array = np.vectorize(lambda x: int(x) / size)(np_array)
+
+        return np_array
+    def obs_player_xp(self, player_lineup_xp) -> np.ndarray[Any, np.dtype[np.floating[np._32Bit]]]:
+        xp_array = np.array(self.normalize_np_array(player_lineup_xp, False, 250000), dtype=np.float32)
+        padded_xp = np.pad(xp_array, (0, 6 - len(xp_array)), mode='constant')
+        return padded_xp
     
     def encode(self):
         stuff  = { 2: 0 , 8:1 , 31:2}
@@ -55,6 +69,10 @@ class Observation:
         for index in range(len(self.each_pokemon_health_points)):
             if self.each_pokemon_max_health_points[index] >0:
                 self.each_pokemon_health_points[index] = self.each_pokemon_health_points[index]/self.each_pokemon_max_health_points[index]
+        self.obs_player_total_max_health_points()
+    def obs_player_total_max_health_points(self):
+        self.total_party_max_hit_points = self.total_party_max_hit_points / ( 705.0 * 6.0)
+
 
 
     def get_obs(self) -> dict[str, Any]:
