@@ -55,7 +55,7 @@ class Observation:
             np_array = np.vectorize(lambda x: int(x) / size)(np_array)
 
         return np_array
-    def obs_player_xp(self, player_lineup_xp) -> np.ndarray[Any, np.dtype[np.floating[np._32Bit]]]:
+    def obs_player_xp(self, player_lineup_xp):
         xp_array = np.array(self.normalize_np_array(player_lineup_xp, False, 250000), dtype=np.float32)
         padded_xp = np.pad(xp_array, (0, 6 - len(xp_array)), mode='constant')
         return padded_xp
