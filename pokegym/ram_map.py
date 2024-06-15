@@ -135,6 +135,17 @@ def pokedex_obtained(game):
 def pokemon_seen(game):
     seen_bytes = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
     return sum([bit_count(b) for b in seen_bytes])
+def total_pokemon_seen(game):
+    seen_bytes = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
+    return sum([bit_count(b) for b in seen_bytes])
+def pokemon_see_in_the_pokedex(game):
+    '''
+    wPokedexSeen:: flag_array NUM_POKEMON
+    wPokedexSeenEnd::
+    https://github.com/pret/pokered/blob/fc23e72a39eb9cb9ca0651ea805abb6f47ee458c/ram/wram.asm#L1735
+    '''
+    seen_bytes = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
+    return [bit_count(b) for b in seen_bytes]
 
 def pokemon_caught(game):
     '''

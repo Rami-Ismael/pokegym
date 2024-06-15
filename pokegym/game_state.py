@@ -37,6 +37,11 @@ class Internal_Game_State:
     player_selected_move_id: int = field(default_factory=int)
     enemy_selected_move_id: int = field(default_factory=int)
     
+    # Player
+    total_pokemon_seen:int = field(default_factory=int)
+    pokemon_seen_in_the_pokedex: List[int] = field(default_factory=list)
+    
+    
 
 
     def __init__(self, game=None):
@@ -70,6 +75,11 @@ class Internal_Game_State:
         self.player_selected_move_id , self.enemy_selected_move_id = ram_map.get_battle_turn_moves(game)
         # Pokemon
         self.player_lineup_xp = ram_map.get_player_lineup_xp(game)
+        
+        # Seen Pokemon
+        self.total_pokemon_seen = ram_map.total_pokemon_seen(game)
+        self.pokemon_seen_in_the_pokedex = ram_map.pokemon_see_in_the_pokedex(game)
+        
 
         
         

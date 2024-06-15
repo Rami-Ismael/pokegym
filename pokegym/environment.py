@@ -265,6 +265,8 @@ class Environment(Base):
             "enemy_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
             #"total_number_of_unique_moves_in_the_teams": spaces.Box(low = 0, high = 24, shape=(1,), dtype=np.uint8)
             "player_xp": spaces.Box(low=0, high=1, shape=(6, ), dtype=np.float32),
+            "total_pokemon_seen": spaces.Box(low=0, high=152, shape=(1,), dtype=np.uint8),
+            "pokemon_seen_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
         })
         
 
@@ -760,7 +762,7 @@ class Environment(Base):
                 + death_reward 
                 + badges_reward 
                 + reward_for_healing 
-                +  ( exploration_reward * .75 )
+                +  ( exploration_reward * .50 )
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
@@ -828,8 +830,6 @@ class Environment(Base):
                 "hm_item_counts": hm_count,
                 "hm_moves": total_number_hm_moves_that_my_pokemon_party_has,
                 "max_opponent_level": self.max_opponent_level,
-                "money": next_state_money,
-                "pokemon_seen": next_state_pokemon_seen,
                 "taught_cut": int(self.check_if_party_has_cut()),
                 "cut_coords": sum(self.cut_coords.values()),
                 "cut_tiles": len(self.cut_tiles),

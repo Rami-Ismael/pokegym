@@ -26,6 +26,9 @@ class Observation:
     # Moves
     player_selected_move_id: int = field(default_factory=int)
     enemy_selected_move_id: int = field(default_factory=int)
+    #Player
+    total_pokemon_seen: int = field(default_factory=int)
+    pokemon_seen_in_the_pokedex: List[int] = field(default_factory=list)
    
     def __init__( self , next_state_internal_game_state):
        self.map_music_sound_bank = next_state_internal_game_state.map_music_rom_bank
@@ -45,6 +48,8 @@ class Observation:
        self.player_selected_move_id = next_state_internal_game_state.player_selected_move_id
        self.enemy_selected_move_id = next_state_internal_game_state.enemy_selected_move_id
        self.player_xp = self.obs_player_xp(next_state_internal_game_state.player_lineup_xp)
+       self.total_pokemon_seen = next_state_internal_game_state.total_pokemon_seen
+       self.pokemon_seen_in_the_pokedex = next_state_internal_game_state.pokemon_seen_in_the_pokedex
        self.encode()
        self.normalize()
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
