@@ -764,7 +764,7 @@ class Environment(Base):
                 + death_reward 
                 + badges_reward 
                 + reward_for_healing 
-                +  ( exploration_reward )
+                +  ( exploration_reward * .75 )
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
@@ -898,7 +898,7 @@ class Environment(Base):
         old_observation = self._get_obs()
         old_observation.update(observation_data_class.get_obs())
         
-        return old_observation, reward, done, done, info
+        return old_observation, max(min(reward , 1) , -1), done, done, info
     def update_heat_map(self, r, c, current_map):
         '''
         Updates the heat map based on the agent's current position.
