@@ -763,7 +763,7 @@ class Environment(Base):
                 + death_reward 
                 + badges_reward 
                 + reward_for_healing 
-                +  ( exploration_reward * .25 )
+                +  ( exploration_reward * .50 )
                 +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
@@ -775,12 +775,12 @@ class Environment(Base):
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 + ( reward_seeen_npcs  )
                 + reward_visiting_a_new_pokecenter
-                + ( reward_for_entering_a_trainer_battle * .5 ) 
+                + ( reward_for_entering_a_trainer_battle * .75 ) 
         )
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 2048 == 0 or done:
+        if self.time % 4096 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
