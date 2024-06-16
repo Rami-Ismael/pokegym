@@ -40,6 +40,7 @@ class Internal_Game_State:
     # Player
     total_pokemon_seen:int = field(default_factory=int)
     pokemon_seen_in_the_pokedex: List[int] = field(default_factory=list)
+    byte_representation_of_caught_pokemon_in_the_pokedex: List[int] = field(default_factory=list)
     
     
 
@@ -79,10 +80,7 @@ class Internal_Game_State:
         # Seen Pokemon
         self.total_pokemon_seen = ram_map.total_pokemon_seen(game)
         self.pokemon_seen_in_the_pokedex = ram_map.pokemon_see_in_the_pokedex(game)
-        
-
-        
-        
+        self.byte_representation_of_caught_pokemon_in_the_pokedex  = ram_map.get_pokedex_entries_of_caught_pokemon(game)
         ## assert all value are not none
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)

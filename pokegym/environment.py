@@ -267,6 +267,7 @@ class Environment(Base):
             "player_xp": spaces.Box(low=0, high=1, shape=(6, ), dtype=np.float32),
             "total_pokemon_seen": spaces.Box(low=0, high=152, shape=(1,), dtype=np.uint8),
             "pokemon_seen_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
+            "byte_representation_of_caught_pokemon_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
         })
         
 
@@ -779,7 +780,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 1024 == 0 or done:
+        if self.time % 2048 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,

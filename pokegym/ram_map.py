@@ -145,8 +145,11 @@ def pokemon_see_in_the_pokedex(game):
     https://github.com/pret/pokered/blob/fc23e72a39eb9cb9ca0651ea805abb6f47ee458c/ram/wram.asm#L1735
     '''
     seen_bytes = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
-    return [bit_count(b) for b in seen_bytes]
-
+    return  seen_bytes
+def get_pokedex_entries_of_caught_pokemon(game):
+    # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red_and_Blue/RAM_map#Menu_Data
+    bytes_address_represeting_eight_pokemon_pokedex_entries = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
+    return bytes_address_represeting_eight_pokemon_pokedex_entries
 def pokemon_caught(game):
     '''
     This will calculate how much pokemon you have that complete the pokedex
