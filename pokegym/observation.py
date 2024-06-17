@@ -61,7 +61,7 @@ class Observation:
        self.encode()
        self.normalize()
     def validation(self):
-        assert self.low_health_alarm in [0,145] , T()
+        assert self.low_health_alarm in [0, 145, 152] , T()
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:
             #Anp_array = np.vectorize(lambda x: self.env.memory.byte_to_float_norm[int(x)])(np_array)
@@ -79,7 +79,7 @@ class Observation:
         self.map_music_sound_bank = stuff[self.map_music_sound_bank]
         # A bad way to encode on the map music sound id so far will later get a better way in these method 
         self.map_music_sound_id = self.map_music_sound_id - 176
-        self.low_health_alarm = self.low_health_alarm // 145
+        self.low_health_alarm =  1 if self.low_health_alarm != 0 else 0 
     def normalize(self):
         for index in range(len(self.each_pokemon_health_points)):
             if self.each_pokemon_max_health_points[index] >0:
