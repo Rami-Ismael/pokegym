@@ -70,7 +70,7 @@ class Observation:
        self.opponent_pokemon_levels = next_state_internal_game_state.opponent_pokemon_levels
        
        
-       self.validation()
+       #self.validation()
        self.encode()
        self.normalize()
     def validation(self):
