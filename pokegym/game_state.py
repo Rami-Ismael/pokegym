@@ -46,7 +46,7 @@ class Internal_Game_State:
     # Battle
     
     ## opponetns
-    opponent_pokemon_levels: np.ndarray = field(default_factory=lambda: np.zeros(6, dtype=np.float32))
+    opponent_pokemon_levels: List[int] = field(default_factory=list)
     
     
 

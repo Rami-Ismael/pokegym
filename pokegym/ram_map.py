@@ -397,5 +397,5 @@ def get_player_lineup_xp(game ):
 def get_low_health_alarm(game):
     return read_memory( game , LOW_HELATH_ALARM)
 def get_opponent_pokemon_levels(game):
-    return np.array([game.get_memory_value(addr) for addr in OPPONENT_LEVEL_ADDR], dtype=np.float32)
+    return [game.get_memory_value(addr) for addr in OPPONENT_LEVEL_ADDR]
     
