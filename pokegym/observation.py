@@ -47,7 +47,7 @@ class Observation:
        self.each_pokemon_max_health_points = next_state_internal_game_state.each_pokemon_max_health_points
        self.total_party_health_points = next_state_internal_game_state.total_party_health_points
        self.total_party_max_hit_points = next_state_internal_game_state.total_party_max_hit_points
-       self.low_health_alarm = next_state_internal_game_state.low_health_alaram
+       self.low_health_alarm = next_state_internal_game_state.low_health_alaram 
        
        self.total_number_of_items = next_state_internal_game_state.total_number_of_items
        self.money = next_state_internal_game_state.money
@@ -57,11 +57,11 @@ class Observation:
        self.total_pokemon_seen = next_state_internal_game_state.total_pokemon_seen
        self.pokemon_seen_in_the_pokedex = next_state_internal_game_state.pokemon_seen_in_the_pokedex
        self.byte_representation_of_caught_pokemon_in_the_pokedex = next_state_internal_game_state.byte_representation_of_caught_pokemon_in_the_pokedex
+       self.validation()
        self.encode()
        self.normalize()
-       self.validation()
     def validation(self):
-        assert self.low_health_alarm in [0,1] , T()
+        assert self.low_health_alarm in [0,145] , T()
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:
             #Anp_array = np.vectorize(lambda x: self.env.memory.byte_to_float_norm[int(x)])(np_array)
@@ -79,6 +79,7 @@ class Observation:
         self.map_music_sound_bank = stuff[self.map_music_sound_bank]
         # A bad way to encode on the map music sound id so far will later get a better way in these method 
         self.map_music_sound_id = self.map_music_sound_id - 176
+        self.low_health_alarm = self.low_health_alarm // 145
     def normalize(self):
         for index in range(len(self.each_pokemon_health_points)):
             if self.each_pokemon_max_health_points[index] >0:
