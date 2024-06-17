@@ -19,6 +19,7 @@ class Observation:
     each_pokemon_max_health_points: List[float] = field(default_factory=list)
     total_party_health_points: float = field(default_factory=float)
     total_party_max_hit_points: float = field(default_factory=float)
+    low_health_alarm: int = field(default_factory=int)
     
     total_number_of_items: int = field(default_factory=int)
     money: int = field(default_factory=int)
@@ -45,6 +46,8 @@ class Observation:
        self.each_pokemon_max_health_points = next_state_internal_game_state.each_pokemon_max_health_points
        self.total_party_health_points = next_state_internal_game_state.total_party_health_points
        self.total_party_max_hit_points = next_state_internal_game_state.total_party_max_hit_points
+       self.low_health_alarm = next_state_internal_game_state.low_health_alaram
+       
        self.total_number_of_items = next_state_internal_game_state.total_number_of_items
        self.money = next_state_internal_game_state.money
        self.player_selected_move_id = next_state_internal_game_state.player_selected_move_id
@@ -55,6 +58,9 @@ class Observation:
        self.byte_representation_of_caught_pokemon_in_the_pokedex = next_state_internal_game_state.byte_representation_of_caught_pokemon_in_the_pokedex
        self.encode()
        self.normalize()
+       self.validation()
+    def validation(self):
+        assert self.low_health_alarm in [0,1]
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:
             #Anp_array = np.vectorize(lambda x: self.env.memory.byte_to_float_norm[int(x)])(np_array)

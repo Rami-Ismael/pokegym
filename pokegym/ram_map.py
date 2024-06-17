@@ -77,6 +77,8 @@ POKEMON_1_DEFENSE = (0xD191, 0xD192)
 POKEMON_1_SPEED = (0xD193, 0xD194)
 POKEMON_1_SPECIAL = (0xD195, 0xD196)
 
+LOW_HELATH_ALARM = wLowHealthAlarm = 0xD083
+
 
 
 class BattleState(Enum):
@@ -392,4 +394,6 @@ def _get_lineup_size(game):
     return read_memory( game , POKEMON_PARTY_COUNT)
 def get_player_lineup_xp(game ):
     return [get_pokemon_xp( game , i * PARTY_OFFSET) for i in range(_get_lineup_size(game))]
+def get_low_health_alarm(game):
+    return read_memory( game , LOW_HELATH_ALARM)
     

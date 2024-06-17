@@ -259,6 +259,8 @@ class Environment(Base):
             "each_pokemon_max_health_points": spaces.Box(low = 0, high = 99, shape=(6,), dtype=np.uint8),
             "total_party_health_points": spaces.Box(low = 0, high = 99, shape=(1,), dtype=np.uint8),
             "total_party_max_hit_points": spaces.Box(low = 0, high = 1, shape=(1,), dtype=np.float16),
+            "low_health_alarm": spaces.Box(low = 0, high = 1, shape=(1,), dtype=np.uint8),
+            
             "total_number_of_items": spaces.Box(low = 0, high = 64, shape=(1,), dtype=np.uint8),
             "money": spaces.Box(low = 0, high = 999999, shape=(1,), dtype=np.uint16),
             "player_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
@@ -504,13 +506,11 @@ class Environment(Base):
         prev_total_wipe_out = self.total_wipe_out
         
         state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
-        
-        
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
             self.headless, fast_video=fast_video)
         self.time += 1
         next_state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
-        self.external_game_state.update( game = self.game , game_state = next_state_internal_game)
+        self.external_game_state.update( game = self.game )
 
         # Seen Coordinate
         self.update_seen_coords()
@@ -780,7 +780,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time % 4096 == 0 or done:
+        if self.time % 2 == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
@@ -863,6 +863,7 @@ class Environment(Base):
                 "next_state_completing_the_pokedex": next_state_completing_the_pokedex,
             }
             info.update(next_state_internal_game.to_json())
+            info.update(self.external_game_state.to_json())
             ## add next state internal game state into the infos section
             for index , level in enumerate(next_state_party_levels):
                 info[f'pokemon_{ index +1 }_level'] = level

@@ -28,6 +28,7 @@ class Internal_Game_State:
     total_party_max_hit_points: int = field(default_factory=int)
     average_pokemon_health_points: float = field(default_factory=float)
     average_pokemon_max_health_points: float = field(default_factory=float)
+    low_health_alaram: int = field(default_factory=int)
     
     # Items
     total_number_of_items: int = field(default_factory=int)
@@ -67,6 +68,7 @@ class Internal_Game_State:
         self.total_party_max_hit_points = sum(self.each_pokemon_max_health_points)
         self.average_pokemon_health_points = self.total_party_health_points/self.party_size
         self.average_pokemon_max_health_points = self.total_party_max_hit_points/self.party_size
+        self.low_health_alaram = ram_map.get_low_health_alarm(game)
         
         # Items 
         self.total_number_of_items = ram_map.total_items(game)  # # The count of all the items held in players bag
@@ -90,12 +92,12 @@ class Internal_Game_State:
         return asdict(self )
 @dataclass
 class External_Game_State:
-    visited_pokecenter_list: List[int] = field(default_factory=list)
+    #visited_pokecenter_list: List[int] = field(default_factory=list)
     number_of_battles_wins: int = field(default_factory=int)
     number_of_battles_loses: int = field(default_factory=int)
     number_of_battles_draw: int = field(default_factory=int)
     
-    def update(self, game , game_state):
+    def update(self, game):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
     
@@ -109,10 +111,12 @@ class External_Game_State:
             elif battle_result == ram_map.BattleResult.DRAW:
                 self.number_of_battles_draw += 1
     
-    def update_visited_pokecenter_list(self, game_state) -> None:
-        last_pokecenter_id = ram_map.get_last_pokecenter_id(game_state)
-        if last_pokecenter_id != -1 and last_pokecenter_id not in self.visited_pokecenter_list:
-            self.visited_pokecenter_list.append(last_pokecenter_id)
+    #def update_visited_pokecenter_list(self, game_state) -> None:
+    #    last_pokecenter_id = ram_map.get_last_pokecenter_id(game_state)
+    #    if last_pokecenter_id != -1 and last_pokecenter_id not in self.visited_pokecenter_list:
+    #        self.visited_pokecenter_list.append(last_pokecenter_id)
+    def to_json(self) -> dict:
+        return asdict(self)
         
 
         
