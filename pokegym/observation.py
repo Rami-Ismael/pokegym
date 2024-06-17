@@ -1,3 +1,4 @@
+import pdb.set_trace as T
 from dataclasses import dataclass , field , asdict
 from typing import Any, List
 from pokegym import ram_map
@@ -60,7 +61,7 @@ class Observation:
        self.normalize()
        self.validation()
     def validation(self):
-        assert self.low_health_alarm in [0,1]
+        assert self.low_health_alarm in [0,1] , T()
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:
             #Anp_array = np.vectorize(lambda x: self.env.memory.byte_to_float_norm[int(x)])(np_array)
