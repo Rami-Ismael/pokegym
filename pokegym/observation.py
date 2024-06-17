@@ -1,9 +1,9 @@
-import pdb.set_trace as T
 from dataclasses import dataclass , field , asdict
 from typing import Any, List
 from pokegym import ram_map
 from rich import print
 import numpy as np
+from pdb import set_trace as T
 @dataclass
 class Observation:
     map_music_sound_bank: int = field(default_factory=int)
