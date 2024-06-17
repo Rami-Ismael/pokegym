@@ -32,7 +32,13 @@ class Observation:
     total_pokemon_seen: int = field(default_factory=int)
     pokemon_seen_in_the_pokedex: List[int] = field(default_factory=list)
     byte_representation_of_caught_pokemon_in_the_pokedex: List[int] = field(default_factory=list)
-
+    
+    # Battle
+    
+    ## Opponents
+    
+    opponent_pokemon_levels: List[int] = field(default_factory=list)
+    
    
     def __init__( self , next_state_internal_game_state):
        self.map_music_sound_bank = next_state_internal_game_state.map_music_rom_bank
@@ -57,6 +63,13 @@ class Observation:
        self.total_pokemon_seen = next_state_internal_game_state.total_pokemon_seen
        self.pokemon_seen_in_the_pokedex = next_state_internal_game_state.pokemon_seen_in_the_pokedex
        self.byte_representation_of_caught_pokemon_in_the_pokedex = next_state_internal_game_state.byte_representation_of_caught_pokemon_in_the_pokedex
+       
+       # Battle
+       
+       ## Opponents
+       self.opponent_pokemon_levels = next_state_internal_game_state.opponent_pokemon_levels
+       
+       
        self.validation()
        self.encode()
        self.normalize()
