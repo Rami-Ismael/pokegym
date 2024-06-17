@@ -37,7 +37,7 @@ class Observation:
     
     ## Opponents
     
-    opponent_pokemon_levels: List[int] = field(default_factory=list)
+    opponent_pokemon_levels: np.ndarray = field(default_factory=lambda: np.zeros(6, dtype=np.float32))
     
    
     def __init__( self , next_state_internal_game_state):
@@ -98,7 +98,7 @@ class Observation:
             if self.each_pokemon_max_health_points[index] >0:
                 self.each_pokemon_health_points[index] = self.each_pokemon_health_points[index]/self.each_pokemon_max_health_points[index]
         self.obs_player_total_max_health_points()
-        self.opponent_pokemon_levels = np.array(self.opponent_pokemon_levels, dtype=np.float32) / 100.0
+        self.
     def obs_player_total_max_health_points(self):
         self.total_party_max_hit_points = self.total_party_max_hit_points / ( 705.0 * 6.0)
 
