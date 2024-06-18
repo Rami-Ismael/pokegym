@@ -397,5 +397,8 @@ def get_player_lineup_xp(game ):
 def get_low_health_alarm(game):
     return read_memory( game , LOW_HELATH_ALARM)
 def get_opponent_pokemon_levels(game):
-    return [game.get_memory_value(addr) for addr in OPPONENT_LEVEL_ADDR]
+    opponent_level_addr = [None] * 6
+    for index , addr in enumerate(OPPONENT_LEVEL_ADDR):
+        opponent_level_addr[index] = game.get_memory_value(addr)
+    return opponent_level_addr
     

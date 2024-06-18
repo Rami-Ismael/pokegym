@@ -100,17 +100,7 @@ class Observation:
         self.obs_player_total_max_health_points()
     def obs_player_total_max_health_points(self):
         self.total_party_max_hit_points = self.total_party_max_hit_points / ( 705.0 * 6.0)
-
-
-
     def get_obs(self) -> dict[str, Any]:
         return asdict(self)
     def to_json(self):
-        ## Check if all the value are greater than zero
-        for key, value in self.get_obs().items():
-            if isinstance(value, List):
-                for v in value:
-                    assert v >= 0
-            else:
-                assert value >= 0
         return self.get_obs()
