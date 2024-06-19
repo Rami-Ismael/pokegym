@@ -82,11 +82,14 @@ class Observation:
        self.enemy_pokemon_hp = next_state_internal_game_state.enemy_pokemon_hp
        
        
-       #self.validation()
+       self.validation()
        self.encode()
        self.normalize()
     def validation(self):
-        assert self.low_health_alarm in [0, 145, 152, 136] , T()
+        #assert self.low_health_alarm in [0, 145, 152, 136] , T()
+        assert self.enemy_pokemon_hp >=0 , T()
+        assert self.enemy_pokemon_hp <= 705 , T()
+        
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:
             #Anp_array = np.vectorize(lambda x: self.env.memory.byte_to_float_norm[int(x)])(np_array)
