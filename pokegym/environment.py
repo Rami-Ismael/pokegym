@@ -213,7 +213,6 @@ class Environment(Base):
         self.punish_wipe_out: bool = punish_wipe_out
         self.reset_count = 0
         self.seen_maps_no_reward = set()
-        self.max_episode_steps: int = 524288
         self.perfect_ivs = perfect_ivs
         self.pokecenter_ids: list[int] = [0x01, 0x02, 0x03, 0x0F, 0x15, 0x05, 0x06, 0x04, 0x07, 0x08, 0x0A, 0x09]
         R, C = self.screen.raw_screen_buffer_dims()
