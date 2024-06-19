@@ -173,11 +173,6 @@ class Base:
         self.headless = headless
         self.action_space = spaces.Discrete(len(ACTIONS))
 
-    def reset(self, seed=None, options=None):
-        '''Resets the game. Seeding is NOT supported'''
-        load_pyboy_state(self.game, self.initial_state)
-        return self.screen.screen_ndarray(), {}
-        
     '''
     You can view this where the update of observation is done because in every step 
     the render is called which display the observation 
@@ -224,6 +219,7 @@ class Environment(Base):
         R, C = self.screen.raw_screen_buffer_dims()
         self.two_bit = False 
         self.first = True # The reset method will be called first before nay step is occured
+        self.seed = 1
         
         self.reduce_res = True
         # Obs space-related. TODO: avoid hardcoding?
@@ -270,11 +266,17 @@ class Environment(Base):
             "total_pokemon_seen": spaces.Box(low=0, high=152, shape=(1,), dtype=np.uint8),
             "pokemon_seen_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
             "byte_representation_of_caught_pokemon_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
+            
+            ### Trainer Opponents
+            "enemy_trainer_pokemon_hp": spaces.Box(low=0, high=705, shape=(6,), dtype=np.uint16) , 
+            
+            ### Wild Opponents I think
+            "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.uint16),
         })
         
 
 
-    def reset(self, seed=None, options=None,  max_episode_steps = 100_000_000, reward_scale=1):
+    def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         if self.first:
             self.recent_screen = deque()

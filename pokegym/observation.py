@@ -39,6 +39,12 @@ class Observation:
     
     opponent_pokemon_levels: List[int] = field(default_factory=list)
     
+    ### Trainer
+    enemy_trainer_pokemon_hp: List[int] = field(default_factory=list)
+    
+    ### enermy wild pokemon
+    enemy_pokemon_hp:int = field(default_factory=int)
+    
    
     def __init__( self , next_state_internal_game_state):
        self.map_music_sound_bank = next_state_internal_game_state.map_music_rom_bank
@@ -68,6 +74,12 @@ class Observation:
        
        ## Opponents
        self.opponent_pokemon_levels = next_state_internal_game_state.opponent_pokemon_levels
+       
+       ### Trainer
+       self.enemy_trainer_pokemon_hp = next_state_internal_game_state.enemy_trainer_pokemon_hp
+       
+       ### enermy wild pokemon
+       self.enemy_pokemon_hp = next_state_internal_game_state.enemy_pokemon_hp
        
        
        #self.validation()

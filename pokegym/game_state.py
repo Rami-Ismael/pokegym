@@ -48,6 +48,12 @@ class Internal_Game_State:
     ## opponetns
     opponent_pokemon_levels: List[int] = field(default_factory=list)
     
+    ### Trainer
+    enemy_trainer_pokemon_hp: List[int] = field(default_factory=list)
+   
+    ### Enermy Pokemon Hp
+    enemy_pokemon_hp:int = field(default_factory=int)
+    
     
 
 
@@ -88,6 +94,12 @@ class Internal_Game_State:
         
         ### Opponents
         self.opponent_pokemon_levels = ram_map.get_opponent_pokemon_levels(game)
+        
+        #### Trainer
+        self.enemy_trainer_pokemon_hp = ram_map.get_enemy_trainer_pokemon_hp(game)
+        
+        #### Enemy 
+        self.enemy_pokemon_hp = ram_map.get_enemys_pokemon_hp(game)
         
         # Seen Pokemon
         self.total_pokemon_seen = ram_map.total_pokemon_seen(game)

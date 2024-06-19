@@ -1,8 +1,8 @@
-from ast import List
 import numpy as np
 from enum import Enum
 from pokegym.red_memory_player import POKEMON_1_CURRENT_HP, POKEMON_1_MAX_HP
 from pyboy.utils import WindowEvent
+from typing import List 
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
 HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248] # This work fine
@@ -79,6 +79,23 @@ POKEMON_1_SPECIAL = (0xD195, 0xD196)
 
 LOW_HELATH_ALARM = wLowHealthAlarm = 0xD083
 
+#https://github.com/xinpw8/pokegym/blob/a8b75e4ad2694461f661acf5894d498b69d1a3fa/pokegym/bin/ram_reader/red_memory_battle.py#L50C1-L66C39
+
+# Enemy's Pokémon Stats (In-Battle)
+ENEMY_PARTY_COUNT = 0xD89C # N/A for wild mon, Stale out of battle
+ENEMY_PARTY_SPECIES = (0xD89D, 0xD89E, 0xD89F, 0xD8A0, 0xD8A1, 0xD8A2)  # N/A wild mon, Stale out of battle, 0xFF term
+ENEMYS_POKEMON = 0xCFE5 # Enemy/wild current Pokemon, Stale out of battle
+ENEMYS_POKEMON_LEVEL = 0xCFF3  # Enemy's level, Stale out of battle
+ENEMYS_POKEMON_HP = (0xCFE6, 0xCFE7)  # Enemy's current HP
+
+ENEMYS_POKEMON_STATUS = 0xCFE9  # Enemy's status effects, Stale out of battle
+ENEMYS_POKEMON_TYPES = (0xCFEA, 0xCFEB)  # Enemy's type, Stale out of battle
+ENEMYS_POKEMON_MOVES = (0xCFED, 0xCFEE, 0xCFEF, 0xCFF0)  # Enemy's moves, Stale out of battle
+ENEMYS_POKEMON_INDEX_LEVEL = 0xD8C5  # Enemy's level, use offset to get all
+ENEMYS_POKEMON_OFFSET = 0x2C
+
+ENEMY_TRAINER_POKEMON_HP = (0xD8A5, 0xD8A6)  # Only valid for trainers/gyms not wild mons. HP doesn't dec until mon is dead, then it's 0
+ENEMY_TRAINER_POKEMON_HP_OFFSET = 0x2C
 
 
 class BattleState(Enum):
@@ -103,8 +120,9 @@ def read_bit(game, addr, bit) -> bool:
     # add padding so zero will read '0b100000000' instead of '0b0'
     return bin(256 + game.get_memory_value(addr))[-bit-1] == '1'
 
-def read_uint16(game, start_addr):
+def read_uint16(game, start_addr)-> int:
     '''Read 2 bytes'''
+    ## Binary you read right to left
     val_256 = game.get_memory_value(start_addr)
     val_1 = game.get_memory_value(start_addr + 1)
     return 256*val_256 + val_1
@@ -396,9 +414,21 @@ def get_player_lineup_xp(game ):
     return [get_pokemon_xp( game , i * PARTY_OFFSET) for i in range(_get_lineup_size(game))]
 def get_low_health_alarm(game):
     return read_memory( game , LOW_HELATH_ALARM)
-def get_opponent_pokemon_levels(game):
-    opponent_level_addr = [None] * 6
+def get_opponent_pokemon_levels(game) -> List[int]:
+    opponent_level_addr = [0] * 6
     for index , addr in enumerate(OPPONENT_LEVEL_ADDR):
         opponent_level_addr[index] = game.get_memory_value(addr)
     return opponent_level_addr
+
+def get_enemys_pokemon_hp(game)-> int:
+    # return read_uint16(game, addr) for addr in ENEMYS_POKEMON_HP
+    return read_uint16(game, ENEMYS_POKEMON_HP[0])
+    
+
+def get_enemy_trainer_pokemon_hp(game)-> List[int]:
+    enemy_trainer_pokemon_hp = [0] * 6
+    for index in range(0 , get_party_size(game)):
+        enemy_trainer_pokemon_hp[index] = 256*game.get_memory_value(ENEMY_TRAINER_POKEMON_HP[0] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )) + game.get_memory_value(ENEMY_TRAINER_POKEMON_HP[1] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET ))
+    return enemy_trainer_pokemon_hp
+    
     
