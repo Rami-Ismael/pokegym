@@ -198,8 +198,6 @@ class Base:
 class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
             state_path=None, headless=True, quiet=False, verbose=False, 
-            reward_the_agent_for_completing_the_pokedex=True,
-            reward_the_agent_for_the_normalize_gain_of_new_money = True,
             punish_wipe_out:bool = True,
             perfect_ivs:bool = True,
             **kwargs):
@@ -207,8 +205,6 @@ class Environment(Base):
         # https://github.com/xinpw8/pokegym/blob/d44ee5048d597d7eefda06a42326220dd9b6295f/pokegym/environment.py#L233
         self.counts_map = np.zeros((444, 436)) # to solve the map
         self.verbose = verbose
-        self.reward_the_agent_for_completing_the_pokedex: bool = reward_the_agent_for_completing_the_pokedex
-        self.reward_the_agent_for_the_normalize_gain_of_new_money = reward_the_agent_for_the_normalize_gain_of_new_money
         self.last_map = -1
         self.punish_wipe_out: bool = punish_wipe_out
         self.reset_count = 0
@@ -272,7 +268,9 @@ class Environment(Base):
             ### Wild Opponents I think
             "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.uint16),
         })
-        
+        self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 2048)
+        #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
+        self.max_episode_steps = kwargs.get("max_episode_steps", 65536)
 
 
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
@@ -295,8 +293,6 @@ class Environment(Base):
 
         self.time = 0
         self.reward_scale = reward_scale
-        self.max_episode_steps: int = max_episode_steps  # 65536 or 2^16
-         
         self.max_events = 0
         self.max_level_sum = 0
         self.max_opponent_level = 0
@@ -765,7 +761,7 @@ class Environment(Base):
                 + badges_reward 
                 + reward_for_healing 
                 +  ( exploration_reward * .50 )
-                +  reward_for_completing_the_pokedex if self.reward_the_agent_for_completing_the_pokedex else 0
+                +  reward_for_completing_the_pokedex
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
                 + ( reward_the_agent_increase_the_level_of_the_pokemon  )
@@ -781,7 +777,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time %  2048  == 0 or done:
+        if self.time %  self.display_info_interval_divisor  == 0 or done:
             info = {
                 'reward': {
                     'reward': reward,
