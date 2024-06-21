@@ -69,6 +69,7 @@ class Observation:
        self.player_selected_move_id = next_state_internal_game_state.player_selected_move_id
        self.enemy_selected_move_id = next_state_internal_game_state.enemy_selected_move_id
        self.player_xp = self.obs_player_xp(next_state_internal_game_state.player_lineup_xp)
+       self.total_player_lineup_xp = next_state_internal_game_state.total_player_lineup_xp
        self.total_pokemon_seen = next_state_internal_game_state.total_pokemon_seen
        self.pokemon_seen_in_the_pokedex = next_state_internal_game_state.pokemon_seen_in_the_pokedex
        self.byte_representation_of_caught_pokemon_in_the_pokedex = next_state_internal_game_state.byte_representation_of_caught_pokemon_in_the_pokedex

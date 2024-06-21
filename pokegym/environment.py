@@ -259,6 +259,7 @@ class Environment(Base):
             "enemy_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
             #"total_number_of_unique_moves_in_the_teams": spaces.Box(low = 0, high = 24, shape=(1,), dtype=np.uint8)
             "player_xp": spaces.Box(low=0, high=1, shape=(6, ), dtype=np.float32),
+            "total_player_lineup_xp": spaces.Box(low=0, high=250000, shape=(1,), dtype=np.float32),
             "total_pokemon_seen": spaces.Box(low=0, high=152, shape=(1,), dtype=np.uint8),
             "pokemon_seen_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
             "byte_representation_of_caught_pokemon_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
@@ -298,7 +299,6 @@ class Environment(Base):
         observation_game_state = observation.Observation(internal_game_state)
 
         self.time = 0
-        self.reward_scale = reward_scale
         self.max_events = 0
         self.max_level_sum = 0
         self.max_opponent_level = 0
