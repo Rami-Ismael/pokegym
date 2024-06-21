@@ -127,12 +127,15 @@ class External_Game_State:
     
     max_party_size: int = field(default_factory=int)
     
+    total_events_that_occurs_in_game:int = field(default_factory=int)
+    
     def update(self, game):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
     
     def post_reward_update(self, game):
         self.max_party_size = max(self.max_party_size, game.party_size)
+        self.total_events_that_occurs_in_game = game.total_events_that_occurs_in_game
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):

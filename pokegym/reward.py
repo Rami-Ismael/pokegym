@@ -7,7 +7,7 @@ class Reward:
     reward_for_increasing_the_max_size_of_the_trainer_team:int = 0
     
     # Reward
-    reward_for_doing_new_events_that_occurs_in_game:int = 0
+    reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state:int = 0
     
     
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state  ):
@@ -16,7 +16,7 @@ class Reward:
             self.reward_for_increasing_the_max_size_of_the_trainer_team = 1
         # Events
         if current_state_internal_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
-            self.reward_for_doing_new_events_that_occurs_in_game = next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game
+            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state += next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
