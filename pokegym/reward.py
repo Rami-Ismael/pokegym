@@ -8,7 +8,7 @@ class Reward:
     
     # Reward
     reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state:int = 0
-    
+    reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state:int = 0 
     
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state  ):
         
@@ -18,7 +18,7 @@ class Reward:
         if current_state_internal_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
             self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state += next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game
         if external_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
-            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state += next_state_internal_game_state.total_events_that_occurs_in_game - external_game_state.total_events_that_occurs_in_game
+            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state += next_state_internal_game_state.total_events_that_occurs_in_game - external_game_state.total_events_that_occurs_in_game
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
