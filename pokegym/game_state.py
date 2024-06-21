@@ -54,6 +54,9 @@ class Internal_Game_State:
     ### Enermy Pokemon Hp
     enemy_pokemon_hp:int = field(default_factory=int)
     
+    # Events
+    total_events_that_occurs_in_game:int = field(default_factory=int)
+    
     
 
 
@@ -106,6 +109,9 @@ class Internal_Game_State:
         self.pokemon_seen_in_the_pokedex = ram_map.pokemon_see_in_the_pokedex(game)
         self.byte_representation_of_caught_pokemon_in_the_pokedex  = ram_map.get_pokedex_entries_of_caught_pokemon(game)
         ## assert all value are not none
+        
+       # Events
+        self.total_events_that_occurs_in_game = ram_map.total_events_that_occurs_in_game(game) 
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)
         for k, v in asdict(self).items():
@@ -119,9 +125,14 @@ class External_Game_State:
     number_of_battles_loses: int = field(default_factory=int)
     number_of_battles_draw: int = field(default_factory=int)
     
+    max_party_size: int = field(default_factory=int)
+    
     def update(self, game):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
+    
+    def post_reward_update(self, game):
+        self.max_party_size = max(self.max_party_size, game.party_size)
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):

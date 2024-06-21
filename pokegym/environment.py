@@ -7,6 +7,7 @@ import os
 import io
 from pokegym import game_state, observation
 from pokegym.game_state import External_Game_State, Internal_Game_State
+from pokegym.reward import Reward
 from skimage.transform import resize
 
 from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,load_pyboy_state, run_action_on_emulator)
@@ -267,6 +268,9 @@ class Environment(Base):
             
             ### Wild Opponents I think
             "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.uint16),
+            
+            ## Events
+            "total_events_that_occurs_in_game": spaces.Box(low=0, high=2560, shape=(1,), dtype=np.uint16),
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 2048)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
@@ -302,7 +306,6 @@ class Environment(Base):
         self.death_count = 0
         self.total_healing = 0
         self.last_hp = 1.0
-        self.last_party_size = 1
         self.last_reward = None
         self.seen_coords_no_reward = set()
         
@@ -508,6 +511,7 @@ class Environment(Base):
         self.time += 1
         next_state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
         self.external_game_state.update( game = self.game )
+        reward_for_stateless_class: Reward = Reward( state_internal_game, next_state_internal_game, self.external_game_state)
 
         # Seen Coordinate
         self.update_seen_coords()
@@ -630,7 +634,6 @@ class Environment(Base):
         next_state_party, next_state_party_size, next_state_party_levels = ram_map.party(self.game)
         self.max_level_sum = sum(next_state_party_levels)
         reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)
-        reward_the_agent_for_increasing_the_party_size: float = ( next_state_party_size - prev_party_size )
         #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
 
 
@@ -646,13 +649,6 @@ class Environment(Base):
         if not prev_badges_one and  ram_map.check_if_player_has_gym_one_badge(self.game):
             badges_reward += 16
 
-        # Event reward
-        events = ram_map.events(self.game)
-        event_reward  = 0
-        if events > self.max_events:
-            event_reward += 1
-            self.max_events = events
-            
         # Money Reward
         next_state_money = ram_map.money(self.game)
         assert next_state_money >= 0 and next_state_money <= 999999, f"next_state_money: {next_state_money}"
@@ -754,7 +750,6 @@ class Environment(Base):
 
         
         reward: float =  (
-                event_reward 
                 + reward_the_agent_seing_new_pokemon 
                 + opponent_level_reward 
                 + death_reward 
@@ -765,7 +760,6 @@ class Environment(Base):
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
                 + ( reward_the_agent_increase_the_level_of_the_pokemon  )
-                + reward_the_agent_for_increasing_the_party_size
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + wipe_out * -1 if self.punish_wipe_out else 0
@@ -774,6 +768,9 @@ class Environment(Base):
                 + reward_visiting_a_new_pokecenter
                 + ( reward_for_entering_a_trainer_battle * .75 ) 
         )
+        reward += reward_for_stateless_class.total_reward()
+        
+        self.external_game_state.post_reward_update(next_state_internal_game)
 
         info = {}
         done = self.time >= self.max_episode_steps
@@ -781,7 +778,6 @@ class Environment(Base):
             info = {
                 'reward': {
                     'reward': reward,
-                    'event': event_reward,
                     'level':reward_the_agent_increase_the_level_of_the_pokemon,
                     'opponent_level': opponent_level_reward,
                     'death': death_reward,
@@ -792,7 +788,6 @@ class Environment(Base):
                     "completing_the_pokedex": reward_for_completing_the_pokedex,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
                     "winning_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
-                    "increase_party_size": reward_the_agent_for_increasing_the_party_size,
                     "discourage_running_from_battle": discourage_running_from_battle,
                     "reward_the_agent_for_fainting_a_opponent_pokemon_during_battle": reward_the_agent_for_fainting_a_opponent_pokemon_during_battle,
                     "reaward_for_teaching_a_pokemon_on_the_team_with_move_cuts": reward_for_teaching_a_pokemon_on_the_team_with_move_cuts,
@@ -804,7 +799,6 @@ class Environment(Base):
                 "max_episode_steps": self.max_episode_steps,
                 'maps_explored': len(self.seen_maps),
                 "number_of_uniqiue_coordinate_it_explored": len(self.seen_coords),
-                'party_size': next_state_party_size,
                 'highest_pokemon_level': max(next_state_party_levels),
                 'total_party_level': sum(next_state_party_levels),
                 'deaths': self.death_count,
@@ -814,7 +808,6 @@ class Environment(Base):
                 "prev_npc": prev_seen_npcs,
                 "next_npc": next_seen_npcs,
                 "hidden_obj": sum(self.seen_hidden_objs.values()),
-                'event': events,
                 "met_bill": int(self.read_bit(0xD7F1, 0)),
                 "used_cell_separator_on_bill": int(self.read_bit(0xD7F2, 3)),
                 "ss_ticket": int(self.read_bit(0xD7F2, 4)),
@@ -860,6 +853,7 @@ class Environment(Base):
             }
             info.update(next_state_internal_game.to_json())
             info.update(self.external_game_state.to_json())
+            info.update(reward_for_stateless_class.to_json())
             ## add next state internal game state into the infos section
             for index , level in enumerate(next_state_party_levels):
                 info[f'pokemon_{ index +1 }_level'] = level
@@ -879,7 +873,6 @@ class Environment(Base):
                 f'death: {death_reward}',
                 f'op_level: {opponent_level_reward}',
                 f'badges reward: {badges_reward}',
-                f'event reward: {event_reward}',
                 f'ai reward: {reward}',
                 f"In a trainer battle: {current_state_is_in_battle}",
                 f"Gym Leader Music is playing: {ram_map.check_if_gym_leader_music_is_playing(self.game)}",
@@ -892,7 +885,7 @@ class Environment(Base):
         old_observation = self._get_obs()
         old_observation.update(observation_data_class.get_obs())
         
-        return old_observation, max(min(reward , 1) , -1), done, done, info
+        return old_observation, reward, done, done, info
     def update_heat_map(self, r, c, current_map):
         '''
         Updates the heat map based on the agent's current position.

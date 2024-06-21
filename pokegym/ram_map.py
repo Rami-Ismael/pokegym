@@ -97,6 +97,10 @@ ENEMYS_POKEMON_OFFSET = 0x2C
 ENEMY_TRAINER_POKEMON_HP = (0xD8A5, 0xD8A6)  # Only valid for trainers/gyms not wild mons. HP doesn't dec until mon is dead, then it's 0
 ENEMY_TRAINER_POKEMON_HP_OFFSET = 0x2C
 
+EVENT_FLAGS_START = 0xD747
+EVENTS_FLAGS_LENGTH = 320
+MUSEUM_TICKET = (0xD754, 0)
+
 
 class BattleState(Enum):
     NOT_IN_BATTLE = 0
@@ -430,5 +434,17 @@ def get_enemy_trainer_pokemon_hp(game)-> List[int]:
     for index in range(0 , get_party_size(game)):
         enemy_trainer_pokemon_hp[index] = 256*game.get_memory_value(ENEMY_TRAINER_POKEMON_HP[0] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )) + game.get_memory_value(ENEMY_TRAINER_POKEMON_HP[1] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET ))
     return enemy_trainer_pokemon_hp
+def total_events_that_occurs_in_game(game)-> int:
+    # adds up all event flags, exclude museum ticket
+    return max(
+        sum(
+            [
+                game.get_memory_value(i).bit_count()
+                for i in range(EVENT_FLAGS_START, EVENT_FLAGS_START + EVENTS_FLAGS_LENGTH)
+            ]
+        )
+        - int(read_bit(game, MUSEUM_TICKET_ADDR, 0)),
+        0,
+    )
     
     

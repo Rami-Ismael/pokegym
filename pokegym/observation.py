@@ -45,6 +45,9 @@ class Observation:
     ### enermy wild pokemon
     enemy_pokemon_hp:int = field(default_factory=int)
     
+    # Events
+    total_events_that_occurs_in_game:int = field(default_factory=int)
+    
    
     def __init__( self , next_state_internal_game_state):
        self.map_music_sound_bank = next_state_internal_game_state.map_music_rom_bank
@@ -80,6 +83,9 @@ class Observation:
        
        ### enermy wild pokemon
        self.enemy_pokemon_hp = next_state_internal_game_state.enemy_pokemon_hp
+       
+       # Events
+       self.total_events_that_occurs_in_game = next_state_internal_game_state.total_events_that_occurs_in_game
        
        
        self.validation()
