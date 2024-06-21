@@ -275,6 +275,8 @@ class Environment(Base):
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 2048)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
         self.max_episode_steps = kwargs.get("max_episode_steps", 65536)
+        self.reward_for_increase_pokemon_level_coef = kwargs.get("reward_for_increase_pokemon_level_coef", 1.1)
+        self.reward_for_explore_unique_coor_coef = kwargs.get("reward_for_explore_unique_coor_coef", .4)
 
 
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
@@ -755,11 +757,11 @@ class Environment(Base):
                 + death_reward 
                 + badges_reward 
                 + reward_for_healing 
-                +  ( exploration_reward * .50 )
+                +  ( exploration_reward * self.reward_for_explore_unique_coor_coef )
                 +  reward_for_completing_the_pokedex
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
-                + ( reward_the_agent_increase_the_level_of_the_pokemon  )
+                + ( reward_the_agent_increase_the_level_of_the_pokemon * self.reward_for_increase_pokemon_level_coef )
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + wipe_out * -1 if self.punish_wipe_out else 0
