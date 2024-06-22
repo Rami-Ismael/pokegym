@@ -446,5 +446,13 @@ def total_events_that_occurs_in_game(game)-> int:
         - int(read_bit(game, MUSEUM_TICKET_ADDR, 0)),
         0,
     )
+def get_enemy_pokemon_move_id(game)->List[int]:
+        return [
+            game.get_memory_value(ENEMYS_POKEMON_MOVES[0]  ),
+            game.get_memory_value(ENEMYS_POKEMON_MOVES[1]  ), 
+            game.get_memory_value(ENEMYS_POKEMON_MOVES[2]  ),
+            game.get_memory_value(ENEMYS_POKEMON_MOVES[3]  )
+        ]
+    
     
     
