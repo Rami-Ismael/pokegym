@@ -2,7 +2,7 @@ import numpy as np
 from enum import Enum
 from pokegym.red_memory_player import POKEMON_1_CURRENT_HP, POKEMON_1_MAX_HP
 from pyboy.utils import WindowEvent
-from typing import List 
+from typing import List, Literal 
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
 HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248] # This work fine
@@ -76,6 +76,14 @@ POKEMON_1_ATTACK = (0xD18F, 0xD190)
 POKEMON_1_DEFENSE = (0xD191, 0xD192)
 POKEMON_1_SPEED = (0xD193, 0xD194)
 POKEMON_1_SPECIAL = (0xD195, 0xD196)
+
+# Player Party Overview
+PARTY_OFFSET = 0x2C
+POKEMON_PARTY_COUNT = 0xD163
+POKEMON_1_ID = 0xD164 # ID of mon or 0x00 when none
+POKEMON_2_ID = 0xD165 # 0xFF marks end of list, but prev EoL isn't cleared when party size shrinks, must
+POKEMON_3_ID = 0xD166 # use LSB as 0xFF marker
+POKEMON_4_ID = 0xD167
 
 LOW_HELATH_ALARM = wLowHealthAlarm = 0xD083
 
@@ -453,6 +461,13 @@ def get_enemy_pokemon_move_id(game)->List[int]:
             game.get_memory_value(ENEMYS_POKEMON_MOVES[2]  ),
             game.get_memory_value(ENEMYS_POKEMON_MOVES[3]  )
         ]
-    
+def get_pokemon_pp_avail(game) -> List[int]:
+    pp_teams:list[int] = [0] * 24
+    for index in range(0 , get_party_size(game)):
+        pp_teams[index * 6 + 1] = game.get_memory_value(POKEMON_1_PP_MOVES[0] + (index * 0x0C))
+        pp_teams[index * 6 + 2] = game.get_memory_value(POKEMON_1_PP_MOVES[1] + (index * 0x0C))
+        pp_teams[index * 6 + 3] = game.get_memory_value(POKEMON_1_PP_MOVES[2] + (index * 0x0C))
+        pp_teams[index * 6 + 4] = game.get_memory_value(POKEMON_1_PP_MOVES[3] + (index * 0x0C))
+    return pp_teams
     
     

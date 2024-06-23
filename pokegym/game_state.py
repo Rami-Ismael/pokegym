@@ -29,10 +29,13 @@ class Internal_Game_State:
     average_pokemon_health_points: float = field(default_factory=float)
     average_pokemon_max_health_points: float = field(default_factory=float)
     low_health_alaram: int = field(default_factory=int)
+    #total_party_health_ratio: float = field(default_factory=float)
     
     # Items
     total_number_of_items: int = field(default_factory=int)
     money: int = field(default_factory=int)
+    #items_ids: List[int] = field(default_factory=list)
+    #items_ids_quantities: List[int] = field(default_factory=list)
     
     # Moves
     player_selected_move_id: int = field(default_factory=int)
@@ -42,6 +45,11 @@ class Internal_Game_State:
     total_pokemon_seen:int = field(default_factory=int)
     pokemon_seen_in_the_pokedex: List[int] = field(default_factory=list)
     byte_representation_of_caught_pokemon_in_the_pokedex: List[int] = field(default_factory=list)
+    
+    ## Pokemon
+    
+    ### PP
+    each_pokemon_pp: List[int] = field(default_factory=list)
     
     # Battle
     
@@ -90,7 +98,14 @@ class Internal_Game_State:
         
         # Moves
         self.player_selected_move_id , self.enemy_selected_move_id = ram_map.get_battle_turn_moves(game)
-        # Pokemon
+        # Player
+        
+        ## Pokemon
+        
+        ### PP
+        self.each_pokemon_pp = ram_map.get_pokemon_pp_avail(game)
+        
+        ### XP 
         self.player_lineup_xp = ram_map.get_player_lineup_xp(game)
         self.total_player_lineup_xp = sum(self.player_lineup_xp)
         
@@ -130,6 +145,9 @@ class External_Game_State:
     
     total_events_that_occurs_in_game:int = field(default_factory=int)
     
+    # Levels
+    max_total_party_level: int = field(default_factory=int)
+    
     def update(self, game):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
@@ -137,6 +155,7 @@ class External_Game_State:
     def post_reward_update(self, game):
         self.max_party_size = max(self.max_party_size, game.party_size)
         self.total_events_that_occurs_in_game = game.total_events_that_occurs_in_game
+        self.max_total_party_level = max(self.max_total_party_level, game.total_party_level)
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):

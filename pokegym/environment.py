@@ -264,6 +264,12 @@ class Environment(Base):
             "pokemon_seen_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
             "byte_representation_of_caught_pokemon_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
             
+            # Player
+            
+            ## POkemon
+            "each_pokemon_pp": spaces.Box(low=0, high=20, shape=(24,), dtype=np.uint8),
+            
+            
             ### Trainer Opponents
             "enemy_trainer_pokemon_hp": spaces.Box(low=0, high=705, shape=(6,), dtype=np.uint16) , 
             
@@ -513,7 +519,8 @@ class Environment(Base):
         self.time += 1
         next_state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
         self.external_game_state.update( game = self.game )
-        reward_for_stateless_class: Reward = Reward( state_internal_game, next_state_internal_game, self.external_game_state)
+        reward_for_stateless_class: Reward = Reward( state_internal_game, next_state_internal_game, self.external_game_state , 
+                                                    self.reward_for_increase_pokemon_level_coef)
 
         # Seen Coordinate
         self.update_seen_coords()
@@ -761,7 +768,6 @@ class Environment(Base):
                 +  reward_for_completing_the_pokedex
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
-                + ( reward_the_agent_increase_the_level_of_the_pokemon * self.reward_for_increase_pokemon_level_coef )
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + wipe_out * -1 if self.punish_wipe_out else 0

@@ -15,14 +15,16 @@ class Observation:
     battle_stats: int = field(default_factory = int)  # Default to NOT_IN_BATTLE or any other default state
     battle_result: int = field(default_factory = int)  # Default to NOT_IN_BATTLE or any other default state
     number_of_turns_in_current_battle: int = field(default_factory=int)
-    
+   
+    # Health Points 
     each_pokemon_health_points: List[float] = field(default_factory=list)
     each_pokemon_max_health_points: List[float] = field(default_factory=list)
     total_party_health_points: float = field(default_factory=float)
     total_party_max_hit_points: float = field(default_factory=float)
     low_health_alarm: int = field(default_factory=int)
     
-    total_number_of_items: int = field(default_factory=int)
+    # Items
+    #total_number_of_items: int = field(default_factory=int)
     money: int = field(default_factory=int)
     
     # Moves
@@ -32,6 +34,11 @@ class Observation:
     total_pokemon_seen: int = field(default_factory=int)
     pokemon_seen_in_the_pokedex: List[int] = field(default_factory=list)
     byte_representation_of_caught_pokemon_in_the_pokedex: List[int] = field(default_factory=list)
+    
+    ## Pokemon
+    
+    ### PP
+    each_pokemon_pp: List[int] = field(default_factory=list)
     
     # Battle
     
@@ -73,6 +80,13 @@ class Observation:
        self.total_pokemon_seen = next_state_internal_game_state.total_pokemon_seen
        self.pokemon_seen_in_the_pokedex = next_state_internal_game_state.pokemon_seen_in_the_pokedex
        self.byte_representation_of_caught_pokemon_in_the_pokedex = next_state_internal_game_state.byte_representation_of_caught_pokemon_in_the_pokedex
+       
+       # Player
+       
+       ## POkemon
+       
+       ### PP
+       self.each_pokemon_pp = next_state_internal_game_state.each_pokemon_pp
        
        # Battle
        
