@@ -288,14 +288,9 @@ class Environment(Base):
 
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
-        if self.first:
-            self.recent_screen = deque()
-            self.init_mem()
-            self._reset_env_state()
-            self.moves_obtained = np.zeros(0xA5, dtype=np.uint8)
-            self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
-        else:
-            self.moves_obtained.fill(0)
+        self.init_mem()
+        self._reset_env_state()
+        self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
         # https://github.com/xinpw8/pokegym/blob/baseline_0.6/pokegym/environment.py
@@ -328,7 +323,6 @@ class Environment(Base):
         self.reset_count += 1
         
         self.max_map_progress = 0 
-        self.first = False
         
         self.explore_map_dim = 384
         self.explore_map *= 0
