@@ -214,7 +214,6 @@ class Environment(Base):
         self.pokecenter_ids: list[int] = [0x01, 0x02, 0x03, 0x0F, 0x15, 0x05, 0x06, 0x04, 0x07, 0x08, 0x0A, 0x09]
         R, C = self.screen.raw_screen_buffer_dims()
         self.two_bit = False 
-        self.first = True # The reset method will be called first before nay step is occured
         self.seed = 1
         
         self.reduce_res = True
