@@ -794,7 +794,7 @@ class Environment(Base):
                     "reward_the_agent_for_fainting_a_opponent_pokemon_during_battle": reward_the_agent_for_fainting_a_opponent_pokemon_during_battle,
                     "reaward_for_teaching_a_pokemon_on_the_team_with_move_cuts": reward_for_teaching_a_pokemon_on_the_team_with_move_cuts,
                     "reward_seeen_npcs": reward_seeen_npcs,
-                    "reward_visiting_a_new_pokecenter": reward_visiting_a_new_pokecenter,
+                    "reward_visiting_a_new_pokecenter": 0,
                     "enter_a_trainer_abttle" : reward_for_entering_a_trainer_battle,
                 },
                 'time': self.time,
