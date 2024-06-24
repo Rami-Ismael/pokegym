@@ -464,10 +464,10 @@ def get_enemy_pokemon_move_id(game)->List[int]:
 def get_pokemon_pp_avail(game) -> List[int]:
     pp_teams:list[int] = [0] * 24
     for index in range(0 , get_party_size(game)):
-        pp_teams[index * 4 + 1] = game.get_memory_value(POKEMON_1_PP_MOVES[0] + (index * 0x0C))
-        pp_teams[index * 4 + 2] = game.get_memory_value(POKEMON_1_PP_MOVES[1] + (index * 0x0C))
-        pp_teams[index * 4 + 3] = game.get_memory_value(POKEMON_1_PP_MOVES[2] + (index * 0x0C))
-        pp_teams[index * 4 + 4] = game.get_memory_value(POKEMON_1_PP_MOVES[3] + (index * 0x0C))
+        pp_teams[index * 4 + 0] = game.get_memory_value(POKEMON_1_PP_MOVES[0] + (index * 0x0C))
+        pp_teams[index * 4 + 1] = game.get_memory_value(POKEMON_1_PP_MOVES[1] + (index * 0x0C))
+        pp_teams[index * 4 + 2] = game.get_memory_value(POKEMON_1_PP_MOVES[2] + (index * 0x0C))
+        pp_teams[index * 4 + 3] = game.get_memory_value(POKEMON_1_PP_MOVES[3] + (index * 0x0C))
     return pp_teams
     
     
