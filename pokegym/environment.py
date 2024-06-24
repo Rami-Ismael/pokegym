@@ -767,7 +767,7 @@ class Environment(Base):
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 + ( reward_seeen_npcs  )
                 + reward_visiting_a_new_pokecenter
-                + ( reward_for_entering_a_trainer_battle * .75 ) 
+                + ( reward_for_entering_a_trainer_battle * 1.1 ) 
         )
         reward += reward_for_stateless_class.total_reward()
         
