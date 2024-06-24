@@ -204,12 +204,10 @@ class Environment(Base):
             **kwargs):
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
         # https://github.com/xinpw8/pokegym/blob/d44ee5048d597d7eefda06a42326220dd9b6295f/pokegym/environment.py#L233
-        self.counts_map = np.zeros((444, 436)) # to solve the map
         self.verbose = verbose
         self.last_map = -1
         self.punish_wipe_out: bool = punish_wipe_out
         self.reset_count = 0
-        self.seen_maps_no_reward = set()
         self.perfect_ivs = perfect_ivs
         self.pokecenter_ids: list[int] = [0x01, 0x02, 0x03, 0x0F, 0x15, 0x05, 0x06, 0x04, 0x07, 0x08, 0x0A, 0x09]
         R, C = self.screen.raw_screen_buffer_dims()
@@ -297,6 +295,9 @@ class Environment(Base):
         self.external_game_state = External_Game_State()
         internal_game_state: Internal_Game_State = Internal_Game_State(self.game)
         observation_game_state = observation.Observation(internal_game_state)
+        
+        # See the map progress after a reset
+        self.counts_map = np.zeros((444, 436)) # to solve the map
 
         self.time = 0
         self.max_events = 0
@@ -746,7 +747,7 @@ class Environment(Base):
         assert reward_seeen_npcs == 1 or reward_seeen_npcs == 0, T()
         
         # reward_visiting_a_new_pokecenter: Literal[1, 0]  = self.update_visited_pokecenter_list()
-        reward_visiting_a_new_pokecenter: Literal[8, 0]  = 8 if ram_map.get_last_pokecenter_id(self.game , pokecenter_ids = self.pokecenter_ids) != -1 else 0
+        #reward_visiting_a_new_pokecenter: Literal[8, 0]  = 8 if ram_map.get_last_pokecenter_id(self.game , pokecenter_ids = self.pokecenter_ids) != -1 else 0
          
         
 
@@ -766,7 +767,7 @@ class Environment(Base):
                 + wipe_out * -1 if self.punish_wipe_out else 0
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 + ( reward_seeen_npcs  )
-                + reward_visiting_a_new_pokecenter
+                #+ reward_visiting_a_new_pokecenter
                 + ( reward_for_entering_a_trainer_battle * 1.1 ) 
         )
         reward += reward_for_stateless_class.total_reward()
