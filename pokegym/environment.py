@@ -701,7 +701,7 @@ class Environment(Base):
         # Reward the Agent for choosing to be in a trainer battle and not losing
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             reward_for_battle += 2
-            self.number_of_trainer_battle += 2
+            self.number_of_trainer_battle += 1
             # Reward the Agent for choosing to be in a gym battle
             if ram_map.check_if_gym_leader_music_is_playing(self.game):
                 reward_for_battle += 1
