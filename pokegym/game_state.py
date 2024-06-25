@@ -48,6 +48,9 @@ class Internal_Game_State:
     
     ## Pokemon
     
+    ### Pokedex
+    total_pokemon_seen_in_pokedex:int = field(default_factory=int)
+    
     ### PP
     each_pokemon_pp: List[int] = field(default_factory=list)
     
@@ -64,6 +67,11 @@ class Internal_Game_State:
     
     # Events
     total_events_that_occurs_in_game:int = field(default_factory=int)
+    
+    
+    # Music
+    gym_leader_music_is_playing: bool = field(default_factory=bool)
+    
     
     
 
@@ -100,7 +108,9 @@ class Internal_Game_State:
         self.player_selected_move_id , self.enemy_selected_move_id = ram_map.get_battle_turn_moves(game)
         # Player
         
-        ## Pokemon
+        ### Pokedex
+        
+        self.total_pokemon_seen_in_pokedex = ram_map.total_pokemon_seen(game)
         
         ### PP
         self.each_pokemon_pp = ram_map.get_pokemon_pp_avail(game)
@@ -128,6 +138,9 @@ class Internal_Game_State:
         
        # Events
         self.total_events_that_occurs_in_game = ram_map.total_events_that_occurs_in_game(game) 
+        
+        # Music
+        self.gym_leader_music_is_playing = ram_map.check_if_gym_leader_music_is_playing(game)
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)
         for k, v in asdict(self).items():

@@ -13,6 +13,11 @@ class Reward:
     # Level which can be effected by the PC or daycare we want the max value
     reward_for_increasing_the_total_party_level:int = 0
     
+    # Reward for seeing new pokemon 
+    #reward_for_seeing_new_pokemon_in_the_pokedex:int = 0
+    
+    reward_for_taking_action_that_start_playing_the_gym_player_music:int = 0
+    
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
                  reward_for_increase_pokemon_level_coef:float = 1.1
                  ):
@@ -27,6 +32,11 @@ class Reward:
         
         if current_state_internal_game_state.total_party_level < next_state_internal_game_state.total_party_level and next_state_internal_game_state.total_party_level > external_game_state.max_total_party_level:
             self.reward_for_increasing_the_total_party_level =  ( next_state_internal_game_state.total_party_level - current_state_internal_game_state.total_party_level  ) * reward_for_increase_pokemon_level_coef
+        
+        
+        if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
+            self.reward_for_taking_action_that_start_playing_the_gym_player_music = 2
+        
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
