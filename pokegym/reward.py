@@ -18,6 +18,8 @@ class Reward:
     
     reward_for_taking_action_that_start_playing_the_gym_player_music:int = 0
     
+    reward_for_using_bad_moves:int = 0
+    
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
                  reward_for_increase_pokemon_level_coef:float = 1.1
                  ):
@@ -33,10 +35,11 @@ class Reward:
         if current_state_internal_game_state.total_party_level < next_state_internal_game_state.total_party_level and next_state_internal_game_state.total_party_level > external_game_state.max_total_party_level:
             self.reward_for_increasing_the_total_party_level =  ( next_state_internal_game_state.total_party_level - current_state_internal_game_state.total_party_level  ) * reward_for_increase_pokemon_level_coef
         
-        
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
             self.reward_for_taking_action_that_start_playing_the_gym_player_music = 2
         
+        if next_state_internal_game_state.player_selected_move_id in [45]:
+            self.reward_for_using_bad_moves -= 1
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
