@@ -298,7 +298,6 @@ class Environment(Base):
         
         # See the map progress after a reset
         self.counts_map = np.zeros((444, 436)) # to solve the map
-
         self.time = 0
         self.max_events = 0
         self.max_level_sum = 0
@@ -768,7 +767,7 @@ class Environment(Base):
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 + ( reward_seeen_npcs  )
                 #+ reward_visiting_a_new_pokecenter
-                + ( reward_for_entering_a_trainer_battle * 1.1 ) 
+                + ( reward_for_entering_a_trainer_battle * 1.4 ) 
         )
         reward += reward_for_stateless_class.total_reward()
         
@@ -856,6 +855,7 @@ class Environment(Base):
             info.update(next_state_internal_game.to_json())
             info.update(self.external_game_state.to_json())
             info.update(reward_for_stateless_class.to_json())
+            #assert "reward_for_using_bad_moves" in info["reward"].keys(), f"info: {info}"
             ## add next state internal game state into the infos section
             for index , level in enumerate(next_state_party_levels):
                 info[f'pokemon_{ index +1 }_level'] = level
