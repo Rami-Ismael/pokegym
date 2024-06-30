@@ -20,6 +20,8 @@ class Reward:
     
     reward_for_using_bad_moves:int = 0
     
+    knocking_out_enemy_pokemon:int = 0
+    
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
                  reward_for_increase_pokemon_level_coef:float = 1.1
                  ):
@@ -40,6 +42,10 @@ class Reward:
         
         if next_state_internal_game_state.player_selected_move_id in [45 , 49]:
             self.reward_for_using_bad_moves -= 1
+        # For some reason we start having beginning current game state pokemon hp is not zero I have no ideas where is the coming from
+        #
+        if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats.value !=0:
+            self.knocking_out_enemy_pokemon = 1
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())

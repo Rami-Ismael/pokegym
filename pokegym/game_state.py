@@ -60,6 +60,7 @@ class Internal_Game_State:
     opponent_pokemon_levels: List[int] = field(default_factory=list)
     
     ### Trainer
+    # Only valid for trainers/gyms not wild mons. HP doesn't dec until mon is dead, then it's 0
     enemy_trainer_pokemon_hp: List[int] = field(default_factory=list)
    
     ### Enermy Pokemon Hp
