@@ -44,6 +44,7 @@ class Reward:
         
         if next_state_internal_game_state.player_selected_move_id in [45 , 49 , 27]:
             self.reward_for_using_bad_moves -= 1
+            assert self.reward_for_using_bad_moves <= 0
         # For some reason we start having beginning current game state pokemon hp is not zero I have no ideas where is the coming from
         #
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats.value !=0:
