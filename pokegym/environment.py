@@ -169,7 +169,6 @@ class Base:
                     # pick a random number between 1 to 3
                 import random
                 random_number = random.randint(1, 3)
-                print(random_number)
                 if random_number == 1:
                     pyboy_game_state_path_file = __file__.rstrip('environment.py') + 'Bulbasaur_fast_text_no_battle_animations_fixed_battle.state'
                     return pyboy_game_state_path_file
@@ -177,7 +176,6 @@ class Base:
                     pyboy_game_state_path_file = __file__.rstrip('environment.py') + 'Charmander.state'
                     return pyboy_game_state_path_file
                 elif random_number == 3:
-                    print("We are here at sqirtle")
                     pyboy_game_state_path_file = __file__.rstrip('environment.py') + 'Squirtle.state'
                     return pyboy_game_state_path_file
                 else:
