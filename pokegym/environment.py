@@ -163,9 +163,32 @@ class Base:
     def __init__(self, rom_path='pokemon_red.gb',
             state_path=None, headless=True, quiet=False, **kwargs):
         '''Creates a PokemonRed environment'''
+        random_starter_pokemon:bool = kwargs.get('random_starter_pokemon', False)
+        def determine_pyboy_game_state_file(random_starter_pokemon:bool = True):
+            if random_starter_pokemon:
+                    # pick a random number between 1 to 3
+                import random
+                random_number = random.randint(1, 3)
+                print(random_number)
+                if random_number == 1:
+                    pyboy_game_state_path_file = __file__.rstrip('environment.py') + 'Bulbasaur_fast_text_no_battle_animations_fixed_battle.state'
+                    return pyboy_game_state_path_file
+                elif random_number == 2:
+                    pyboy_game_state_path_file = __file__.rstrip('environment.py') + 'Charmander.state'
+                    return pyboy_game_state_path_file
+                elif random_number == 3:
+                    print("We are here at sqirtle")
+                    pyboy_game_state_path_file = __file__.rstrip('environment.py') + 'Squirtle.state'
+                    return pyboy_game_state_path_file
+                else:
+                    ValueError("random_starter_pokemon should be between 1 to 3")
+            else:
+                pyboy_game_state_path_file = __file__.rstrip('environment.py') + 'Bulbasaur_fast_text_no_battle_animations_fixed_battle.state'
+                return pyboy_game_state_path_file
+            return "None"
         if state_path is None:
-            state_path = __file__.rstrip('environment.py') + 'Bulbasaur_fast_text_no_battle_animations_fixed_battle.state'
-            assert os.path.exists(state_path), f"State file {state_path} does not exist"
+            state_path = determine_pyboy_game_state_file(random_starter_pokemon)
+            assert os.path.exists(state_path), f"State file {state_path} does not exist , {T()}"
 
         # Make the environment
         self.game, self.screen = make_env(rom_path, headless, quiet,
@@ -202,6 +225,7 @@ class Environment(Base):
             punish_wipe_out:bool = True,
             perfect_ivs:bool = True,
             **kwargs):
+        self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
         # https://github.com/xinpw8/pokegym/blob/d44ee5048d597d7eefda06a42326220dd9b6295f/pokegym/environment.py#L233
         self.verbose = verbose
@@ -775,7 +799,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time %  self.display_info_interval_divisor == 0 or done:
+        if self.time %  self.display_info_interval_divisor == 0 or done or self.time == 2:
             info = {
                 'reward': {
                     'reward': reward,

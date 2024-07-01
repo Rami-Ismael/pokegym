@@ -162,10 +162,9 @@ class External_Game_State:
     # Levels
     max_total_party_level: int = field(default_factory=int)
     
-    def update(self, game):
+    def update(self, game ):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
-    
     def post_reward_update(self, game):
         self.max_party_size = max(self.max_party_size, game.party_size)
         self.total_events_that_occurs_in_game = game.total_events_that_occurs_in_game
