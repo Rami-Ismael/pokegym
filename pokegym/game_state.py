@@ -6,7 +6,7 @@ import numpy as np
 class Internal_Game_State:
     #last_pokecenter_id: int = field(default_factory=int)
     battle_stats: ram_map.BattleState = field(default_factory=lambda: ram_map.BattleState.NOT_IN_BATTLE)  # Default to NOT_IN_BATTLE or any other default state
-    batle_result: ram_map.BattleResult = field(default_factory=lambda: ram_map.BattleResult.IDK)  # Default to NOT_IN_BATTLE or any other default state
+    battle_result: ram_map.BattleResult = field(default_factory=lambda: ram_map.BattleResult.IDK)  # Default to NOT_IN_BATTLE or any other default state
     map_music_sound_id: int = field(default_factory=int)
     map_music_rom_bank: int = field(default_factory=int)
     
@@ -18,6 +18,10 @@ class Internal_Game_State:
     average_pokemon_level: float = field(default_factory=float)
     
     number_of_turn_in_pokemon_battle: int = field(default_factory=int)
+    number_of_turn_in_pokemon_battle_greater_than_eight : int = field(default_factory=int)
+    number_of_turn_in_pokemon_battle_greater_than_sixteen : int = field(default_factory=int)
+    number_of_turn_in_pokemon_battle_greater_than_thirty_two : int = field(default_factory=int)
+    
     
     # Health Points
     each_pokemon_health_points: List[int] = field(default_factory=list)
@@ -83,7 +87,7 @@ class Internal_Game_State:
     def __init__(self, game=None):
         #self.last_pokecenter_id = ram_map.get_last_pokecenter_id(game) if game else 0
         self.battle_stats = ram_map.is_in_battle(game)
-        self.batle_result = ram_map.get_battle_result(game)
+        self.battle_result = ram_map.get_battle_result(game)
         self.map_music_sound_id = ram_map.get_map_music_id(game)
         self.map_music_rom_bank = ram_map.get_map_music_rom_bank(game)
         self.each_pokemon_level = ram_map.get_party_pokemon_level(game)
@@ -93,6 +97,9 @@ class Internal_Game_State:
         self.total_party_level = sum(self.each_pokemon_level)
         self.average_pokemon_level = self.total_party_level/self.party_size
         self.number_of_turn_in_pokemon_battle = ram_map.get_number_of_turns_in_current_battle(game)
+        self.number_of_turn_in_pokemon_battle_greater_than_eight = 1 if self.number_of_turn_in_pokemon_battle > 8 else 0
+        self.number_of_turn_in_pokemon_battle_greater_than_sixteen = 1 if self.number_of_turn_in_pokemon_battle > 16 else 0
+        self.number_of_turn_in_pokemon_battle_greater_than_thirty_two = 1 if self.number_of_turn_in_pokemon_battle > 32 else 0
         # Health 
         self.each_pokemon_health_points = ram_map.each_pokemon_hit_points(game)
         self.each_pokemon_max_health_points = ram_map.get_each_pokemon_max_hit_points(game)

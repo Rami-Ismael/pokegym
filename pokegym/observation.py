@@ -63,7 +63,7 @@ class Observation:
        self.each_pokemon_level = next_state_internal_game_state.each_pokemon_level
        self.total_party_level = next_state_internal_game_state.total_party_level
        self.battle_stats = next_state_internal_game_state.battle_stats.value
-       self.battle_result = next_state_internal_game_state.batle_result.value
+       self.battle_result = next_state_internal_game_state.battle_result.value
        self.number_of_turns_in_current_battle = next_state_internal_game_state.number_of_turn_in_pokemon_battle
        self.each_pokemon_health_points = next_state_internal_game_state.each_pokemon_health_points
        self.each_pokemon_max_health_points = next_state_internal_game_state.each_pokemon_max_health_points
