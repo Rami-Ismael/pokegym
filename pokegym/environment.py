@@ -286,7 +286,7 @@ class Environment(Base):
             # Player
             
             ## POkemon
-            "each_pokemon_pp": spaces.Box(low=0, high=20, shape=(24,), dtype=np.uint8),
+            "each_pokemon_pp": spaces.Box(low=0, high=40, shape=(24,), dtype=np.uint8),
             
             
             ### Trainer Opponents
