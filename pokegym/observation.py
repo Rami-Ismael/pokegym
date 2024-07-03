@@ -56,7 +56,7 @@ class Observation:
     total_events_that_occurs_in_game:int = field(default_factory=int)
     
    
-    def __init__( self , next_state_internal_game_state):
+    def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
        self.map_music_sound_bank = next_state_internal_game_state.map_music_rom_bank
        self.map_music_sound_id = next_state_internal_game_state.map_music_sound_id
        self.party_size = next_state_internal_game_state.party_size
@@ -101,6 +101,9 @@ class Observation:
        
        # Events
        self.total_events_that_occurs_in_game = next_state_internal_game_state.total_events_that_occurs_in_game
+       
+       self.time = time / max_episode_steps
+       
        
        
        self.validation()

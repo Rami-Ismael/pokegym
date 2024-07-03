@@ -290,19 +290,20 @@ class Environment(Base):
             
             
             ### Trainer Opponents
-            "enemy_trainer_pokemon_hp": spaces.Box(low=0, high=705, shape=(6,), dtype=np.uint16) , 
+            "enemy_trainer_pokemon_hp": spaces.Box(low=0, high=705, shape=(6,), dtype=np.float16) , 
             
             ### Wild Opponents I think
-            "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.uint16),
+            "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.float16),
             
             ## Events
             "total_events_that_occurs_in_game": spaces.Box(low=0, high=2560, shape=(1,), dtype=np.uint16),
+            "time": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 2048)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
         self.max_episode_steps = kwargs.get("max_episode_steps", 65536)
         self.reward_for_increase_pokemon_level_coef = kwargs.get("reward_for_increase_pokemon_level_coef", 1.1)
-        self.reward_for_explore_unique_coor_coef = kwargs.get("reward_for_explore_unique_coor_coef", .4)
+        self.reward_for_explore_unique_coor_coef = kwargs.get("reward_for_explore_unique_coor_coef", 0)
 
 
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
@@ -316,7 +317,7 @@ class Environment(Base):
         load_pyboy_state(self.game, self.load_last_state()) # load a saved state
         self.external_game_state = External_Game_State()
         internal_game_state: Internal_Game_State = Internal_Game_State(self.game)
-        observation_game_state = observation.Observation(internal_game_state)
+        observation_game_state = observation.Observation(internal_game_state , 0, self.max_episode_steps)
         
         # See the map progress after a reset
         self.counts_map = np.zeros((444, 436)) # to solve the map
@@ -806,7 +807,7 @@ class Environment(Base):
                     'death': death_reward,
                     'badges': badges_reward,
                     'for_healing': reward_for_healing,
-                    'exploration': exploration_reward,
+                    'exploration': exploration_reward * self.reward_for_explore_unique_coor_coef ,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "completing_the_pokedex": reward_for_completing_the_pokedex,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
@@ -876,7 +877,7 @@ class Environment(Base):
             }
             info.update(next_state_internal_game.to_json())
             info.update(self.external_game_state.to_json())
-            info.update(reward_for_stateless_class.to_json())
+            info["reward"].update(reward_for_stateless_class.to_json())
             #assert "reward_for_using_bad_moves" in info["reward"].keys(), f"info: {info}"
             ## add next state internal game state into the infos section
             for index , level in enumerate(next_state_party_levels):
@@ -905,7 +906,7 @@ class Environment(Base):
         # Observation , reward, done, info
         assert isinstance(next_state_party_levels, list), f"next_state_party_levels: {next_state_party_levels}"
         
-        observation_data_class = observation.Observation(next_state_internal_game_state = next_state_internal_game)
+        observation_data_class = observation.Observation(next_state_internal_game_state = next_state_internal_game , time = self.time , max_episode_steps = self.max_episode_steps )
         old_observation = self._get_obs()
         old_observation.update(observation_data_class.get_obs())
         

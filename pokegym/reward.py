@@ -55,7 +55,7 @@ class Reward:
     def to_json(self) -> Dict[str , Dict[str , int]]:
         #return asdict(self)
         # make the dictoinary a subkey of reward
-        return {"reward":asdict(self)}
+        return asdict(self)
     
         
     
