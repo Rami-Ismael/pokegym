@@ -73,6 +73,9 @@ class Internal_Game_State:
     # Music
     gym_leader_music_is_playing: bool = field(default_factory=bool)
     
+    # Missacellnous
+    wild_pokemon_encounter_rate_on_grass:int = field(default_factory = int) #ram_map.wild_pokemon_encounter_rate_on_grass(game)
+    
     
     
 
@@ -142,6 +145,8 @@ class Internal_Game_State:
         
         # Music
         self.gym_leader_music_is_playing = ram_map.check_if_gym_leader_music_is_playing(game)
+        
+        self.wild_pokemon_encounter_rate_on_grass = ram_map.wild_pokemon_encounter_rate_on_grass(game)
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)
         for k, v in asdict(self).items():

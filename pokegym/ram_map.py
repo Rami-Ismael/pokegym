@@ -108,6 +108,7 @@ ENEMY_TRAINER_POKEMON_HP_OFFSET = 0x2C
 EVENT_FLAGS_START = 0xD747
 EVENTS_FLAGS_LENGTH = 320
 MUSEUM_TICKET = (0xD754, 0)
+WILD_POKEMON_ENCONTER_RATE_ON_GRASS:int =  0xD887
 
 
 class BattleState(Enum):
@@ -469,5 +470,8 @@ def get_pokemon_pp_avail(game) -> List[int]:
         pp_teams[index * 4 + 2] = game.get_memory_value(POKEMON_1_PP_MOVES[2] + (index * 0x0C))
         pp_teams[index * 4 + 3] = game.get_memory_value(POKEMON_1_PP_MOVES[3] + (index * 0x0C))
     return pp_teams
+
+def wild_pokemon_encounter_rate_on_grass(game):
+    return game.get_memory_value(WILD_POKEMON_ENCONTER_RATE_ON_GRASS)
     
     
