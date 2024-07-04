@@ -285,6 +285,8 @@ class Environment(Base):
             
             # Player
             
+            "party_pokemon_move_id": spaces.Box(low=0, high=255, shape=(24,), dtype=np.uint8),
+            
             ## POkemon
             "each_pokemon_pp": spaces.Box(low=0, high=40, shape=(24,), dtype=np.uint8),
             

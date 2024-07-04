@@ -30,6 +30,7 @@ class Observation:
     # Moves
     player_selected_move_id: int = field(default_factory=int)
     enemy_selected_move_id: int = field(default_factory=int)
+    pokemon_party_move_id: list[int] = field(default_factory=list)
     #Player
     total_pokemon_seen: int = field(default_factory=int)
     pokemon_seen_in_the_pokedex: List[int] = field(default_factory=list)
