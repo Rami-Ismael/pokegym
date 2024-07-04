@@ -45,6 +45,8 @@ class Internal_Game_State:
     player_selected_move_id: int = field(default_factory=int)
     enemy_selected_move_id: int = field(default_factory=int)
     pokemon_party_move_id: list[int] = field(default_factory=list)
+    #total_number_pokemon_moves_in_the_teams : int = field(default_factory=int)
+    #number_of_unique_moves_in_the_teams: int = field(default_factory=int)
     
     # Player
     total_pokemon_seen:int = field(default_factory=int)
@@ -119,6 +121,7 @@ class Internal_Game_State:
         # Moves
         self.player_selected_move_id , self.enemy_selected_move_id = ram_map.get_battle_turn_moves(game)
         self.pokemon_party_move_id = ram_map.get_pokemon_party_move_ids(game)
+        #self.total_number_pokemon_moves_in_the_teams = sum( self.pokemon_party_move_id >0 )
         # Player
         
         ### Pokedex
@@ -161,6 +164,8 @@ class Internal_Game_State:
         for k, v in asdict(self).items():
             if v is None:
                 raise ValueError(f"Value of {k} is None")
+            if isinstance(v, list):
+                ValueError(f"Value of {k} is a list")
         return asdict(self )
     def validation(self):
         for index in range(len(self.pokemon_party_move_id)):

@@ -85,6 +85,7 @@ class Observation:
        # Player
        
        ## POkemon
+       self.pokemon_party_move_id = next_state_internal_game_state.pokemon_party_move_id
        
        ### PP
        self.each_pokemon_pp = next_state_internal_game_state.each_pokemon_pp
