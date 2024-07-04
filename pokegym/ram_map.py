@@ -2,7 +2,7 @@ import numpy as np
 from enum import Enum
 from pokegym.red_memory_player import POKEMON_1_CURRENT_HP, POKEMON_1_MAX_HP
 from pyboy.utils import WindowEvent
-from typing import List, Literal 
+from typing import List
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
 HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248] # This work fine
@@ -68,7 +68,7 @@ MAX_MONEY = 999999.0
 POKEMON_1 = 0xD16B
 POKEMON_1_STATUS = 0xD16F
 POKEMON_1_TYPES = (0xD170,0xD171)
-POKEMON_1_MOVES = (0xD173, 0xD174, 0xD175, 0xD176)
+POKEMON_1_MOVES_ID = (0xD173, 0xD174, 0xD175, 0xD176)
 POKEMON_1_EXPERIENCE = (0xD179, 0xD17A, 0xD17B) # Current XP @ l as 3 hex concat numbers ie. 0x00 0x01 0x080 == 348
 POKEMON_1_PP_MOVES = (0xD188, 0xD189, 0xD18A, 0xD18B)
 POKEMON_1_LEVEL_ACTUAL = 0xD18C
@@ -222,13 +222,13 @@ def events(game):
     return max(num_events - 13 - museum_ticket, 0)
 
 
-def total_items(game) -> int:
+def total_items(game):
     # https://github.com/pret/pokered/blob/0b20304e6d22baaf7c61439e5e087f2d93f98e39/ram/wram.asm#L1741
     # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Items
     return game.get_memory_value(TOTAL_ITEMS_ADDR)
 
 
-def total_unique_moves(game) -> int:
+def total_unique_moves(game):
     # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Wild_Pok%C3%A9mon
     hash_set = set()
     for pokemon_addr in PLAYER_POKEMON_TEAM_ADDR:
@@ -465,13 +465,28 @@ def get_enemy_pokemon_move_id(game)->List[int]:
 def get_pokemon_pp_avail(game) -> List[int]:
     pp_teams:list[int] = [0] * 24
     for index in range(0 , get_party_size(game)):
-        pp_teams[index * 4 + 0] = game.get_memory_value(POKEMON_1_PP_MOVES[0] + (index * 0x0C))
-        pp_teams[index * 4 + 1] = game.get_memory_value(POKEMON_1_PP_MOVES[1] + (index * 0x0C))
-        pp_teams[index * 4 + 2] = game.get_memory_value(POKEMON_1_PP_MOVES[2] + (index * 0x0C))
-        pp_teams[index * 4 + 3] = game.get_memory_value(POKEMON_1_PP_MOVES[3] + (index * 0x0C))
+        pp_teams[index * 4 + 0] = game.get_memory_value(POKEMON_1_PP_MOVES[0] + (index * PARTY_OFFSET))
+        pp_teams[index * 4 + 1] = game.get_memory_value(POKEMON_1_PP_MOVES[1] + (index * PARTY_OFFSET))
+        pp_teams[index * 4 + 2] = game.get_memory_value(POKEMON_1_PP_MOVES[2] + (index * PARTY_OFFSET))
+        pp_teams[index * 4 + 3] = game.get_memory_value(POKEMON_1_PP_MOVES[3] + (index * PARTY_OFFSET))
     return pp_teams
 
 def wild_pokemon_encounter_rate_on_grass(game):
     return game.get_memory_value(WILD_POKEMON_ENCONTER_RATE_ON_GRASS)
+
+def get_pokemon_party_move_ids(game) -> List[int]:
+    pokemon_party_move_ids = [0] *24
+    # https://gamefaqs.gamespot.com/gameboy/367023-pokemon-red-version/faqs/74734#section8
+    assert PARTY_OFFSET == 44
+    
+    for index in range( 0 , get_party_size(game)):
+        
+        pokemon_party_move_ids[ index * 4 + 0 ] = game.get_memory_value( POKEMON_1_MOVES_ID[0] + ( index * PARTY_OFFSET ) )
+        pokemon_party_move_ids[ index * 4 + 1 ] = game.get_memory_value( POKEMON_1_MOVES_ID[1] + ( index * PARTY_OFFSET ) )
+        pokemon_party_move_ids[ index * 4 + 2 ] = game.get_memory_value( POKEMON_1_MOVES_ID[2] + ( index * PARTY_OFFSET ) )
+        pokemon_party_move_ids[ index * 4 + 3 ] = game.get_memory_value( POKEMON_1_MOVES_ID[3] + ( index * PARTY_OFFSET ) )
+    return pokemon_party_move_ids
+        
+        
     
     
