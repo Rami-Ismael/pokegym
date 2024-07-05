@@ -25,15 +25,20 @@ class Reward:
     
     knocking_out_wild_pokemon:int = 0
     
+    # List of negative Reward for having a long battle I want them short 8 -1 16 -2 32 -4
+    negative_reward_for_battle_longer_than_eight_turn:int = 0
+    negative_reward_for_battle_longer_than_sixteen_turn:int = 0
+    negative_reward_for_battle_longer_than_thirty_two_turn:int = 0
+    
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
-                 reward_for_increase_pokemon_level_coef:float = 1.1
+                 reward_for_increase_pokemon_level_coef:float = 4
                  ):
         
         if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size:
             self.reward_for_increasing_the_max_size_of_the_trainer_team = 1
         # Events
         if current_state_internal_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
-            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * 1.2 ) 
+            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * 2 ) 
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state >= 0
         if external_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
             self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state +=  ( next_state_internal_game_state.total_events_that_occurs_in_game - external_game_state.total_events_that_occurs_in_game )
@@ -54,6 +59,13 @@ class Reward:
         
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats.value != BattleState.NOT_IN_BATTLE:
             self.knocking_out_enemy_pokemon = 1
+        
+        if current_state_internal_game_state.number_of_turn_in_pokemon_battle == 7 and next_state_internal_game_state.number_of_turn_in_pokemon_battle == 8:
+            self.negative_reward_for_battle_longer_than_eight_turn = -1
+        if current_state_internal_game_state.number_of_turn_in_pokemon_battle == 15 and next_state_internal_game_state.number_of_turn_in_pokemon_battle == 16:
+            self.negative_reward_for_battle_longer_than_sixteen_turn = -2
+        if current_state_internal_game_state.number_of_turn_in_pokemon_battle == 31 and next_state_internal_game_state.number_of_turn_in_pokemon_battle == 32:
+            self.negative_reward_for_battle_longer_than_thirty_two_turn = -4
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
