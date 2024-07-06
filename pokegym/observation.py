@@ -115,6 +115,7 @@ class Observation:
         #assert self.low_health_alarm in [0, 145, 152, 136] , T()
         assert self.enemy_pokemon_hp >=0 , T()
         assert self.enemy_pokemon_hp <= 705 , T()
+        assert self.time <= 1 , T()
         
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:

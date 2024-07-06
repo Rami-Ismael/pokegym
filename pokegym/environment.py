@@ -222,6 +222,7 @@ class Environment(Base):
             state_path=None, headless=True, quiet=False, verbose=False, 
             punish_wipe_out:bool = True,
             perfect_ivs:bool = True,
+            reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float =1.0 ,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -306,29 +307,43 @@ class Environment(Base):
         self.max_episode_steps = kwargs.get("max_episode_steps", 65536)
         self.reward_for_increase_pokemon_level_coef = kwargs.get("reward_for_increase_pokemon_level_coef", 1.1)
         self.reward_for_explore_unique_coor_coef = kwargs.get("reward_for_explore_unique_coor_coef", 0)
+        self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float = reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef
+        
+        self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
+        
+        
+        self.probaility_wild_grass_pokemon_encounter_rate_per_env = -1
+        if self.random_wild_grass_pokemon_encounter_rate_per_env:
+            import random
+            self.probaility_wild_grass_pokemon_encounter_rate_per_env = random.randint(0 , 255)
+        self.first = True
 
 
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
+
+        # Reset
+        self.external_game_state = External_Game_State()
         self.init_mem()
-        self._reset_env_state()
         self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
+        load_pyboy_state(self.game, self.load_last_state()) # load a saved state
+        self.counts_map = np.zeros((444, 436)) # to solve the map
+        self.seen_maps = set()
+        self.time = 0
+        
+        self._reset_env_state()
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
         # https://github.com/xinpw8/pokegym/blob/baseline_0.6/pokegym/environment.py
-        load_pyboy_state(self.game, self.load_last_state()) # load a saved state
-        self.external_game_state = External_Game_State()
+        
         internal_game_state: Internal_Game_State = Internal_Game_State(self.game)
         observation_game_state = observation.Observation(internal_game_state , 0, self.max_episode_steps)
         
         # See the map progress after a reset
-        self.counts_map = np.zeros((444, 436)) # to solve the map
-        self.time = 0
         self.max_events = 0
         self.max_level_sum = 0
         self.max_opponent_level = 0
 
-        self.seen_maps = set()
 
         self.death_count = 0
         self.total_healing = 0
@@ -538,7 +553,8 @@ class Environment(Base):
         next_state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
         self.external_game_state.update( game = self.game )
         reward_for_stateless_class: Reward = Reward( state_internal_game, next_state_internal_game, self.external_game_state , 
-                                                    self.reward_for_increase_pokemon_level_coef)
+                                                    self.reward_for_increase_pokemon_level_coef , 
+                                                    reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef = self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef)
 
         # Seen Coordinate
         self.update_seen_coords()
@@ -792,9 +808,11 @@ class Environment(Base):
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 + ( reward_seeen_npcs  )
                 #+ reward_visiting_a_new_pokecenter
-                + ( reward_for_entering_a_trainer_battle * 1.4 ) 
+                + ( reward_for_entering_a_trainer_battle * 2 ) 
         )
         reward += reward_for_stateless_class.total_reward()
+        if self.step == 0:
+            reward=0
         
         self.external_game_state.post_reward_update(next_state_internal_game)
 
@@ -825,9 +843,6 @@ class Environment(Base):
                 "max_episode_steps": self.max_episode_steps,
                 'maps_explored': len(self.seen_maps),
                 "number_of_uniqiue_coordinate_it_explored": len(self.seen_coords),
-                'highest_pokemon_level': max(next_state_party_levels),
-                'total_party_level': sum(next_state_party_levels),
-                'deaths': self.death_count,
                 'badge_1': ram_map.check_if_player_has_gym_one_badge(self.game),
                 "badges": self.get_badges(), # Fix it latter
                 "npc": sum(self.seen_npcs.values()),

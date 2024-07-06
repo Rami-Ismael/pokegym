@@ -159,6 +159,7 @@ class Internal_Game_State:
         self.gym_leader_music_is_playing = ram_map.check_if_gym_leader_music_is_playing(game)
         
         self.wild_pokemon_encounter_rate_on_grass = ram_map.wild_pokemon_encounter_rate_on_grass(game)
+        self.validation()
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)
         for k, v in asdict(self).items():
@@ -170,6 +171,7 @@ class Internal_Game_State:
     def validation(self):
         for index in range(len(self.pokemon_party_move_id)):
             assert self.pokemon_party_move_id[index] <= 255 , "Pokemon Party Move ID is not valid" # https://gamefaqs.gamespot.com/gameboy/367023-pokemon-red-version/faqs/74734?page=4#section30
+        assert len(self.pokemon_seen_in_the_pokedex) <=152
 @dataclass
 class External_Game_State:
     #visited_pokecenter_list: List[int] = field(default_factory=list)
@@ -183,6 +185,7 @@ class External_Game_State:
     
     # Levels
     max_total_party_level: int = field(default_factory=int)
+    max_highest_level_in_the_party_teams:int = field(default_factory=int)
     
     def update(self, game ):
         #self.update_visited_pokecenter_list(game_state)
@@ -191,6 +194,7 @@ class External_Game_State:
         self.max_party_size = max(self.max_party_size, game.party_size)
         self.total_events_that_occurs_in_game = game.total_events_that_occurs_in_game
         self.max_total_party_level = max(self.max_total_party_level, game.total_party_level)
+        self.max_highest_level_in_the_party_teams = max( self.max_highest_level_in_the_party_teams , game.highest_pokemon_level)
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):
