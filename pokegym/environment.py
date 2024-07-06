@@ -806,7 +806,7 @@ class Environment(Base):
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
                 + wipe_out * -1 if self.punish_wipe_out else 0
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
-                + ( reward_seeen_npcs  )
+                +  reward_seeen_npcs  
                 #+ reward_visiting_a_new_pokecenter
                 + ( reward_for_entering_a_trainer_battle * 2 ) 
         )
