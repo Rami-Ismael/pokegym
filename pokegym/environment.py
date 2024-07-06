@@ -220,7 +220,6 @@ class Base:
 class Environment(Base):
     def __init__(self, rom_path='pokemon_red.gb',
             state_path=None, headless=True, quiet=False, verbose=False, 
-            punish_wipe_out:bool = True,
             perfect_ivs:bool = True,
             reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float =1.0 ,
             **kwargs):
@@ -229,7 +228,6 @@ class Environment(Base):
         # https://github.com/xinpw8/pokegym/blob/d44ee5048d597d7eefda06a42326220dd9b6295f/pokegym/environment.py#L233
         self.verbose = verbose
         self.last_map = -1
-        self.punish_wipe_out: bool = punish_wipe_out
         self.reset_count = 0
         self.perfect_ivs = perfect_ivs
         self.pokecenter_ids: list[int] = [0x01, 0x02, 0x03, 0x0F, 0x15, 0x05, 0x06, 0x04, 0x07, 0x08, 0x0A, 0x09]
@@ -340,8 +338,6 @@ class Environment(Base):
         observation_game_state = observation.Observation(internal_game_state , 0, self.max_episode_steps)
         
         # See the map progress after a reset
-        self.max_events = 0
-        self.max_level_sum = 0
         self.max_opponent_level = 0
 
 
@@ -354,7 +350,6 @@ class Environment(Base):
         self.number_of_wild_battle = 0
         self.number_of_trainer_battle = 0
         self.number_of_gym_leader_music_is_playing = 0
-        self.total_wipe_out = 0
         self.total_numebr_attempted_to_run = 0
         self.total_number_of_opponent_pokemon_fainted = 0
         
@@ -544,7 +539,6 @@ class Environment(Base):
         current_state_opponent_pokemon_health_points:np.array = ram_map.get_opponent_party_pokemon_hp(self.game)
         prev_seen_npcs:int  = sum(self.seen_npcs.values())
         
-        prev_total_wipe_out = self.total_wipe_out
         
         state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
         run_action_on_emulator(self.game, self.screen, ACTIONS[action],
@@ -672,16 +666,6 @@ class Environment(Base):
         self.update_heat_map(row, column, map_n)
 
 
-        # Level reward
-        #party, party_size, party_levels = ram_map.party(self.game)
-        next_state_party, next_state_party_size, next_state_party_levels = ram_map.party(self.game)
-        self.max_level_sum = sum(next_state_party_levels)
-        reward_the_agent_increase_the_level_of_the_pokemon: float =   sum(next_state_party_levels) - sum(prev_party_levels)
-        #assert reward_the_agent_increase_the_level_of_the_pokemon >= 0 and reward_the_agent_increase_the_level_of_the_pokemon <= 1, f"reward_the_agent_increase_the_level_of_the_pokemon: {reward_the_agent_increase_the_level_of_the_pokemon}"
-
-
-
-
 
         # Set rewards
         #healing_reward = self.total_healing
@@ -753,13 +737,6 @@ class Environment(Base):
             reward_for_battle -= 1 # Punished the agent for losing a wild battle
             self.death_count += 1
         
-        wipe_out = 0
-        if ram_map.total_party_hit_point(self.game) == 0:
-            self.total_wipe_out += 1 # Wipe out means the agent has lost all of its pokemon in battle or poison
-            wipe_out += 1
-        else:
-            if prev_total_wipe_out != self.total_wipe_out:
-                ValueError("total_wipe_out has changed without the agent losing all of its pokemon in battle")
         opponent_level_reward = 0
         if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE or next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
             if self.max_opponent_level < max(ram_map.opponent(self.game)):
@@ -804,10 +781,8 @@ class Environment(Base):
                 + reward_for_battle
                 + discourage_running_from_battle
                 + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
-                + wipe_out * -1 if self.punish_wipe_out else 0
                 + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 +  reward_seeen_npcs  
-                #+ reward_visiting_a_new_pokecenter
                 + ( reward_for_entering_a_trainer_battle * 2 ) 
         )
         reward += reward_for_stateless_class.total_reward()
@@ -873,8 +848,6 @@ class Environment(Base):
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
                 "number_of_time_gym_leader_music_is_playing": self.number_of_gym_leader_music_is_playing,
                 "visited_pokemon_center": len(self.visited_pokecenter_list),
-                "total_wipe_out": self.total_wipe_out,
-                "wipe_out:": wipe_out,
                 "total_number_of_time_attempted_to_run": ram_map.get_number_of_run_attempts(self.game),
                 "reset_count": self.reset_count,
                 "current_state_is_in_battle": current_state_is_in_battle.value , 

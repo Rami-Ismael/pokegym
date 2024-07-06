@@ -109,6 +109,7 @@ class Internal_Game_State:
         self.lowest_pokemon_health_points = min(self.each_pokemon_health_points)
         self.highest_pokemon_health_points = max(self.each_pokemon_health_points)
         self.total_party_health_points = sum(self.each_pokemon_health_points)
+        self.wipe_out = 1 if self.total_party_health_points == 0 else 0
         self.total_party_max_hit_points = sum(self.each_pokemon_max_health_points)
         self.average_pokemon_health_points = self.total_party_health_points/self.party_size
         self.average_pokemon_max_health_points = self.total_party_max_hit_points/self.party_size
@@ -182,6 +183,7 @@ class External_Game_State:
     max_party_size: int = field(default_factory=int)
     
     total_events_that_occurs_in_game:int = field(default_factory=int)
+    total_number_of_wipe_out_in_episode: int = field(default_factory=int)
     
     # Levels
     max_total_party_level: int = field(default_factory=int)
@@ -195,6 +197,7 @@ class External_Game_State:
         self.total_events_that_occurs_in_game = game.total_events_that_occurs_in_game
         self.max_total_party_level = max(self.max_total_party_level, game.total_party_level)
         self.max_highest_level_in_the_party_teams = max( self.max_highest_level_in_the_party_teams , game.highest_pokemon_level)
+        self.total_number_of_wipe_out_in_episode+=game.wipe_out
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):

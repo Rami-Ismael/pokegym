@@ -5,14 +5,14 @@ from pokegym.ram_map import BattleState , BattleResult
 @dataclass
 class Reward:
     #use max to make sure the agent cannot gain the system with the PC
-    reward_for_increasing_the_max_size_of_the_trainer_team:int = 0
+    reward_for_increasing_the_max_size_of_the_trainer_team:float = 0
     
     # Reward
     reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state:int = 0
     reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state:int = 0 
     
     # Level which can be effected by the PC or daycare we want the max value
-    reward_for_increasing_the_total_party_level:int = 0
+    reward_for_increasing_the_total_party_level:float = 0
     reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle:int = 0
     
     # Reward for seeing new pokemon 
@@ -30,14 +30,15 @@ class Reward:
     negative_reward_for_battle_longer_than_eight_turn:int = 0
     negative_reward_for_battle_longer_than_sixteen_turn:int = 0
     negative_reward_for_battle_longer_than_thirty_two_turn:int = 0
+    negative_reward_for_wiping_out:int = 0
     
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
                  reward_for_increase_pokemon_level_coef:float = 2 , 
                  reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float = 1
                  ):
         
-        if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size:
-            self.reward_for_increasing_the_max_size_of_the_trainer_team = 1
+        if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size and external_game_state.max_party_size:
+            self.reward_for_increasing_the_max_size_of_the_trainer_team = .25
         # Events
         if current_state_internal_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
             self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * 2 ) 
@@ -47,7 +48,7 @@ class Reward:
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state >= 0
         
         if current_state_internal_game_state.total_party_level < next_state_internal_game_state.total_party_level and next_state_internal_game_state.total_party_level > external_game_state.max_total_party_level:
-            self.reward_for_increasing_the_total_party_level =  ( next_state_internal_game_state.total_party_level - current_state_internal_game_state.total_party_level  ) * reward_for_increase_pokemon_level_coef
+            self.reward_for_increasing_the_total_party_level =  .25
         
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
             self.reward_for_taking_action_that_start_playing_the_gym_player_music = 4
@@ -71,6 +72,9 @@ class Reward:
         
         if current_state_internal_game_state.highest_pokemon_level < next_state_internal_game_state.highest_pokemon_level and next_state_internal_game_state.highest_pokemon_level > external_game_state.max_highest_level_in_the_party_teams:
             self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle = ( next_state_internal_game_state.highest_pokemon_level >- external_game_state.max_highest_level_in_the_party_teams ) * reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef
+        
+        if not current_state_internal_game_state.wipe_out and next_state_internal_game_state.wipe_out:
+            self.negative_reward_for_wiping_out = -1
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
