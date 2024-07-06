@@ -82,6 +82,7 @@ class Internal_Game_State:
     
     # Missacellnous
     wild_pokemon_encounter_rate_on_grass:int = field(default_factory = int) #ram_map.wild_pokemon_encounter_rate_on_grass(game)
+    enemy_pokemon_base_exp_yeild:int = field(default_factory=int)
     
     
     
@@ -160,6 +161,7 @@ class Internal_Game_State:
         self.gym_leader_music_is_playing = ram_map.check_if_gym_leader_music_is_playing(game)
         
         self.wild_pokemon_encounter_rate_on_grass = ram_map.wild_pokemon_encounter_rate_on_grass(game)
+        self.enemy_pokemon_base_exp_yeild = ram_map.get_enemy_pokemon_base_exp_yield(game)
         self.validation()
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)
@@ -188,8 +190,9 @@ class External_Game_State:
     # Levels
     max_total_party_level: int = field(default_factory=int)
     max_highest_level_in_the_party_teams:int = field(default_factory=int)
+    max_enemy_pokemon_base_exp_yeild:int = field(default_factory = int)
     
-    def update(self, game ):
+    def update(self, game , next_next_internal_game_state ):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
     def post_reward_update(self, game):
@@ -198,6 +201,7 @@ class External_Game_State:
         self.max_total_party_level = max(self.max_total_party_level, game.total_party_level)
         self.max_highest_level_in_the_party_teams = max( self.max_highest_level_in_the_party_teams , game.highest_pokemon_level)
         self.total_number_of_wipe_out_in_episode+=game.wipe_out
+        self.max_enemy_pokemon_base_exp_yeild:int = max(self.max_enemy_pokemon_base_exp_yeild , game.enemy_pokemon_base_exp_yeild)
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):

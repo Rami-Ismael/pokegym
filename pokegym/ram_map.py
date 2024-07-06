@@ -111,6 +111,8 @@ MUSEUM_TICKET = (0xD754, 0)
 WILD_POKEMON_ENCONTER_RATE_ON_GRASS:int =  0xD887
 
 
+ENEMY_POKEMON_BASE_EXP_YIELD = 0xD008
+
 class BattleState(Enum):
     NOT_IN_BATTLE = 0
     WILD_BATTLE = 1
@@ -486,7 +488,10 @@ def get_pokemon_party_move_ids(game) -> List[int]:
         pokemon_party_move_ids[ index * 4 + 2 ] = game.get_memory_value( POKEMON_1_MOVES_ID[2] + ( index * PARTY_OFFSET ) )
         pokemon_party_move_ids[ index * 4 + 3 ] = game.get_memory_value( POKEMON_1_MOVES_ID[3] + ( index * PARTY_OFFSET ) )
     return pokemon_party_move_ids
-        
+
+def get_enemy_pokemon_base_exp_yield(game):
+    # https://github.com/pret/pokered/blob/095c7d7227ea958c1afa76765c044793b9e8dc5a/pokered.sym#L18619C1-L18620C25
+    return game.get_memory_value( ENEMY_POKEMON_BASE_EXP_YIELD)
         
     
     

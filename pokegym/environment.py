@@ -545,7 +545,7 @@ class Environment(Base):
             self.headless, fast_video=fast_video)
         self.time += 1
         next_state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
-        self.external_game_state.update( game = self.game )
+        self.external_game_state.update( game = self.game , next_next_internal_game_state  = next_state_internal_game)
         reward_for_stateless_class: Reward = Reward( state_internal_game, next_state_internal_game, self.external_game_state , 
                                                     self.reward_for_increase_pokemon_level_coef , 
                                                     reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef = self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef)
@@ -716,8 +716,6 @@ class Environment(Base):
         assert next_health_ratio >= 0 and next_health_ratio <= 1, f"next_health_ratio: {next_health_ratio}"
         reward_for_healing = max( next_health_ratio - prev_health_ratio , 0)
         assert reward_for_healing >= 0 and reward_for_healing <= 1.0, f"reward_for_healing: {reward_for_healing}"
-        if prev_party_size != next_state_party_size or ram_map.total_party_hit_point(self.game) or prev_health_ratio < next_health_ratio:
-            reward_for_healing = 0
         reward_for_battle = 0
         reward_for_entering_a_trainer_battle = 0 
         if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
@@ -793,11 +791,10 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time %  self.display_info_interval_divisor == 0 or done or self.time == 2:
+        if self.time %  1 == 0 or done or self.time == 2:
             info = {
                 'reward': {
                     'reward': reward,
-                    'level':reward_the_agent_increase_the_level_of_the_pokemon,
                     'opponent_level': opponent_level_reward,
                     'death': death_reward,
                     'badges': badges_reward,
@@ -870,8 +867,6 @@ class Environment(Base):
             info["reward"].update(reward_for_stateless_class.to_json())
             #assert "reward_for_using_bad_moves" in info["reward"].keys(), f"info: {info}"
             ## add next state internal game state into the infos section
-            for index , level in enumerate(next_state_party_levels):
-                info[f'pokemon_{ index +1 }_level'] = level
             try:
                 for index , pokemon_id in enumerate(ram_map.get_party_pokemon_id(self.game)):
                     info[f'pokemon_{ index +1 }_id'] = pokemon_id
@@ -894,7 +889,6 @@ class Environment(Base):
                 f'Info: {info}',
             )
         # Observation , reward, done, info
-        assert isinstance(next_state_party_levels, list), f"next_state_party_levels: {next_state_party_levels}"
         
         observation_data_class = observation.Observation(next_state_internal_game_state = next_state_internal_game , time = self.time , max_episode_steps = self.max_episode_steps )
         old_observation = self._get_obs()
