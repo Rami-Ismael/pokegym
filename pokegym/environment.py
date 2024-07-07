@@ -299,6 +299,7 @@ class Environment(Base):
             ## Events
             "total_events_that_occurs_in_game": spaces.Box(low=0, high=2560, shape=(1,), dtype=np.uint16),
             "time": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_monster_actually_catch_rate": spaces.Box(low=0 , high = 1 , shape=(1,), dtype=np.float32)
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 2048)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
@@ -774,7 +775,7 @@ class Environment(Base):
                 + badges_reward 
                 + reward_for_healing 
                 +  ( exploration_reward * self.reward_for_explore_unique_coor_coef )
-                +  reward_for_completing_the_pokedex
+                +  ( reward_for_completing_the_pokedex * 0 )
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
                 + discourage_running_from_battle
@@ -784,7 +785,7 @@ class Environment(Base):
                 + ( reward_for_entering_a_trainer_battle * 2 ) 
         )
         reward += reward_for_stateless_class.total_reward()
-        if self.step == 0:
+        if self.step == 0 or self.step == 1:
             reward=0
         
         self.external_game_state.post_reward_update(next_state_internal_game)

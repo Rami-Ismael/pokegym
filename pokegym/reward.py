@@ -41,7 +41,7 @@ class Reward:
                  ):
         
         if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size and external_game_state.max_party_size:
-            self.reward_for_increasing_the_max_size_of_the_trainer_team = .25
+            self.reward_for_increasing_the_max_size_of_the_trainer_team = 0
         # Events
         if current_state_internal_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
             self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * 2 ) 

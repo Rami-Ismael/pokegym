@@ -112,6 +112,7 @@ WILD_POKEMON_ENCONTER_RATE_ON_GRASS:int =  0xD887
 
 
 ENEMY_POKEMON_BASE_EXP_YIELD = 0xD008
+ENEMY_MONSTER_ACTUALLY_CATCH_RATE = 0xD007
 
 class BattleState(Enum):
     NOT_IN_BATTLE = 0
@@ -492,6 +493,7 @@ def get_pokemon_party_move_ids(game) -> List[int]:
 def get_enemy_pokemon_base_exp_yield(game):
     # https://github.com/pret/pokered/blob/095c7d7227ea958c1afa76765c044793b9e8dc5a/pokered.sym#L18619C1-L18620C25
     return game.get_memory_value( ENEMY_POKEMON_BASE_EXP_YIELD)
-        
-    
-    
+
+def get_enemy_monster_actually_catch_rate(game):
+    # https://github.com/pret/pokered/blob/095c7d7227ea958c1afa76765c044793b9e8dc5a/pokered.sym#L18618
+    return game.get_memory_value( ENEMY_MONSTER_ACTUALLY_CATCH_RATE)

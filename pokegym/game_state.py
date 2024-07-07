@@ -83,6 +83,7 @@ class Internal_Game_State:
     # Missacellnous
     wild_pokemon_encounter_rate_on_grass:int = field(default_factory = int) #ram_map.wild_pokemon_encounter_rate_on_grass(game)
     enemy_pokemon_base_exp_yeild:int = field(default_factory=int)
+    enemy_monster_actually_catch_rate:int = field(default_factory=int)
     
     
     
@@ -162,6 +163,7 @@ class Internal_Game_State:
         
         self.wild_pokemon_encounter_rate_on_grass = ram_map.wild_pokemon_encounter_rate_on_grass(game)
         self.enemy_pokemon_base_exp_yeild = ram_map.get_enemy_pokemon_base_exp_yield(game)
+        self.enemy_monster_actually_catch_rate = ram_map.get_enemy_monster_actually_catch_rate(game)
         self.validation()
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)

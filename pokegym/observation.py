@@ -55,6 +55,7 @@ class Observation:
     
     # Events
     total_events_that_occurs_in_game:int = field(default_factory=int)
+    enemy_monster_actually_catch_rate: float = field(default_factory=float)
     
    
     def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
@@ -106,6 +107,8 @@ class Observation:
        
        self.time = time / max_episode_steps
        
+       self.enemy_monster_actually_catch_rate = self.obs_enemy_monster_pokemon_actually_catch_rate(next_state_internal_game_state.enemy_monster_actually_catch_rate)
+       
        
        
        self.validation()
@@ -129,6 +132,8 @@ class Observation:
         xp_array = np.array(self.normalize_np_array(player_lineup_xp, False, 250000), dtype=np.float32)
         padded_xp = np.pad(xp_array, (0, 6 - len(xp_array)), mode='constant')
         return padded_xp
+    def obs_enemy_monster_pokemon_actually_catch_rate(self , enemy_monster_actually_catch_rate):
+        return enemy_monster_actually_catch_rate / 255.0
     def encode(self):
         stuff  = { 2: 0 , 8:1 , 31:2}
         self.map_music_sound_bank = stuff[self.map_music_sound_bank]
