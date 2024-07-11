@@ -483,7 +483,7 @@ def get_pokemon_party_move_ids(game):
         pokemon_party_move_ids[ index * 4 + 1 ] = game.get_memory_value( POKEMON_1_MOVES_ID[1] + ( index * PARTY_OFFSET ) )
         pokemon_party_move_ids[ index * 4 + 2 ] = game.get_memory_value( POKEMON_1_MOVES_ID[2] + ( index * PARTY_OFFSET ) )
         pokemon_party_move_ids[ index * 4 + 3 ] = game.get_memory_value( POKEMON_1_MOVES_ID[3] + ( index * PARTY_OFFSET ) )
-    return pokemon_party_move_ids , len(set(pokemon_party_move_ids))
+    return pokemon_party_move_ids 
 #def get_Opponent Party Data
 def total_number_of_enemy_pokemon_in_opponent_party(game):
     return game.get_memory_value(ENEMY_PARTY_COUNT)
@@ -496,12 +496,7 @@ def get_opponent_party_move_id(game):
         opponent_party_move_ids[ index * 4 + 1 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[1] + ( index * PARTY_OFFSET ) )
         opponent_party_move_ids[ index * 4 + 2 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[2] + ( index * PARTY_OFFSET ) )
         opponent_party_move_ids[ index * 4 + 3 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[3] + ( index * PARTY_OFFSET ) )
-    for index in range( 0 , total_number_of_enemy_pokemon_in_opponent_party(game) ):
-        opponent_party_uniques_moves_id.add(opponent_party_move_ids[ index * 4 + 0 ])
-        opponent_party_uniques_moves_id.add(opponent_party_move_ids[ index * 4 + 1 ])
-        opponent_party_uniques_moves_id.add(opponent_party_move_ids[ index * 4 + 2 ])
-        opponent_party_uniques_moves_id.add(opponent_party_move_ids[ index * 4 + 3 ])
-    return opponent_party_move_ids , len(opponent_party_uniques_moves_id)
+    return opponent_party_move_ids 
 
 #def get_opponent_party_defense_stats(game):
 #    opponent_party_defense_stats: List[int] = [0] * 24

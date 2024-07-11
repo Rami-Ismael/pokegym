@@ -126,8 +126,8 @@ class Internal_Game_State:
         
         # Moves
         self.player_selected_move_id , self.enemy_selected_move_id = ram_map.get_battle_turn_moves(game)
-        self.pokemon_party_move_id , self.number_of_uniques_moves_in_party = ram_map.get_pokemon_party_move_ids(game)
-        self.opponent_party_move_ids , self.number_of_uniques_moves_in_opponent_party = ram_map.get_opponent_party_move_id(game)
+        self.pokemon_party_move_id  = ram_map.get_pokemon_party_move_ids(game)
+        self.opponent_party_move_ids  = ram_map.get_opponent_party_move_id(game)
         #self.total_number_pokemon_moves_in_the_teams = sum( self.pokemon_party_move_id >0 )
         # Player
         
