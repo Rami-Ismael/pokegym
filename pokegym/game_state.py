@@ -45,9 +45,7 @@ class Internal_Game_State:
     player_selected_move_id: int = field(default_factory=int)
     enemy_selected_move_id: int = field(default_factory=int)
     pokemon_party_move_id: list[int] = field(default_factory=list)
-    number_of_uniques_moves_in_party:int = field(default_factory=int)
     opponent_party_move_ids: list[int] = field(default_factory=list)
-    number_of_uniques_moves_in_opponent_party: int = field(default_factory=int)
     #total_number_pokemon_moves_in_the_teams : int = field(default_factory=int)
     #number_of_unique_moves_in_the_teams: int = field(default_factory=int)
     
