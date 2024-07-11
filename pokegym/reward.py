@@ -74,7 +74,7 @@ class Reward:
             self.negative_reward_for_battle_longer_than_thirty_two_turn = -4
         
         if current_state_internal_game_state.highest_pokemon_level < next_state_internal_game_state.highest_pokemon_level and next_state_internal_game_state.highest_pokemon_level > external_game_state.max_highest_level_in_the_party_teams:
-            self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle = ( next_state_internal_game_state.highest_pokemon_level >- external_game_state.max_highest_level_in_the_party_teams ) * reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef
+            self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle = ( next_state_internal_game_state.highest_pokemon_level - external_game_state.max_highest_level_in_the_party_teams )
         
         if not current_state_internal_game_state.wipe_out and next_state_internal_game_state.wipe_out:
             self.negative_reward_for_wiping_out = -1
