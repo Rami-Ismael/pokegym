@@ -22,7 +22,6 @@ BADGE_1_ADDR = 0xD356
 OAK_PARCEL_ADDR = 0xD74E
 OAK_POKEDEX_ADDR = 0xD74B
 OPPONENT_LEVEL = 0xCFF3
-ENEMY_POKE_COUNT = 0xD89C
 EVENT_FLAGS_START_ADDR = 0xD747
 EVENT_FLAGS_END_ADDR = 0xD761
 MUSEUM_TICKET_ADDR = 0xD754
@@ -90,7 +89,6 @@ LOW_HELATH_ALARM = wLowHealthAlarm = 0xD083
 #https://github.com/xinpw8/pokegym/blob/a8b75e4ad2694461f661acf5894d498b69d1a3fa/pokegym/bin/ram_reader/red_memory_battle.py#L50C1-L66C39
 
 # Enemy's Pokémon Stats (In-Battle)
-ENEMY_PARTY_COUNT = 0xD89C # N/A for wild mon, Stale out of battle
 ENEMY_PARTY_SPECIES = (0xD89D, 0xD89E, 0xD89F, 0xD8A0, 0xD8A1, 0xD8A2)  # N/A wild mon, Stale out of battle, 0xFF term
 ENEMYS_POKEMON = 0xCFE5 # Enemy/wild current Pokemon, Stale out of battle
 ENEMYS_POKEMON_LEVEL = 0xCFF3  # Enemy's level, Stale out of battle
@@ -113,6 +111,10 @@ WILD_POKEMON_ENCONTER_RATE_ON_GRASS:int =  0xD887
 
 ENEMY_POKEMON_BASE_EXP_YIELD = 0xD008
 ENEMY_MONSTER_ACTUALLY_CATCH_RATE = 0xD007
+
+# Opponent Party Data
+ENEMY_PARTY_COUNT = 0xD89C # N/A for wild mon, Stale out of battle
+OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS = ( 0xD8AC , 0xD8AD, 0xD8AE, 0xD8AF)
 
 class BattleState(Enum):
     NOT_IN_BATTLE = 0
@@ -458,13 +460,6 @@ def total_events_that_occurs_in_game(game)-> int:
         - int(read_bit(game, MUSEUM_TICKET_ADDR, 0)),
         0,
     )
-def get_enemy_pokemon_move_id(game)->List[int]:
-        return [
-            game.get_memory_value(ENEMYS_POKEMON_MOVES[0]  ),
-            game.get_memory_value(ENEMYS_POKEMON_MOVES[1]  ), 
-            game.get_memory_value(ENEMYS_POKEMON_MOVES[2]  ),
-            game.get_memory_value(ENEMYS_POKEMON_MOVES[3]  )
-        ]
 def get_pokemon_pp_avail(game) -> List[int]:
     pp_teams:list[int] = [0] * 24
     for index in range(0 , get_party_size(game)):
@@ -477,7 +472,7 @@ def get_pokemon_pp_avail(game) -> List[int]:
 def wild_pokemon_encounter_rate_on_grass(game):
     return game.get_memory_value(WILD_POKEMON_ENCONTER_RATE_ON_GRASS)
 
-def get_pokemon_party_move_ids(game) -> List[int]:
+def get_pokemon_party_move_ids(game):
     pokemon_party_move_ids = [0] *24
     # https://gamefaqs.gamespot.com/gameboy/367023-pokemon-red-version/faqs/74734#section8
     assert PARTY_OFFSET == 44
@@ -488,7 +483,32 @@ def get_pokemon_party_move_ids(game) -> List[int]:
         pokemon_party_move_ids[ index * 4 + 1 ] = game.get_memory_value( POKEMON_1_MOVES_ID[1] + ( index * PARTY_OFFSET ) )
         pokemon_party_move_ids[ index * 4 + 2 ] = game.get_memory_value( POKEMON_1_MOVES_ID[2] + ( index * PARTY_OFFSET ) )
         pokemon_party_move_ids[ index * 4 + 3 ] = game.get_memory_value( POKEMON_1_MOVES_ID[3] + ( index * PARTY_OFFSET ) )
-    return pokemon_party_move_ids
+    return pokemon_party_move_ids , len(set(pokemon_party_move_ids))
+#def get_Opponent Party Data
+def total_number_of_enemy_pokemon_in_opponent_party(game):
+    return game.get_memory_value(ENEMY_PARTY_COUNT)
+def get_opponent_party_move_id(game):
+    # https://gamefaqs.gamespot.com/gameboy/367023-pokemon-red-version/faqs/74734#section5
+    opponent_party_move_ids: List[int] = [0] * 24
+    opponent_party_uniques_moves_id = set()
+    for index in range( 0 , total_number_of_enemy_pokemon_in_opponent_party(game) ):
+        opponent_party_move_ids[ index * 4 + 0 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[0] + ( index * PARTY_OFFSET ) )
+        opponent_party_move_ids[ index * 4 + 1 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[1] + ( index * PARTY_OFFSET ) )
+        opponent_party_move_ids[ index * 4 + 2 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[2] + ( index * PARTY_OFFSET ) )
+        opponent_party_move_ids[ index * 4 + 3 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[3] + ( index * PARTY_OFFSET ) )
+    for index in range( 0 , total_number_of_enemy_pokemon_in_opponent_party(game) ):
+        opponent_party_uniques_moves_id.add(opponent_party_move_ids[ index * 4 + 0 ])
+        opponent_party_uniques_moves_id.add(opponent_party_move_ids[ index * 4 + 1 ])
+        opponent_party_uniques_moves_id.add(opponent_party_move_ids[ index * 4 + 2 ])
+        opponent_party_uniques_moves_id.add(opponent_party_move_ids[ index * 4 + 3 ])
+    return opponent_party_move_ids , len(opponent_party_uniques_moves_id)
+
+#def get_opponent_party_defense_stats(game):
+#    opponent_party_defense_stats: List[int] = [0] * 24
+#    for index in range( 0 , total_number_of_enemy_pokemon_in_opponent_party(game)):
+    
+        
+    
 
 def get_enemy_pokemon_base_exp_yield(game):
     # https://github.com/pret/pokered/blob/095c7d7227ea958c1afa76765c044793b9e8dc5a/pokered.sym#L18619C1-L18620C25

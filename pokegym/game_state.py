@@ -45,6 +45,9 @@ class Internal_Game_State:
     player_selected_move_id: int = field(default_factory=int)
     enemy_selected_move_id: int = field(default_factory=int)
     pokemon_party_move_id: list[int] = field(default_factory=list)
+    number_of_uniques_moves_in_party:int = field(default_factory=int)
+    opponent_party_move_ids: list[int] = field(default_factory=list)
+    number_of_uniques_moves_in_opponent_party: int = field(default_factory=int)
     #total_number_pokemon_moves_in_the_teams : int = field(default_factory=int)
     #number_of_unique_moves_in_the_teams: int = field(default_factory=int)
     
@@ -123,7 +126,8 @@ class Internal_Game_State:
         
         # Moves
         self.player_selected_move_id , self.enemy_selected_move_id = ram_map.get_battle_turn_moves(game)
-        self.pokemon_party_move_id = ram_map.get_pokemon_party_move_ids(game)
+        self.pokemon_party_move_id , self.number_of_uniques_moves_in_party = ram_map.get_pokemon_party_move_ids(game)
+        self.opponent_party_move_ids , self.number_of_uniques_moves_in_opponent_party = ram_map.get_opponent_party_move_id(game)
         #self.total_number_pokemon_moves_in_the_teams = sum( self.pokemon_party_move_id >0 )
         # Player
         
