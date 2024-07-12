@@ -704,8 +704,6 @@ class Environment(Base):
         reward_seeen_npcs:int  = next_seen_npcs - prev_seen_npcs
         assert reward_seeen_npcs == 1 or reward_seeen_npcs == 0, T()
         
-        # reward_visiting_a_new_pokecenter: Literal[1, 0]  = self.update_visited_pokecenter_list()
-        #reward_visiting_a_new_pokecenter: Literal[8, 0]  = 8 if ram_map.get_last_pokecenter_id(self.game , pokecenter_ids = self.pokecenter_ids) != -1 else 0
          
         
 

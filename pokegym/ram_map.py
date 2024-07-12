@@ -1,6 +1,7 @@
 import numpy as np
 from enum import Enum
 from pokegym.red_memory_player import POKEMON_1_CURRENT_HP, POKEMON_1_MAX_HP
+from pokegym.ram_reader.red_memory_opponents import OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE , OPPONENT_TRAINER_PARTY_COUNT
 from pyboy.utils import WindowEvent
 from typing import List
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
@@ -512,3 +513,12 @@ def get_enemy_pokemon_base_exp_yield(game):
 def get_enemy_monster_actually_catch_rate(game):
     # https://github.com/pret/pokered/blob/095c7d7227ea958c1afa76765c044793b9e8dc5a/pokered.sym#L18618
     return game.get_memory_value( ENEMY_MONSTER_ACTUALLY_CATCH_RATE)
+
+def get_opponent_trainer_party_count(game):
+    return game.get_memory_value(OPPONENT_TRAINER_PARTY_COUNT)
+
+def get_opponent_trainer_party_monster_stats_defense(game):
+    defense_stats = [0] * 6
+    for index in range(0 , get_opponent_trainer_party_count(game)):
+        defense_stats[index] = 256*game.get_memory_value(OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[0] + ( index * PARTY_OFFSET )) + game.get_memory_value(OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[1] + ( index * PARTY_OFFSET ))
+    return defense_stats

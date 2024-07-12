@@ -86,6 +86,9 @@ class Internal_Game_State:
     enemy_pokemon_base_exp_yeild:int = field(default_factory=int)
     enemy_monster_actually_catch_rate:int = field(default_factory=int)
     #taught_cut_move:int = field(default_factory=int)
+    # Opponent Trainer
+    opponent_trainer_party_count:int = field(default_factory=int)
+    opponent_party_monster_stats_defense: List[int] = field(default_factory=list)
     
     
     
@@ -168,6 +171,9 @@ class Internal_Game_State:
         self.enemy_pokemon_base_exp_yeild = ram_map.get_enemy_pokemon_base_exp_yield(game)
         self.enemy_monster_actually_catch_rate = ram_map.get_enemy_monster_actually_catch_rate(game)
         #self.taught_cut_move = ram_map.check_if_party_has_cut(game)
+        # Opponent Trainer
+        self.opponent_trainer_party_count = ram_map.get_opponent_trainer_party_count(game)
+        self.opponent_party_monster_stats_defense = ram_map.get_opponent_trainer_party_monster_stats_defense(game)
         self.validation()
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)

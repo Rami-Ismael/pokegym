@@ -51,17 +51,17 @@ class Reward:
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state >= 0
         
         if current_state_internal_game_state.total_party_level < next_state_internal_game_state.total_party_level and next_state_internal_game_state.total_party_level > external_game_state.max_total_party_level:
-            self.reward_for_increasing_the_total_party_level =  .25
+            self.reward_for_increasing_the_total_party_level =  .1
         
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
             self.reward_for_taking_action_that_start_playing_the_gym_player_music = 4
         
         if next_state_internal_game_state.player_selected_move_id in [45 , 49 , 27]:
-            self.reward_for_using_bad_moves -= 4
+            self.reward_for_using_bad_moves -= 1
             assert self.reward_for_using_bad_moves <= 0
         
         if current_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE and next_state_internal_game_state.battle_result == BattleResult.WIN and next_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE:
-            self.knocking_out_wild_pokemon = 4
+            self.knocking_out_wild_pokemon = 1
         
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats.value != BattleState.NOT_IN_BATTLE:
             self.knocking_out_enemy_pokemon = 1
