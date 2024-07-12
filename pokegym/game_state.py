@@ -85,6 +85,7 @@ class Internal_Game_State:
     wild_pokemon_encounter_rate_on_grass:int = field(default_factory = int) #ram_map.wild_pokemon_encounter_rate_on_grass(game)
     enemy_pokemon_base_exp_yeild:int = field(default_factory=int)
     enemy_monster_actually_catch_rate:int = field(default_factory=int)
+    #taught_cut_move:int = field(default_factory=int)
     
     
     
@@ -166,6 +167,7 @@ class Internal_Game_State:
         self.wild_pokemon_encounter_rate_on_grass = ram_map.wild_pokemon_encounter_rate_on_grass(game)
         self.enemy_pokemon_base_exp_yeild = ram_map.get_enemy_pokemon_base_exp_yield(game)
         self.enemy_monster_actually_catch_rate = ram_map.get_enemy_monster_actually_catch_rate(game)
+        #self.taught_cut_move = ram_map.check_if_party_has_cut(game)
         self.validation()
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)
@@ -195,8 +197,12 @@ class External_Game_State:
     max_total_party_level: int = field(default_factory=int)
     max_highest_level_in_the_party_teams:int = field(default_factory=int)
     max_enemy_pokemon_base_exp_yeild:int = field(default_factory = int)
+    max_opponent_level:int = field(default_factory=int)
     
-    def update(self, game , next_next_internal_game_state ):
+    # Battles
+    number_of_wild_battle:int = 0 
+    
+    def update(self, game , current_interngal_game_state , next_next_internal_game_state ):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
     def post_reward_update(self, game):
@@ -216,6 +222,8 @@ class External_Game_State:
                 self.number_of_battles_loses += 1
             elif battle_result == ram_map.BattleResult.DRAW:
                 self.number_of_battles_draw += 1
+        
+
     
     #def update_visited_pokecenter_list(self, game_state) -> None:
     #    last_pokecenter_id = ram_map.get_last_pokecenter_id(game_state)

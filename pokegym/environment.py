@@ -320,17 +320,22 @@ class Environment(Base):
 
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
-
+        import random
+        reset_state = random_number = random.randint(0, 1)
         # Reset
-        self.external_game_state = External_Game_State()
-        self.init_mem()
-        self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
-        load_pyboy_state(self.game, self.load_last_state()) # load a saved state
-        self.counts_map = np.zeros((444, 436)) # to solve the map
-        self.seen_maps = set()
-        self.time = 0
+        if self.first or reset_state == 1:
+            self.external_game_state = External_Game_State()
+            self.init_mem()
+            self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
+            load_pyboy_state(self.game, self.load_last_state()) # load a saved state
+            self.counts_map = np.zeros((444, 436)) # to solve the map
+            self.seen_maps = set()
+            self.time = 0
+            self.reset_count += 1
+        else:
+            self.time = 0
+        self.first = False  
         
-        self._reset_env_state()
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
         # https://github.com/xinpw8/pokegym/blob/baseline_0.6/pokegym/environment.py
@@ -338,29 +343,7 @@ class Environment(Base):
         internal_game_state: Internal_Game_State = Internal_Game_State(self.game)
         observation_game_state = observation.Observation(internal_game_state , 0, self.max_episode_steps)
         
-        # See the map progress after a reset
-        self.max_opponent_level = 0
-
-
-        self.death_count = 0
-        self.total_healing = 0
-        self.last_hp = 1.0
-        self.last_reward = None
-        self.seen_coords_no_reward = set()
         
-        self.number_of_wild_battle = 0
-        self.number_of_trainer_battle = 0
-        self.number_of_gym_leader_music_is_playing = 0
-        self.total_numebr_attempted_to_run = 0
-        self.total_number_of_opponent_pokemon_fainted = 0
-        
-        self.taught_cut = self.check_if_party_has_cut()
-        self.reset_count += 1
-        
-        self.max_map_progress = 0 
-        
-        self.explore_map_dim = 384
-        self.explore_map *= 0
 
         #return self.render()[::2, ::2], {}
         assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
@@ -368,10 +351,7 @@ class Environment(Base):
         old_observation.update(observation_game_state.to_json())
         return old_observation, {}
 
-    def _reset_env_state(self):
-        #self.player = RedGymPlayer(self)
-        #self.red_gym_api = Game(self.game)
-        y = 2
+
     
     def get_game_coords(self):
             return (self.read_m(0xD362), self.read_m(0xD361), self.read_m(0xD35E))
@@ -537,7 +517,6 @@ class Environment(Base):
         prev_badges_one  = ram_map.check_if_player_has_gym_one_badge(self.game)
         
         # current opponent pokemon health points
-        current_state_opponent_pokemon_health_points:np.array = ram_map.get_opponent_party_pokemon_hp(self.game)
         prev_seen_npcs:int  = sum(self.seen_npcs.values())
         
         
@@ -546,7 +525,7 @@ class Environment(Base):
             self.headless, fast_video=fast_video)
         self.time += 1
         next_state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
-        self.external_game_state.update( game = self.game , next_next_internal_game_state  = next_state_internal_game)
+        self.external_game_state.update( game = self.game , current_interngal_game_state = state_internal_game ,  next_next_internal_game_state  = next_state_internal_game)
         reward_for_stateless_class: Reward = Reward( state_internal_game, next_state_internal_game, self.external_game_state , 
                                                     self.reward_for_increase_pokemon_level_coef , 
                                                     reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef = self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef)
@@ -559,7 +538,7 @@ class Environment(Base):
         # 0xCFC6 - wTileInFrontOfPlayer
         # 0xCFCB - wUpdateSpritesEnabled
         if self.read_m(0xD057) == 0:
-            if self.taught_cut:
+            if False :#self.taught_cut:
                 player_direction = self.game.get_memory_value(0xC109)
                 x, y, map_id = self.get_game_coords()  # x, y, map_id
                 if player_direction == 0:  # down
@@ -697,10 +676,6 @@ class Environment(Base):
         reward_for_completing_the_pokedex = next_state_completing_the_pokedex - current_state_completing_the_pokedex
         assert reward_for_completing_the_pokedex == 0 or reward_for_completing_the_pokedex == 1
         
-        # Is in a trainer battle
-        next_state_is_in_battle = ram_map.is_in_battle(self.game)
-        if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.WILD_BATTLE:
-            self.number_of_wild_battle += 1
         
         
         # Total item count
@@ -719,41 +694,8 @@ class Environment(Base):
         assert reward_for_healing >= 0 and reward_for_healing <= 1.0, f"reward_for_healing: {reward_for_healing}"
         reward_for_battle = 0
         reward_for_entering_a_trainer_battle = 0 
-        if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
-            reward_for_entering_a_trainer_battle = 1
-        # Reward the Agent for choosing to be in a trainer battle and not losing
-        if current_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE and next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
-            reward_for_battle += 2
-            self.number_of_trainer_battle += 1
-            # Reward the Agent for choosing to be in a gym battle
-            if ram_map.check_if_gym_leader_music_is_playing(self.game):
-                reward_for_battle += 1
-                self.number_of_gym_leader_music_is_playing += 1
-        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
-            reward_for_battle -= .5 # Punished the agent for losing a trainer battle a bit not to lose but still want to fight
-            self.death_count += 1
-        if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.LOST_BATTLE:
-            reward_for_battle -= 1 # Punished the agent for losing a wild battle
-            self.death_count += 1
         
-        opponent_level_reward = 0
-        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE or next_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE:
-            if self.max_opponent_level < max(ram_map.opponent(self.game)):
-                self.max_opponent_level = max(ram_map.opponent(self.game))
-                opponent_level_reward += 1
-        discourage_running_from_battle = 0
-        #if current_state_is_in_battle == ram_map.BattleState.WILD_BATTLE and next_state_is_in_battle == ram_map.BattleState.NOT_IN_BATTLE:
-        #    self.total_numebr_attempted_to_run += 1
-        #    discourage_running_from_battle -= 1
-        reward_the_agent_for_fainting_a_opponent_pokemon_during_battle = 0
-        if current_state_is_in_battle == ram_map.BattleState.TRAINER_BATTLE and (np.count_nonzero(current_state_opponent_pokemon_health_points) < np.count_nonzero(ram_map.get_opponent_party_pokemon_hp(self.game))):
-            reward_the_agent_for_fainting_a_opponent_pokemon_during_battle += 1
-            self.total_number_of_opponent_pokemon_fainted += 1
         
-        # Reward the agent if taught of one pokemon in the team with the moves cuts 
-        reward_for_teaching_a_pokemon_on_the_team_with_move_cuts: int  = self.check_if_party_has_cut() - self.taught_cut
-        assert reward_for_teaching_a_pokemon_on_the_team_with_move_cuts >= 0
-        self.taught_cut = self.check_if_party_has_cut()
        
         if self.perfect_ivs:
             self.set_perfect_iv_dvs()
@@ -770,7 +712,6 @@ class Environment(Base):
         
         reward: float =  (
                 + reward_the_agent_seing_new_pokemon 
-                + opponent_level_reward 
                 + death_reward 
                 + badges_reward 
                 + reward_for_healing 
@@ -778,9 +719,6 @@ class Environment(Base):
                 +  ( reward_for_completing_the_pokedex * 0 )
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
-                + discourage_running_from_battle
-                + reward_the_agent_for_fainting_a_opponent_pokemon_during_battle
-                + reward_for_teaching_a_pokemon_on_the_team_with_move_cuts
                 +  reward_seeen_npcs  
                 + ( reward_for_entering_a_trainer_battle * 2 ) 
         )
@@ -796,7 +734,6 @@ class Environment(Base):
             info = {
                 'reward': {
                     'reward': reward,
-                    'opponent_level': opponent_level_reward,
                     'death': death_reward,
                     'badges': badges_reward,
                     'for_healing': reward_for_healing,
@@ -805,9 +742,6 @@ class Environment(Base):
                     "completing_the_pokedex": reward_for_completing_the_pokedex,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
                     "winning_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
-                    "discourage_running_from_battle": discourage_running_from_battle,
-                    "reward_the_agent_for_fainting_a_opponent_pokemon_during_battle": reward_the_agent_for_fainting_a_opponent_pokemon_during_battle,
-                    "reaward_for_teaching_a_pokemon_on_the_team_with_move_cuts": reward_for_teaching_a_pokemon_on_the_team_with_move_cuts,
                     "reward_seeen_npcs": reward_seeen_npcs,
                     "reward_visiting_a_new_pokecenter": 0,
                     "enter_a_trainer_abttle" : reward_for_entering_a_trainer_battle,
@@ -833,23 +767,17 @@ class Environment(Base):
                 "total_items": item_count,
                 "hm_item_counts": hm_count,
                 "hm_moves": total_number_hm_moves_that_my_pokemon_party_has,
-                "max_opponent_level": self.max_opponent_level,
-                "taught_cut": int(self.check_if_party_has_cut()),
                 "cut_coords": sum(self.cut_coords.values()),
                 "cut_tiles": len(self.cut_tiles),
                 "number_run_attempts": ram_map.get_number_of_run_attempts(self.game),
                 "pokedex": next_state_completing_the_pokedex,
-                "number_of_wild_battle": self.number_of_wild_battle,
-                "number_of_trainer_battle": self.number_of_trainer_battle,
                 "total_party_hit_point" : ram_map.total_party_hit_point(self.game),
                 "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
-                "number_of_time_gym_leader_music_is_playing": self.number_of_gym_leader_music_is_playing,
                 "visited_pokemon_center": len(self.visited_pokecenter_list),
                 "total_number_of_time_attempted_to_run": ram_map.get_number_of_run_attempts(self.game),
                 "reset_count": self.reset_count,
                 "current_state_is_in_battle": current_state_is_in_battle.value , 
-                "next_state_is_in_battle": next_state_is_in_battle.value , 
                 "player_row_position": row,
                 "player_column_position": column,
                 "player_global_row_position": global_row,
@@ -882,7 +810,6 @@ class Environment(Base):
                 f'time: {self.time}',
                 f'exploration reward: {exploration_reward}',
                 f'death: {death_reward}',
-                f'op_level: {opponent_level_reward}',
                 f'badges reward: {badges_reward}',
                 f'ai reward: {reward}',
                 f"In a trainer battle: {current_state_is_in_battle}",
@@ -983,13 +910,6 @@ class Environment(Base):
             # Manhattan distance
             return abs(npc_y - player_y) + abs(npc_x - player_x)
 
-        return False
-    def check_if_party_has_cut(self) -> bool:
-        party_size = self.read_m(PARTY_SIZE)
-        for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
-            for m in range(4):
-                if self.game.get_memory_value(i + 8 + m) == 15:
-                    return True
         return False
     def read_m(self, addr):
         return self.game.get_memory_value(addr)
