@@ -207,10 +207,12 @@ class External_Game_State:
     
     # Battles
     number_of_wild_battle:int = 0 
+    number_of_time_entering_a_trainer_battle:int = 0
     
     def update(self, game , current_interngal_game_state , next_next_internal_game_state ):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
+        self.update_number_of_time_entering_a_trainer_battle(game, current_interngal_game_state, next_next_internal_game_state)
     def post_reward_update(self, game):
         self.max_party_size = max(self.max_party_size, game.party_size)
         self.total_events_that_occurs_in_game = game.total_events_that_occurs_in_game
@@ -228,7 +230,9 @@ class External_Game_State:
                 self.number_of_battles_loses += 1
             elif battle_result == ram_map.BattleResult.DRAW:
                 self.number_of_battles_draw += 1
-        
+    def update_number_of_time_entering_a_trainer_battle(self, game, current_interngal_game_state , next_next_internal_game_state) -> None:
+        if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.TRAINER_BATTLE:
+            self.number_of_time_entering_a_trainer_battle += 1
 
     
     #def update_visited_pokecenter_list(self, game_state) -> None:

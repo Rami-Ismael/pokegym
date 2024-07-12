@@ -222,6 +222,7 @@ class Environment(Base):
             state_path=None, headless=True, quiet=False, verbose=False, 
             perfect_ivs:bool = True,
             reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float =1.0 ,
+            reward_for_entering_a_trainer_battle_coef:float = 1.0,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -307,6 +308,7 @@ class Environment(Base):
         self.reward_for_increase_pokemon_level_coef = kwargs.get("reward_for_increase_pokemon_level_coef", 1.1)
         self.reward_for_explore_unique_coor_coef = kwargs.get("reward_for_explore_unique_coor_coef", 0)
         self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float = reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef
+        self.reward_for_entering_a_trainer_battle_coef:float = reward_for_entering_a_trainer_battle_coef
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         
@@ -528,7 +530,9 @@ class Environment(Base):
         self.external_game_state.update( game = self.game , current_interngal_game_state = state_internal_game ,  next_next_internal_game_state  = next_state_internal_game)
         reward_for_stateless_class: Reward = Reward( state_internal_game, next_state_internal_game, self.external_game_state , 
                                                     self.reward_for_increase_pokemon_level_coef , 
-                                                    reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef = self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef)
+                                                    reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef = self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef , 
+                                                    reward_for_entering_a_trainer_battle_coef = self.reward_for_entering_a_trainer_battle_coef
+                                                    )
 
         # Seen Coordinate
         self.update_seen_coords()

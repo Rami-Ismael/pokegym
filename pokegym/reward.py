@@ -31,13 +31,16 @@ class Reward:
     negative_reward_for_battle_longer_than_sixteen_turn:int = 0
     negative_reward_for_battle_longer_than_thirty_two_turn:int = 0
     negative_reward_for_wiping_out:int = 0
+
+    reward_for_entering_a_trainer_battle:int = 0
     
     # Extra Exploration Bonus
     reward_for_finding_higher_enemy_pokemon_base_exp_yeild:int = 0
     
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
                  reward_for_increase_pokemon_level_coef:float = 2 , 
-                 reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float = 1
+                 reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float = 1 , 
+                 reward_for_entering_a_trainer_battle_coef:float = 1.0
                  ):
         
         if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size and external_game_state.max_party_size:
@@ -82,7 +85,11 @@ class Reward:
         # Exploration Benefit
         if current_state_internal_game_state.enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild and external_game_state.max_enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild:
             self.reward_for_finding_higher_enemy_pokemon_base_exp_yeild+=1
-            
+        self.update_reward_for_entering_a_trainer_battle(current_state_internal_game_state , next_state_internal_game_state , reward_for_entering_a_trainer_battle_coef)
+    
+    def update_reward_for_entering_a_trainer_battle(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_entering_a_trainer_battle_coef:float = 1.0):
+        if current_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE:
+            self.reward_for_entering_a_trainer_battle = 1
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
