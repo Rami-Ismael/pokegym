@@ -298,9 +298,15 @@ class Environment(Base):
             "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.float16),
             
             ## Events
-            "total_events_that_occurs_in_game": spaces.Box(low=0, high=2560, shape=(1,), dtype=np.uint16),
+            "total_events_that_occurs_in_game": spaces.Box(low=0, high=2560, shape=(1,), dtype=np.float32),
             "time": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_monster_actually_catch_rate": spaces.Box(low=0 , high = 1 , shape=(1,), dtype=np.float32)
+            "enemy_monster_actually_catch_rate": spaces.Box(low=0 , high = 1 , shape=(1,), dtype=np.float32) , 
+            # Battle Stuff
+            "player_current_monster_stats_modifier_attack": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "player_current_monster_stats_modifier_defense": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "player_current_monster_stats_modifier_speed": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "player_current_monster_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "player_current_monster_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 2048)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
@@ -323,7 +329,7 @@ class Environment(Base):
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
-        reset_state = random_number = random.randint(0, 1)
+        reset_state = random_number = random.randint(0, 3)
         # Reset
         if self.first or reset_state == 1:
             self.external_game_state = External_Game_State()

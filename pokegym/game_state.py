@@ -89,7 +89,12 @@ class Internal_Game_State:
     # Opponent Trainer
     opponent_trainer_party_count:int = field(default_factory=int)
     opponent_party_monster_stats_defense: List[int] = field(default_factory=list)
-    
+    # Battles
+    player_current_monster_stats_modifier_attack: int = field(default_factory=int)
+    player_current_monster_stats_modifier_defense: int = field(default_factory=int)
+    player_current_monster_stats_modifier_speed: int = field(default_factory=int)
+    player_current_monster_stats_modifier_special: int = field(default_factory=int)
+    player_current_monster_Stats_modifier_accuracy: int = field(default_factory=int)
     
     
 
@@ -174,6 +179,14 @@ class Internal_Game_State:
         # Opponent Trainer
         self.opponent_trainer_party_count = ram_map.get_opponent_trainer_party_count(game)
         self.opponent_party_monster_stats_defense = ram_map.get_opponent_trainer_party_monster_stats_defense(game)
+        
+        # Battles Stuff
+        self.player_current_monster_stats_modifier_attack = ram_map.get_player_current_monster_modifier_attack(game)
+        self.player_current_monster_stats_modifier_defense = ram_map.get_player_current_monster_modifier_defense(game)
+        self.player_current_monster_stats_modifier_speed = ram_map.get_player_current_monster_modifier_speed(game)
+        self.player_current_monster_stats_modifier_special = ram_map.get_player_current_monster_modifier_special(game)
+        self.player_current_monster_Stats_modifier_accuracy = ram_map.get_player_current_monster_modifier_accuracy(game)
+        
         self.validation()
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)

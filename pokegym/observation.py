@@ -56,6 +56,11 @@ class Observation:
     # Events
     total_events_that_occurs_in_game:int = field(default_factory=int)
     enemy_monster_actually_catch_rate: float = field(default_factory=float)
+    player_current_monster_stats_modifier_attack: int = field(default_factory=int)
+    player_current_monster_stats_modifier_defense: int = field(default_factory=int)
+    player_current_monster_stats_modifier_speed: int = field(default_factory=int)
+    player_current_monster_stats_modifier_special: int = field(default_factory=int)
+    player_current_monster_stats_modifier_accuracy: int = field(default_factory=int)
     
    
     def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
@@ -109,6 +114,13 @@ class Observation:
        
        self.enemy_monster_actually_catch_rate = self.obs_enemy_monster_pokemon_actually_catch_rate(next_state_internal_game_state.enemy_monster_actually_catch_rate)
        
+       # Battle Stuff
+       self.player_current_monster_stats_modifier_attack = next_state_internal_game_state.player_current_monster_stats_modifier_attack
+       self.player_current_monster_stats_modifier_defense = next_state_internal_game_state.player_current_monster_stats_modifier_defense
+       self.player_current_monster_stats_modifier_speed = next_state_internal_game_state.player_current_monster_stats_modifier_speed
+       self.player_current_monster_stats_modifier_special = next_state_internal_game_state.player_current_monster_stats_modifier_special
+       self.player_current_monster_stats_modifier_accuracy = 0 #next_state_internal_game_state.player_current_monster_stats_modifier_accuracy
+       
        
        
        self.validation()
@@ -129,7 +141,7 @@ class Observation:
 
         return np_array
     def obs_player_xp(self, player_lineup_xp):
-        xp_array = np.array(self.normalize_np_array(player_lineup_xp, False, 250000), dtype=np.float32)
+        xp_array: np.ndarray[Any, np.dtype[np.floating[np._32Bit]]] = np.array(self.normalize_np_array(player_lineup_xp, False, 250000), dtype=np.float32)
         padded_xp = np.pad(xp_array, (0, 6 - len(xp_array)), mode='constant')
         return padded_xp
     def obs_enemy_monster_pokemon_actually_catch_rate(self , enemy_monster_actually_catch_rate):
@@ -145,9 +157,25 @@ class Observation:
             if self.each_pokemon_max_health_points[index] >0:
                 self.each_pokemon_health_points[index] = self.each_pokemon_health_points[index]/self.each_pokemon_max_health_points[index]
         self.obs_player_total_max_health_points()
+        self.obs_player_current_monster_stats_modifier_attack()
+        self.obs_player_current_monster_stats_modifier_defense()
+        self.obs_player_current_monster_stats_modifier_speed()
+        self.obs_player_current_monster_stats_modifier_special()
+        self.obs_player_current_monster_stats_modifier_accuracy()
     def obs_player_total_max_health_points(self):
         self.total_party_max_hit_points = self.total_party_max_hit_points / ( 705.0 * 6.0)
+    def obs_player_current_monster_stats_modifier_attack(self):
+        return self.player_current_monster_stats_modifier_attack / 255.0
+    def obs_player_current_monster_stats_modifier_defense(self):
+        return self.player_current_monster_stats_modifier_defense / 255.0
+    def obs_player_current_monster_stats_modifier_speed(self):
+        return self.player_current_monster_stats_modifier_speed / 255.0
+    def obs_player_current_monster_stats_modifier_special(self):
+        return self.player_current_monster_stats_modifier_special / 255.0
+    def obs_player_current_monster_stats_modifier_accuracy(self):
+        return self.player_current_monster_stats_modifier_accuracy / 255.0
     def get_obs(self) -> dict[str, Any]:
         return asdict(self)
     def to_json(self):
         return self.get_obs()
+self.player_current_monster_or_pokemon_stats_modifiers( env_outputs["player_current_monster_stats_modifier_attack"] ,  env_outputs["player_current_monster_stats_modifier_defense"] ,  env_outputs["player_current_monster_stats_modifier_speed"] ,  env_outputs["player_current_monster_stats_modifier_special"] ,   env_outputs["player_current_monster_stats_modifier_special"] ).squeeze(1)

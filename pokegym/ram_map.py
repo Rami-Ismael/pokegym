@@ -117,6 +117,9 @@ ENEMY_MONSTER_ACTUALLY_CATCH_RATE = 0xD007
 ENEMY_PARTY_COUNT = 0xD89C # N/A for wild mon, Stale out of battle
 OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS = ( 0xD8AC , 0xD8AD, 0xD8AE, 0xD8AF)
 
+# Battles Stuff
+
+
 class BattleState(Enum):
     NOT_IN_BATTLE = 0
     WILD_BATTLE = 1
@@ -522,3 +525,15 @@ def get_opponent_trainer_party_monster_stats_defense(game):
     for index in range(0 , get_opponent_trainer_party_count(game)):
         defense_stats[index] = 256*game.get_memory_value(OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[0] + ( index * PARTY_OFFSET )) + game.get_memory_value(OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[1] + ( index * PARTY_OFFSET ))
     return defense_stats
+# Battle Stuff
+from pokegym.ram_reader.red_memory_battle_stats import PLAYER_MONSTER_STATS_MODIFIER_ATTACK , PLAYER_MONSTER_STATS_MODIFIER_DEFENSE , PLAYER_MONSTER_STATS_MODIFIER_SPEED , PLAYER_MONSTER_STATS_MODIFIER_SPECIAL , PLAYER_MONSTER_STATS_MODIFIER_ACCURACY
+def get_player_current_monster_modifier_attack(game):
+    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_ATTACK)
+def get_player_current_monster_modifier_defense(game):
+    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_DEFENSE)
+def get_player_current_monster_modifier_speed(game):
+    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_SPEED)
+def get_player_current_monster_modifier_special(game):
+    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_SPECIAL)
+def get_player_current_monster_modifier_accuracy(game):
+    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_ACCURACY)
