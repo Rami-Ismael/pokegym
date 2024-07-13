@@ -178,4 +178,3 @@ class Observation:
         return asdict(self)
     def to_json(self):
         return self.get_obs()
-self.player_current_monster_or_pokemon_stats_modifiers( env_outputs["player_current_monster_stats_modifier_attack"] ,  env_outputs["player_current_monster_stats_modifier_defense"] ,  env_outputs["player_current_monster_stats_modifier_speed"] ,  env_outputs["player_current_monster_stats_modifier_special"] ,   env_outputs["player_current_monster_stats_modifier_special"] ).squeeze(1)
