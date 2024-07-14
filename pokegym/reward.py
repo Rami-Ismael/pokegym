@@ -68,7 +68,7 @@ class Reward:
             self.reward_for_using_bad_moves -= 1
             assert self.reward_for_using_bad_moves <= 0
         
-        if current_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE and next_state_internal_game_state.battle_result == BattleResult.WIN and next_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE:
+        if current_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE and next_state_internal_game_state.battle_result == BattleResult.WIN and next_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
             self.knocking_out_wild_pokemon = 1
         
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats.value != BattleState.NOT_IN_BATTLE:
