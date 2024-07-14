@@ -23,6 +23,7 @@ class Internal_Game_State:
     number_of_turn_in_pokemon_battle_greater_than_thirty_two : int = field(default_factory=int)
     
     
+    
     # Health Points
     each_pokemon_health_points: List[int] = field(default_factory=list)
     each_pokemon_max_health_points: List[int] = field(default_factory=list)
@@ -95,6 +96,7 @@ class Internal_Game_State:
     player_current_monster_stats_modifier_speed: int = field(default_factory=int)
     player_current_monster_stats_modifier_special: int = field(default_factory=int)
     player_current_monster_Stats_modifier_accuracy: int = field(default_factory=int)
+    last_black_out_map_id: int = field(default_factory=int)
     
     
 
@@ -180,6 +182,8 @@ class Internal_Game_State:
         self.opponent_trainer_party_count = ram_map.get_opponent_trainer_party_count(game)
         self.opponent_party_monster_stats_defense = ram_map.get_opponent_trainer_party_monster_stats_defense(game)
         
+        self.last_black_out_map_id = ram_map.get_last_black_out_map_id(game)
+        
         # Battles Stuff
         self.player_current_monster_stats_modifier_attack = ram_map.get_player_current_monster_modifier_attack(game)
         self.player_current_monster_stats_modifier_defense = ram_map.get_player_current_monster_modifier_defense(game)
@@ -200,6 +204,8 @@ class Internal_Game_State:
         for index in range(len(self.pokemon_party_move_id)):
             assert self.pokemon_party_move_id[index] <= 255 , "Pokemon Party Move ID is not valid" # https://gamefaqs.gamespot.com/gameboy/367023-pokemon-red-version/faqs/74734?page=4#section30
         assert len(self.pokemon_seen_in_the_pokedex) <=152
+        assert self.last_black_out_map_id <=150
+        assert isinstance(self.last_black_out_map_id, int)
 @dataclass
 class External_Game_State:
     #visited_pokecenter_list: List[int] = field(default_factory=list)

@@ -53,6 +53,9 @@ class Observation:
     ### enermy wild pokemon
     enemy_pokemon_hp:int = field(default_factory=int)
     
+    
+    last_black_out_map_id: int = field(default_factory=int)
+    
     # Events
     total_events_that_occurs_in_game:int = field(default_factory=int)
     enemy_monster_actually_catch_rate: float = field(default_factory=float)
@@ -121,6 +124,8 @@ class Observation:
        self.player_current_monster_stats_modifier_special = next_state_internal_game_state.player_current_monster_stats_modifier_special
        self.player_current_monster_stats_modifier_accuracy = 0 #next_state_internal_game_state.player_current_monster_stats_modifier_accuracy
        
+       self.last_black_out_map_id = next_state_internal_game_state.last_black_out_map_id
+       
        
        
        self.validation()
@@ -131,6 +136,8 @@ class Observation:
         assert self.enemy_pokemon_hp >=0 , T()
         assert self.enemy_pokemon_hp <= 705 , T()
         assert self.time <= 1 , T()
+        assert self.last_black_out_map_id <= 150 , T()
+        assert isinstance(self.last_black_out_map_id, int) , T()
         
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:

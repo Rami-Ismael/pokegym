@@ -301,6 +301,9 @@ class Environment(Base):
             "total_events_that_occurs_in_game": spaces.Box(low=0, high=2560, shape=(1,), dtype=np.float32),
             "time": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_monster_actually_catch_rate": spaces.Box(low=0 , high = 1 , shape=(1,), dtype=np.float32) , 
+            
+            # World
+            "last_black_out_map_id": spaces.Box(low=0, high=150, shape=(1,), dtype=np.float32),
             # Battle Stuff
             "player_current_monster_stats_modifier_attack": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_current_monster_stats_modifier_defense": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),

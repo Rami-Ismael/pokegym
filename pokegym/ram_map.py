@@ -2,6 +2,7 @@ import numpy as np
 from enum import Enum
 from pokegym.red_memory_player import POKEMON_1_CURRENT_HP, POKEMON_1_MAX_HP
 from pokegym.ram_reader.red_memory_opponents import OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE , OPPONENT_TRAINER_PARTY_COUNT
+from pokegym.ram_reader.red_memory_world import LAST_BLACK_OUT_MAP_ID
 from pyboy.utils import WindowEvent
 from typing import List
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
@@ -525,6 +526,9 @@ def get_opponent_trainer_party_monster_stats_defense(game):
     for index in range(0 , get_opponent_trainer_party_count(game)):
         defense_stats[index] = 256*game.get_memory_value(OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[0] + ( index * PARTY_OFFSET )) + game.get_memory_value(OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[1] + ( index * PARTY_OFFSET ))
     return defense_stats
+
+def get_last_black_out_map_id(game):
+    return game.get_memory_value(LAST_BLACK_OUT_MAP_ID)
 # Battle Stuff
 from pokegym.ram_reader.red_memory_battle_stats import PLAYER_MONSTER_STATS_MODIFIER_ATTACK , PLAYER_MONSTER_STATS_MODIFIER_DEFENSE , PLAYER_MONSTER_STATS_MODIFIER_SPEED , PLAYER_MONSTER_STATS_MODIFIER_SPECIAL , PLAYER_MONSTER_STATS_MODIFIER_ACCURACY
 def get_player_current_monster_modifier_attack(game):
