@@ -85,7 +85,7 @@ class Reward:
             self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle = ( next_state_internal_game_state.highest_pokemon_level - external_game_state.max_highest_level_in_the_party_teams )
         
         if not current_state_internal_game_state.wipe_out and next_state_internal_game_state.wipe_out:
-            self.negative_reward_for_wiping_out = -1
+            self.negative_reward_for_wiping_out = 0
         
         # Exploration Benefit
         if current_state_internal_game_state.enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild and external_game_state.max_enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild:
