@@ -1,6 +1,7 @@
 from typing import Dict
 from dataclasses import asdict, dataclass
 from pokegym.ram_map import BattleState , BattleResult
+from pokegym.ram_reader.red_memoy_moves import GROWL_DECIMAL_VALUE_OF_MOVE_ID , TAIL_DECIAML_VALUE_OF_MOVE_ID , LEER_DECIMAL_VALUE_OF_MOVE_ID
 
 @dataclass
 class Reward:
@@ -63,7 +64,7 @@ class Reward:
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
             self.reward_for_taking_action_that_start_playing_the_gym_player_music = 4
         
-        if next_state_internal_game_state.player_selected_move_id in [45 , 49 , 27]:
+        if next_state_internal_game_state.player_selected_move_id in [GROWL_DECIMAL_VALUE_OF_MOVE_ID , TAIL_DECIAML_VALUE_OF_MOVE_ID , LEER_DECIMAL_VALUE_OF_MOVE_ID]:
             self.reward_for_using_bad_moves -= 1
             assert self.reward_for_using_bad_moves <= 0
         
