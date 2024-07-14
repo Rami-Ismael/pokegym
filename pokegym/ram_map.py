@@ -554,3 +554,8 @@ def get_enemy_current_monster_modifier_accuracy(game):
     return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ACCURACY)
 def get_enemy_current_monster_modifier_evastion(game):
     return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_EVASTION)
+from pokegym.ram_reader.red_memory_battle_stats import ENEMY_CURRENT_POKEMON_LEVEL , PLAYER_CURRENT_POKEMON_LEVEL
+def get_player_current_pokemon_level(game):
+    return game.get_memory_value(PLAYER_CURRENT_POKEMON_LEVEL)
+def get_enemy_current_pokemon_level(game):
+    return game.get_memory_value(ENEMY_CURRENT_POKEMON_LEVEL)

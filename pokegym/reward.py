@@ -39,6 +39,7 @@ class Reward:
     reward_for_having_last_black_out_id_proximaly_an_pokecenter:int = 0
     
     negative_reward_for_player_monster_stats_modifier_accuracy_drop:float = 0
+    negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon:float = 0
     
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
                  reward_for_increase_pokemon_level_coef:float = 2 , 
@@ -101,6 +102,9 @@ class Reward:
     def update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_player_moving_to_a_pokecenter_coef:float = 1.0):
         if current_state_internal_game_state.player_current_monster_Stats_modifier_accuracy > next_state_internal_game_state.player_current_monster_Stats_modifier_accuracy and next_state_internal_game_state.player_current_monster_Stats_modifier_accuracy > 0:
             self.negative_reward_for_player_monster_stats_modifier_accuracy_drop = -1
+    def update_negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_player_moving_to_a_pokecenter_coef:float = 1.0):
+        if next_state_internal_game_state.player_current_pokemon_level < next_state_internal_game_state.enemy_current_pokemon_levelel:
+            self.negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon = -1
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())

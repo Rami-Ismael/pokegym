@@ -197,6 +197,8 @@ class Internal_Game_State:
         self.player_current_monster_stats_modifier_speed = ram_map.get_player_current_monster_modifier_speed(game)
         self.player_current_monster_stats_modifier_special = ram_map.get_player_current_monster_modifier_special(game)
         self.player_current_monster_Stats_modifier_accuracy = ram_map.get_player_current_monster_modifier_accuracy(game)
+        self.player_current_pokemon_level = ram_map.get_enemy_current_pokemon_level(game)        
+
         
         self.enemy_current_pokemon_stats_modifier_attack = ram_map.get_enemy_current_monster_modifier_attack(game)
         self.enemy_current_pokemon_stats_modifier_defense = ram_map.get_enemy_current_monster_modifier_defense(game)
@@ -204,6 +206,7 @@ class Internal_Game_State:
         self.enemy_current_pokemon_stats_modifier_special = ram_map.get_enemy_current_monster_modifier_special(game)
         self.enemy_current_pokemon_stats_modifier_accuracy = ram_map.get_enemy_current_monster_modifier_accuracy(game)
         self.enemy_current_pokemon_stats_modifier_evasion = ram_map.get_enemy_current_monster_modifier_evastion(game)
+        self.enemy_current_pokemon_levelel = ram_map.get_enemy_current_pokemon_level(game)
         
         self.validation()
     def to_json(self) -> dict:
