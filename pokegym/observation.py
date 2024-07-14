@@ -59,11 +59,19 @@ class Observation:
     # Events
     total_events_that_occurs_in_game:int = field(default_factory=int)
     enemy_monster_actually_catch_rate: float = field(default_factory=float)
+    # Battle Stuff
     player_current_monster_stats_modifier_attack: int = field(default_factory=int)
     player_current_monster_stats_modifier_defense: int = field(default_factory=int)
     player_current_monster_stats_modifier_speed: int = field(default_factory=int)
     player_current_monster_stats_modifier_special: int = field(default_factory=int)
     player_current_monster_stats_modifier_accuracy: int = field(default_factory=int)
+    
+    enemy_current_pokemon_stats_modifier_attack: int = field(default_factory=int)
+    enemy_current_pokemon_stats_modifier_defense: int = field(default_factory=int)
+    enemy_current_pokemon_stats_modifier_speed: int = field(default_factory=int)
+    enemy_current_pokemon_stats_modifier_special: int = field(default_factory=int)
+    enemy_current_pokemon_stats_modifier_accuracy: int = field(default_factory=int)
+    # Player
     
    
     def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
@@ -124,6 +132,13 @@ class Observation:
        self.player_current_monster_stats_modifier_special = next_state_internal_game_state.player_current_monster_stats_modifier_special
        self.player_current_monster_stats_modifier_accuracy = 0 #next_state_internal_game_state.player_current_monster_stats_modifier_accuracy
        
+       self.enemy_current_pokemon_stats_modifier_attack = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_attack
+       self.enemy_current_pokemon_stats_modifier_defense = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_defense
+       self.enemy_current_pokemon_stats_modifier_speed = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_speed
+       self.enemy_current_pokemon_stats_modifier_special = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_special
+       self.enemy_current_pokemon_stats_modifier_accuracy = 0 #next_state_internal_game_state.enemy_current_pokemon_stats_modifier_accuracy
+       self.enemy_current_pokemon_stats_modifier_evasion = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_evasion
+       
        self.last_black_out_map_id = next_state_internal_game_state.last_black_out_map_id
        
        
@@ -181,6 +196,19 @@ class Observation:
         return self.player_current_monster_stats_modifier_special / 255.0
     def obs_player_current_monster_stats_modifier_accuracy(self):
         return self.player_current_monster_stats_modifier_accuracy / 255.0
+    def obs_enemy_current_pokemon_stats_modifier_attack(self):
+        return self.enemy_current_pokemon_stats_modifier_attack / 255.0
+    def obs_enemy_current_pokemon_stats_modifier_defense(self):
+        return self.enemy_current_pokemon_stats_modifier_defense / 255.0
+    def obs_enemy_current_pokemon_stats_modifier_speed(self):
+        return self.enemy_current_pokemon_stats_modifier_speed / 255.0
+    def obs_enemy_current_pokemon_stats_modifier_special(self):
+        return self.enemy_current_pokemon_stats_modifier_special / 255.0
+    def obs_enemy_current_pokemon_stats_modifier_accuracy(self):
+        return self.enemy_current_pokemon_stats_modifier_accuracy / 255.0
+    def obs_enemy_current_pokemon_stats_modifier_evasion(self):
+        return self.enemy_current_pokemon_stats_modifier_evasion / 255.0
+    
     def get_obs(self) -> dict[str, Any]:
         return asdict(self)
     def to_json(self):

@@ -22,7 +22,8 @@ from pokegym.environment import play
 
 
 env = Environment(rom_path='pokemon_red.gb', state_path=None, headless=False,
-    disable_input=False, sound=False, sound_emulated=False, verbose=True
+    disable_input=False, sound=False, sound_emulated=False, verbose=True,
+    display_info_interval_divisor = 1
 )
 env.reset()
 # while True:

@@ -541,3 +541,16 @@ def get_player_current_monster_modifier_special(game):
     return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_SPECIAL)
 def get_player_current_monster_modifier_accuracy(game):
     return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_ACCURACY)
+from pokegym.ram_reader.red_memory_battle_stats import ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ATTACK , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_DEFENSE , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPEED , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPECIAL , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ACCURACY , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_EVASTION
+def get_enemy_current_monster_modifier_attack(game):
+    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ATTACK)
+def get_enemy_current_monster_modifier_defense(game):
+    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_DEFENSE)
+def get_enemy_current_monster_modifier_speed(game):# -> Any:
+    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPEED)
+def get_enemy_current_monster_modifier_special(game):
+    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPECIAL)
+def get_enemy_current_monster_modifier_accuracy(game):
+    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ACCURACY)
+def get_enemy_current_monster_modifier_evastion(game):
+    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_EVASTION)

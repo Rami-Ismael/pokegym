@@ -310,8 +310,16 @@ class Environment(Base):
             "player_current_monster_stats_modifier_speed": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_current_monster_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_current_monster_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            
+            "enemy_current_pokemon_stats_modifier_attack": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_current_pokemon_stats_modifier_defense": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_current_pokemon_stats_modifier_speed": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_current_pokemon_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_current_pokemon_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_current_pokemon_stats_modifier_evasion": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            
         })
-        self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 2048)
+        self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 1)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
         self.max_episode_steps = kwargs.get("max_episode_steps", 65536)
         self.reward_for_increase_pokemon_level_coef = kwargs.get("reward_for_increase_pokemon_level_coef", 1.1)

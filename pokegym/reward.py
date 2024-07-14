@@ -32,10 +32,13 @@ class Reward:
     negative_reward_for_battle_longer_than_thirty_two_turn:int = 0
     negative_reward_for_wiping_out:int = 0
 
-    reward_for_entering_a_trainer_battle:int = 0
+    reward_for_entering_a_trainer_battle:float = 0
     
     # Extra Exploration Bonus
     reward_for_finding_higher_enemy_pokemon_base_exp_yeild:int = 0
+    reward_for_having_last_black_out_id_proximaly_an_pokecenter:int = 0
+    
+    negative_reward_for_player_monster_stats_modifier_accuracy_drop:float = 0
     
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
                  reward_for_increase_pokemon_level_coef:float = 2 , 
@@ -86,10 +89,18 @@ class Reward:
         if current_state_internal_game_state.enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild and external_game_state.max_enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild:
             self.reward_for_finding_higher_enemy_pokemon_base_exp_yeild+=1
         self.update_reward_for_entering_a_trainer_battle(current_state_internal_game_state , next_state_internal_game_state , reward_for_entering_a_trainer_battle_coef)
+        
+        self.update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(current_state_internal_game_state , next_state_internal_game_state)
     
     def update_reward_for_entering_a_trainer_battle(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_entering_a_trainer_battle_coef:float = 1.0):
         if current_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE:
-            self.reward_for_entering_a_trainer_battle = 1
+            self.reward_for_entering_a_trainer_battle = 1 * reward_for_entering_a_trainer_battle_coef
+    def update_reward_for_having_last_black_out_id_proximaly_an_pokecenter(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_having_last_black_out_id_proximaly_an_pokecenter_coef:float = 1.0):
+        if current_state_internal_game_state.last_black_out_map_id < next_state_internal_game_state.last_black_out_map_id and next_state_internal_game_state.last_black_out_map_id in [1 , 2]:
+            self.reward_for_having_last_black_out_id_proximaly_an_pokecenter = 1
+    def update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_player_moving_to_a_pokecenter_coef:float = 1.0):
+        if current_state_internal_game_state.player_current_monster_Stats_modifier_accuracy > next_state_internal_game_state.player_current_monster_Stats_modifier_accuracy and next_state_internal_game_state.player_current_monster_Stats_modifier_accuracy > 0:
+            self.negative_reward_for_player_monster_stats_modifier_accuracy_drop = -1
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
