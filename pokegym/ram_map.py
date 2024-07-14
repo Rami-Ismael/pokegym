@@ -379,7 +379,7 @@ def get_battle_result(game)-> BattleResult:
     try:
         return BattleResult(battle_result_flag)
     except ValueError:
-        return BattleResult.DRAW
+        return BattleResult.IDK
 ## https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/wram.asm#L2361C1-L2368C1
 def get_map_music_id(game):
     return game.get_memory_value(MAP_MUSIC_ID)
