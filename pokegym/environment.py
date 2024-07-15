@@ -256,9 +256,9 @@ class Environment(Base):
             ),
             # Discrete is more apt, but pufferlib is slower at processing Discrete
             "direction": spaces.Box(low=0, high=4, shape=(1,), dtype=np.uint8),
-            "x": spaces.Box(low=0, high=255, shape=(1,), dtype=np.uint8),
-            "y": spaces.Box(low=0, high=255, shape=(1,), dtype=np.uint8),
-            "map_id": spaces.Box(low=0, high=0xF7, shape=(1,), dtype=np.uint8),
+            "x": spaces.Box(low=0, high=444, shape=(1,), dtype=np.float32),
+            "y": spaces.Box(low=0, high=436, shape=(1,), dtype=np.float32),
+            "map_id": spaces.Box(low=0, high=0xF7, shape=(1,), dtype=np.float32),
             "map_music_sound_bank": spaces.Box(low=0, high=3, shape=(1,), dtype=np.uint8),
             "map_music_sound_id": spaces.Box(low=0, high=84, shape=(1,), dtype=np.uint8),
             "party_size": spaces.Box(low = 1 , high = 6, shape=(1,), dtype=np.uint8),
