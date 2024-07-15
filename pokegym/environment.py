@@ -342,7 +342,7 @@ class Environment(Base):
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
-        reset_state = random_number = random.randint(0, 3)
+        reset_state = random_number = random.randint(0, 8)
         # Reset
         if self.first or reset_state == 1:
             self.external_game_state = External_Game_State()
