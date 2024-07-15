@@ -672,9 +672,6 @@ class Environment(Base):
 
 
 
-        # Set rewards
-        #healing_reward = self.total_healing
-        death_reward = 0
         # gym
         # Badge reward
         badges_reward = 0
@@ -712,8 +709,6 @@ class Environment(Base):
         # Reward the agent increase the health ratio health party by healing only not by adding a new pokemon
         next_health_ratio = ram_map.party_health_ratio(self.game)
         assert next_health_ratio >= 0 and next_health_ratio <= 1, f"next_health_ratio: {next_health_ratio}"
-        reward_for_healing = max( next_health_ratio - prev_health_ratio , 0)
-        assert reward_for_healing >= 0 and reward_for_healing <= 1.0, f"reward_for_healing: {reward_for_healing}"
         
         
        
@@ -730,9 +725,7 @@ class Environment(Base):
         
         reward: float =  (
                 + reward_the_agent_seing_new_pokemon 
-                +  ( death_reward * 0) 
                 + badges_reward 
-                +  ( reward_for_healing * 0 ) 
                 +  ( exploration_reward * self.reward_for_explore_unique_coor_coef )
                 + normalize_gain_of_new_money_reward
                 +  reward_seeen_npcs  
@@ -749,13 +742,11 @@ class Environment(Base):
             info = {
                 'reward': {
                     'reward': reward,
-                    'death': death_reward,
                     'badges': badges_reward,
                     'for_healing': reward_for_healing,
                     'exploration': exploration_reward * self.reward_for_explore_unique_coor_coef ,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
-                    "winning_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
                     "reward_seeen_npcs": reward_seeen_npcs,
                     "reward_visiting_a_new_pokecenter": 0,
                 },
