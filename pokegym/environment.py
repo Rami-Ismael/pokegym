@@ -550,7 +550,7 @@ class Environment(Base):
         reward_for_stateless_class: Reward = Reward( state_internal_game, next_state_internal_game, self.external_game_state , 
                                                     self.reward_for_increase_pokemon_level_coef , 
                                                     reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef = self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef , 
-                                                    reward_for_entering_a_trainer_battle_coef = self.reward_for_entering_a_trainer_battle_coef
+                                                    reward_for_entering_a_trainer_battle_coef = self.reward_for_entering_a_trainer_battle_coef , 
                                                     negative_reward_for_wiping_out_coef = self.negative_reward_for_wiping_out_coef,
                                                     )
 
@@ -695,10 +695,7 @@ class Environment(Base):
         reward_the_agent_seing_new_pokemon = next_state_pokemon_seen - current_state_pokemon_seen
         assert reward_the_agent_seing_new_pokemon == 0 or reward_the_agent_seing_new_pokemon == 1 or reward_the_agent_seing_new_pokemon==3, f"reward_the_agent_seing_new_pokemon: {reward_the_agent_seing_new_pokemon}"
         
-        # Completing the pokedex
-        next_state_completing_the_pokedex = ram_map.pokemon_caught(self.game)
-        reward_for_completing_the_pokedex = next_state_completing_the_pokedex - current_state_completing_the_pokedex
-        assert reward_for_completing_the_pokedex == 0 or reward_for_completing_the_pokedex == 1
+
         
         
         
@@ -738,11 +735,9 @@ class Environment(Base):
                 + badges_reward 
                 + reward_for_healing 
                 +  ( exploration_reward * self.reward_for_explore_unique_coor_coef )
-                +  ( reward_for_completing_the_pokedex * 0 )
                 + normalize_gain_of_new_money_reward
                 + reward_for_battle
                 +  reward_seeen_npcs  
-                + ( reward_for_entering_a_trainer_battle * 2 ) 
         )
         reward += reward_for_stateless_class.total_reward()
         if self.step == 0 or self.step == 1:
@@ -761,12 +756,10 @@ class Environment(Base):
                     'for_healing': reward_for_healing,
                     'exploration': exploration_reward * self.reward_for_explore_unique_coor_coef ,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
-                    "completing_the_pokedex": reward_for_completing_the_pokedex,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
                     "winning_battle": reward_for_battle, # Reward the Agent for choosing to be in a trainer battle and not losing
                     "reward_seeen_npcs": reward_seeen_npcs,
                     "reward_visiting_a_new_pokecenter": 0,
-                    "enter_a_trainer_abttle" : reward_for_entering_a_trainer_battle,
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
@@ -792,7 +785,6 @@ class Environment(Base):
                 "cut_coords": sum(self.cut_coords.values()),
                 "cut_tiles": len(self.cut_tiles),
                 "number_run_attempts": ram_map.get_number_of_run_attempts(self.game),
-                "pokedex": next_state_completing_the_pokedex,
                 "total_party_hit_point" : ram_map.total_party_hit_point(self.game),
                 "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
                 "party_health_ratio": ram_map.party_health_ratio(self.game),
@@ -811,7 +803,6 @@ class Environment(Base):
                 "current_state_pokemon_seen": current_state_pokemon_seen,
                 "next_state_pokemon_seen": next_state_pokemon_seen,
                 "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
-                "next_state_completing_the_pokedex": next_state_completing_the_pokedex,
             }
             info.update(next_state_internal_game.to_json())
             info.update(self.external_game_state.to_json())
