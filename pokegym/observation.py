@@ -71,7 +71,7 @@ class Observation:
     enemy_current_pokemon_stats_modifier_speed: int = field(default_factory=int)
     enemy_current_pokemon_stats_modifier_special: int = field(default_factory=int)
     enemy_current_pokemon_stats_modifier_accuracy: int = field(default_factory=int)
-    # Player
+    enemy_current_move_effect:int = field(default_factory=int)
     
    
     def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
@@ -138,6 +138,7 @@ class Observation:
        self.enemy_current_pokemon_stats_modifier_special = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_special
        self.enemy_current_pokemon_stats_modifier_accuracy = 0 #next_state_internal_game_state.enemy_current_pokemon_stats_modifier_accuracy
        self.enemy_current_pokemon_stats_modifier_evasion = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_evasion
+       self.enemy_current_move_effect = next_state_internal_game_state.enemy_current_move_effect
        
        self.last_black_out_map_id = next_state_internal_game_state.last_black_out_map_id
        
