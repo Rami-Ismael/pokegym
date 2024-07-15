@@ -242,6 +242,7 @@ class External_Game_State:
     max_highest_level_in_the_party_teams:int = field(default_factory=int)
     max_enemy_pokemon_base_exp_yeild:int = field(default_factory = int)
     max_opponent_level:int = field(default_factory=int)
+    max_wild_pokemon_level:int = field(default_factory=int)
     
     # Battles
     number_of_wild_battle:int = 0 
@@ -268,9 +269,12 @@ class External_Game_State:
                 self.number_of_battles_loses += 1
             elif battle_result == ram_map.BattleResult.DRAW:
                 self.number_of_battles_draw += 1
-    def update_number_of_time_entering_a_trainer_battle(self, game, current_interngal_game_state , next_next_internal_game_state) -> None:
+    def update_number_of_time_entering_a_trainer_battle(self, game, current_interngal_game_state , next_next_internal_game_state)
         if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.TRAINER_BATTLE:
             self.number_of_time_entering_a_trainer_battle += 1
+    def update_max_wild_pokemon_level(self, game , current_interngal_game_state , next_next_internal_game_state):
+        if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.WILD_BATTLE:
+            self.max_wild_pokemon_level = max(self.max_wild_pokemon_level, game.enemy_current_pokemon_levelel)
 
     
     #def update_visited_pokecenter_list(self, game_state) -> None:

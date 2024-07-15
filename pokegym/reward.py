@@ -34,6 +34,7 @@ class Reward:
     # Extra Exploration Bonus
     reward_for_finding_higher_enemy_pokemon_base_exp_yeild:int = 0
     reward_for_having_last_black_out_id_proximaly_an_pokecenter:int = 0
+    reward_for_finding_higher_level_wild_pokemon:int = 0
     
     negative_reward_for_player_monster_stats_modifier_accuracy_drop:float = 0
     negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon:float = 0
@@ -82,6 +83,7 @@ class Reward:
         if current_state_internal_game_state.enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild and external_game_state.max_enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild:
             self.reward_for_finding_higher_enemy_pokemon_base_exp_yeild+=1
         self.update_reward_for_entering_a_trainer_battle(current_state_internal_game_state , next_state_internal_game_state , reward_for_entering_a_trainer_battle_coef)
+        self.update_reward_for_finding_higher_level_wild_pokemon(current_state_internal_game_state , next_state_internal_game_state , external_game_state)
         
         self.update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(current_state_internal_game_state , next_state_internal_game_state)
         
@@ -99,6 +101,9 @@ class Reward:
     def update_negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_player_moving_to_a_pokecenter_coef:float = 1.0):
         if next_state_internal_game_state.player_current_pokemon_level < next_state_internal_game_state.enemy_current_pokemon_levelel:
             self.negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon = -1 # stop fighting with weak pokemon 
+    def update_reward_for_finding_higher_level_wild_pokemon(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0 , ):
+        if external_game_state.max_highest_level_in_the_party_teams < next_state_internal_game_state.highest_pokemon_level:
+            self.reward_for_finding_higher_level_wild_pokemon = 1
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())
