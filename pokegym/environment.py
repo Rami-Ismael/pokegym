@@ -952,9 +952,9 @@ class Environment(Base):
         return {
             **self.render(),
             "direction": np.array(ram_map.get_player_direction(self.game) // 4, dtype=np.uint8), 
-            "x": np.array(player_x, dtype=np.uint8),
-            "y": np.array(player_y, dtype=np.uint8),
-            "map_id": np.array(self.read_m(0xD35E), dtype=np.uint8),
+            "x": np.array(player_x, dtype=np.float32),
+            "y": np.array(player_y, dtype=np.float32),
+            "map_id": np.array(self.read_m(0xD35E), dtype=np.float32),
         }
     def get_last_pokecenter_list(self):
         pc_list = [0, ] * len(self.pokecenter_ids)
