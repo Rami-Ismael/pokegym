@@ -27,10 +27,6 @@ class Reward:
     
     knocking_out_wild_pokemon:int = 0
     
-    # List of negative Reward for having a long battle I want them short 8 -1 16 -2 32 -4
-    negative_reward_for_battle_longer_than_eight_turn:int = 0
-    negative_reward_for_battle_longer_than_sixteen_turn:int = 0
-    negative_reward_for_battle_longer_than_thirty_two_turn:int = 0
     negative_reward_for_wiping_out:float = 0
 
     reward_for_entering_a_trainer_battle:float = 0
@@ -74,12 +70,6 @@ class Reward:
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats.value != BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
             self.knocking_out_enemy_pokemon = 1
         
-        if current_state_internal_game_state.number_of_turn_in_pokemon_battle == 7 and next_state_internal_game_state.number_of_turn_in_pokemon_battle == 8:
-            self.negative_reward_for_battle_longer_than_eight_turn = -1
-        if current_state_internal_game_state.number_of_turn_in_pokemon_battle == 15 and next_state_internal_game_state.number_of_turn_in_pokemon_battle == 16:
-            self.negative_reward_for_battle_longer_than_sixteen_turn = -2
-        if current_state_internal_game_state.number_of_turn_in_pokemon_battle == 31 and next_state_internal_game_state.number_of_turn_in_pokemon_battle == 32:
-            self.negative_reward_for_battle_longer_than_thirty_two_turn = -4
         
         if current_state_internal_game_state.highest_pokemon_level < next_state_internal_game_state.highest_pokemon_level and next_state_internal_game_state.highest_pokemon_level > external_game_state.max_highest_level_in_the_party_teams:
             self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle = ( next_state_internal_game_state.highest_pokemon_level - external_game_state.max_highest_level_in_the_party_teams )
