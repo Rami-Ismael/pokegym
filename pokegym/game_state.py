@@ -96,7 +96,7 @@ class Internal_Game_State:
     player_current_monster_stats_modifier_defense: int = field(default_factory=int)
     player_current_monster_stats_modifier_speed: int = field(default_factory=int)
     player_current_monster_stats_modifier_special: int = field(default_factory=int)
-    player_current_monster_Stats_modifier_accuracy: int = field(default_factory=int)
+    player_current_monster_stats_modifier_accuracy: int = field(default_factory=int)
     
     enemy_current_pokemon_stats_modifier_attack: int = field(default_factory=int)
     enemy_current_pokemon_stats_modifier_defense: int = field(default_factory=int)
@@ -197,7 +197,7 @@ class Internal_Game_State:
         self.player_current_monster_stats_modifier_defense = ram_map.get_player_current_monster_modifier_defense(game)
         self.player_current_monster_stats_modifier_speed = ram_map.get_player_current_monster_modifier_speed(game)
         self.player_current_monster_stats_modifier_special = ram_map.get_player_current_monster_modifier_special(game)
-        self.player_current_monster_Stats_modifier_accuracy = ram_map.get_player_current_monster_modifier_accuracy(game)
+        self.player_current_monster_stats_modifier_accuracy = ram_map.get_player_current_monster_modifier_accuracy(game)
         self.player_current_pokemon_level = ram_map.get_enemy_current_pokemon_level(game)        
 
         
@@ -251,14 +251,14 @@ class External_Game_State:
     def update(self, game , current_interngal_game_state , next_next_internal_game_state ):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
-        self.update_number_of_time_entering_a_trainer_battle(game, current_interngal_game_state, next_next_internal_game_state)
-    def post_reward_update(self, game):
+    def post_reward_update(self, game , current_internal_game_state , next_internal_game_state)->None:
         self.max_party_size = max(self.max_party_size, game.party_size)
         self.total_events_that_occurs_in_game = game.total_events_that_occurs_in_game
         self.max_total_party_level = max(self.max_total_party_level, game.total_party_level)
         self.max_highest_level_in_the_party_teams = max( self.max_highest_level_in_the_party_teams , game.highest_pokemon_level)
         self.total_number_of_wipe_out_in_episode+=game.wipe_out
         self.max_enemy_pokemon_base_exp_yeild:int = max(self.max_enemy_pokemon_base_exp_yeild , game.enemy_pokemon_base_exp_yeild)
+        self.update_number_of_time_entering_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):
@@ -269,7 +269,7 @@ class External_Game_State:
                 self.number_of_battles_loses += 1
             elif battle_result == ram_map.BattleResult.DRAW:
                 self.number_of_battles_draw += 1
-    def update_number_of_time_entering_a_trainer_battle(self, game, current_interngal_game_state , next_next_internal_game_state)
+    def update_number_of_time_entering_a_trainer_battle(self, game, current_interngal_game_state , next_next_internal_game_state):
         if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.TRAINER_BATTLE:
             self.number_of_time_entering_a_trainer_battle += 1
     def update_max_wild_pokemon_level(self, game , current_interngal_game_state , next_next_internal_game_state):

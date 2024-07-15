@@ -734,7 +734,7 @@ class Environment(Base):
         if self.step == 0 or self.step == 1:
             reward=0
         
-        self.external_game_state.post_reward_update(next_state_internal_game)
+        self.external_game_state.post_reward_update(next_state_internal_game , current_internal_game_state = state_internal_game , next_internal_game_state = next_state_internal_game)
 
         info = {}
         done = self.time >= self.max_episode_steps
@@ -743,7 +743,6 @@ class Environment(Base):
                 'reward': {
                     'reward': reward,
                     'badges': badges_reward,
-                    'for_healing': reward_for_healing,
                     'exploration': exploration_reward * self.reward_for_explore_unique_coor_coef ,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,

@@ -130,7 +130,7 @@ class Observation:
        self.player_current_monster_stats_modifier_defense = next_state_internal_game_state.player_current_monster_stats_modifier_defense
        self.player_current_monster_stats_modifier_speed = next_state_internal_game_state.player_current_monster_stats_modifier_speed
        self.player_current_monster_stats_modifier_special = next_state_internal_game_state.player_current_monster_stats_modifier_special
-       self.player_current_monster_stats_modifier_accuracy = 0 #next_state_internal_game_state.player_current_monster_stats_modifier_accuracy
+       self.player_current_monster_stats_modifier_accuracy = next_state_internal_game_state.player_current_monster_stats_modifier_accuracy
        
        self.enemy_current_pokemon_stats_modifier_attack = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_attack
        self.enemy_current_pokemon_stats_modifier_defense = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_defense
