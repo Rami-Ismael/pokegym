@@ -343,7 +343,7 @@ class Environment(Base):
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
-        reset_state = random_number = random.randint(0, 8)
+        reset_state = random_number = random.randint(0, 16)
         # Reset
         if self.first or reset_state == 1:
             self.external_game_state = External_Game_State()
@@ -714,8 +714,6 @@ class Environment(Base):
         assert next_health_ratio >= 0 and next_health_ratio <= 1, f"next_health_ratio: {next_health_ratio}"
         reward_for_healing = max( next_health_ratio - prev_health_ratio , 0)
         assert reward_for_healing >= 0 and reward_for_healing <= 1.0, f"reward_for_healing: {reward_for_healing}"
-        reward_for_battle = 0
-        reward_for_entering_a_trainer_battle = 0 
         
         
        
@@ -732,12 +730,11 @@ class Environment(Base):
         
         reward: float =  (
                 + reward_the_agent_seing_new_pokemon 
-                + death_reward 
+                +  ( death_reward * 0) 
                 + badges_reward 
-                + reward_for_healing 
+                +  ( reward_for_healing * 0 ) 
                 +  ( exploration_reward * self.reward_for_explore_unique_coor_coef )
                 + normalize_gain_of_new_money_reward
-                + reward_for_battle
                 +  reward_seeen_npcs  
         )
         reward += reward_for_stateless_class.total_reward()

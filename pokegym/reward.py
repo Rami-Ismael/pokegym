@@ -60,7 +60,7 @@ class Reward:
             self.reward_for_increasing_the_total_party_level =  0
         
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
-            self.reward_for_taking_action_that_start_playing_the_gym_player_music = 4
+            self.reward_for_taking_action_that_start_playing_the_gym_player_music = 1
         
         if next_state_internal_game_state.player_selected_move_id in [GROWL_DECIMAL_VALUE_OF_MOVE_ID , TAIL_DECIAML_VALUE_OF_MOVE_ID , LEER_DECIMAL_VALUE_OF_MOVE_ID]:
             self.reward_for_using_bad_moves -= 1
@@ -102,7 +102,7 @@ class Reward:
         if next_state_internal_game_state.player_current_pokemon_level < next_state_internal_game_state.enemy_current_pokemon_levelel:
             self.negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon = -1 # stop fighting with weak pokemon 
     def update_reward_for_finding_higher_level_wild_pokemon(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0 , ):
-        if external_game_state.max_highest_level_in_the_party_teams < next_state_internal_game_state.highest_pokemon_level:
+        if external_game_state.max_wild_pokemon_level < next_state_internal_game_state.enemy_current_pokemon_levelel and current_state_internal_game_state == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE:
             self.reward_for_finding_higher_level_wild_pokemon = 1
         
     def total_reward(self) -> int:
