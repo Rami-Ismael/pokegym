@@ -730,7 +730,7 @@ class Environment(Base):
                 +  reward_seeen_npcs  
         )
         reward += reward_for_stateless_class.total_reward()
-        if self.step == 0 or self.step == 1:
+        if self.step == 0:
             reward=0
         
         self.external_game_state.post_reward_update(next_state_internal_game , current_internal_game_state = state_internal_game , next_internal_game_state = next_state_internal_game)
