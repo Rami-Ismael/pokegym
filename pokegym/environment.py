@@ -769,8 +769,6 @@ class Environment(Base):
                 "total_items": item_count,
                 "hm_item_counts": hm_count,
                 "hm_moves": total_number_hm_moves_that_my_pokemon_party_has,
-                "cut_coords": sum(self.cut_coords.values()),
-                "cut_tiles": len(self.cut_tiles),
                 "number_run_attempts": ram_map.get_number_of_run_attempts(self.game),
                 "total_party_hit_point" : ram_map.total_party_hit_point(self.game),
                 "total_party_max_hit_point" : ram_map.total_party_max_hit_point(self.game),
