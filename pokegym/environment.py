@@ -344,7 +344,7 @@ class Environment(Base):
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
-        reset_state = random_number = random.randint(0, 16)
+        reset_state = random_number = random.randint(0, 32)
         # Reset
         if self.first or reset_state == 1:
             self.external_game_state = External_Game_State()
@@ -354,7 +354,6 @@ class Environment(Base):
             self.seen_maps = set()
             load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.reset_count += 1
-        else:
             self.time = 0
         self.first = False  
         
