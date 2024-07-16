@@ -346,7 +346,7 @@ class Environment(Base):
         import random
         reset_state = random_number = random.randint(0, 32)
         # Reset
-        if self.first or reset_state == 1:
+        if self.first or ( reset_state == 1 and self.external_game_state.total_number_of_wipe_out_in_episode > 1):
             self.external_game_state = External_Game_State()
             self.init_mem()
             self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
@@ -730,8 +730,6 @@ class Environment(Base):
                 +  reward_seeen_npcs  
         )
         reward += reward_for_stateless_class.total_reward()
-        if self.step == 0:
-            reward=0
         
         self.external_game_state.post_reward_update(next_state_internal_game , current_internal_game_state = state_internal_game , next_internal_game_state = next_state_internal_game)
 
