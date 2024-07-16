@@ -105,6 +105,7 @@ class Internal_Game_State:
     enemy_current_pokemon_stats_modifier_accuracy: int = field(default_factory=int)
     enemy_current_pokemon_stats_modifier_evasion: int = field(default_factory=int)
     enemy_current_move_effect: int = field(default_factory=int)
+    enemy_pokemon_move_power: int = field(default_factory=int)
     
     
 
@@ -209,6 +210,7 @@ class Internal_Game_State:
         self.enemy_current_pokemon_stats_modifier_evasion = ram_map.get_enemy_current_monster_modifier_evastion(game)
         self.enemy_current_pokemon_levelel = ram_map.get_enemy_current_pokemon_level(game)
         self.enemy_current_move_effect = ram_map.get_enemy_move_effect(game)
+        self.enemy_pokemon_move_power = ram_map.get_enemy_move_effect_target_address(game)
         
         self.validation()
     def to_json(self) -> dict:
@@ -251,7 +253,7 @@ class External_Game_State:
     def update(self, game , current_interngal_game_state , next_next_internal_game_state ):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
-    def post_reward_update(self, game , current_internal_game_state , next_internal_game_state)->None:
+    def post_reward_update(self, game , current_internal_game_state , next_internal_game_state):
         self.max_party_size = max(self.max_party_size, game.party_size)
         self.total_events_that_occurs_in_game = game.total_events_that_occurs_in_game
         self.max_total_party_level = max(self.max_total_party_level, game.total_party_level)
@@ -259,6 +261,7 @@ class External_Game_State:
         self.total_number_of_wipe_out_in_episode+=game.wipe_out
         self.max_enemy_pokemon_base_exp_yeild:int = max(self.max_enemy_pokemon_base_exp_yeild , game.enemy_pokemon_base_exp_yeild)
         self.update_number_of_time_entering_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
+        self.update_max_wild_pokemon_level(game, current_internal_game_state , next_internal_game_state)
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):

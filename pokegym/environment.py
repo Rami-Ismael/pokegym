@@ -319,6 +319,7 @@ class Environment(Base):
             "enemy_current_pokemon_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_pokemon_stats_modifier_evasion": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_move_effect": spaces.Box(low=0, high=56, shape=(1,), dtype=np.uint8),
+            "enemy_pokemon_move_power" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 1)
@@ -349,10 +350,9 @@ class Environment(Base):
             self.external_game_state = External_Game_State()
             self.init_mem()
             self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
-            load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.counts_map = np.zeros((444, 436)) # to solve the map
             self.seen_maps = set()
-            self.time = 0
+            load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.reset_count += 1
         else:
             self.time = 0
@@ -885,9 +885,7 @@ class Environment(Base):
 
         self.seen_hidden_objs = {}
 
-        self.cut_coords = {}
-        self.cut_tiles = set([])
-        self.cut_state = deque(maxlen=3)
+
 
         self.seen_start_menu = 0
         self.seen_pokemon_menu = 0

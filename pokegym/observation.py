@@ -72,6 +72,7 @@ class Observation:
     enemy_current_pokemon_stats_modifier_special: int = field(default_factory=int)
     enemy_current_pokemon_stats_modifier_accuracy: int = field(default_factory=int)
     enemy_current_move_effect:int = field(default_factory=int)
+    enemy_pokemon_move_power:float = field(default_factory=float)
     
    
     def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
@@ -121,7 +122,7 @@ class Observation:
        # Events
        self.total_events_that_occurs_in_game = next_state_internal_game_state.total_events_that_occurs_in_game
        
-       self.time = time / max_episode_steps
+       self.time = time /  ( max_episode_steps * 16)
        
        self.enemy_monster_actually_catch_rate = self.obs_enemy_monster_pokemon_actually_catch_rate(next_state_internal_game_state.enemy_monster_actually_catch_rate)
        
@@ -139,6 +140,7 @@ class Observation:
        self.enemy_current_pokemon_stats_modifier_accuracy = 0 #next_state_internal_game_state.enemy_current_pokemon_stats_modifier_accuracy
        self.enemy_current_pokemon_stats_modifier_evasion = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_evasion
        self.enemy_current_move_effect = next_state_internal_game_state.enemy_current_move_effect
+       self.enemy_pokemon_move_power = next_state_internal_game_state.enemy_pokemon_move_power
        
        self.last_black_out_map_id = next_state_internal_game_state.last_black_out_map_id
        
@@ -209,6 +211,8 @@ class Observation:
         return self.enemy_current_pokemon_stats_modifier_accuracy / 255.0
     def obs_enemy_current_pokemon_stats_modifier_evasion(self):
         return self.enemy_current_pokemon_stats_modifier_evasion / 255.0
+    def obs_enemy_pokemon_move_power(self):
+        return self.enemy_pokemon_move_power / 255.0
     
     def get_obs(self) -> dict[str, Any]:
         return asdict(self)

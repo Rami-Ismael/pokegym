@@ -23,9 +23,11 @@ class Reward:
     
     reward_for_using_bad_moves:int = 0
     
-    knocking_out_enemy_pokemon:int = 0
+    knocking_out_enemy_pokemon:float = 0
     
-    knocking_out_wild_pokemon:int = 0
+    knocking_out_wild_pokemon:float = 0
+    
+    reward_for_knocking_out_wild_pokemon_by_battle:int = 0
     
     negative_reward_for_wiping_out:float = 0
 
@@ -66,15 +68,15 @@ class Reward:
             self.reward_for_using_bad_moves -= 1
             assert self.reward_for_using_bad_moves <= 0
         
-        if current_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE and next_state_internal_game_state.battle_result == BattleResult.WIN and next_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
+        if self.took_the_step_to_win_a_wild_battle(current_state_internal_game_state , next_state_internal_game_state):
             self.knocking_out_wild_pokemon = 1
         
-        if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats.value != BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
+        if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats != BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
             self.knocking_out_enemy_pokemon = 1
         
         
         if current_state_internal_game_state.highest_pokemon_level < next_state_internal_game_state.highest_pokemon_level and next_state_internal_game_state.highest_pokemon_level > external_game_state.max_highest_level_in_the_party_teams:
-            self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle = ( next_state_internal_game_state.highest_pokemon_level - external_game_state.max_highest_level_in_the_party_teams )
+            self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle =  ( next_state_internal_game_state.highest_pokemon_level - external_game_state.max_highest_level_in_the_party_teams )
         
         if not current_state_internal_game_state.wipe_out and next_state_internal_game_state.wipe_out:
             self.negative_reward_for_wiping_out = -1.0 * negative_reward_for_wiping_out_coef
@@ -88,7 +90,11 @@ class Reward:
         self.update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(current_state_internal_game_state , next_state_internal_game_state)
         
         self.update_negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon(current_state_internal_game_state , next_state_internal_game_state)
-    
+    def took_the_step_to_win_a_wild_battle(self , current_state_internal_game_state , next_state_internal_game_state):
+        if current_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE and next_state_internal_game_state.battle_result == BattleResult.WIN and next_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size and current_state_internal_game_state.party_size == external_game_state.max_party_size:
+            return True
+        return False
+            
     def update_reward_for_entering_a_trainer_battle(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_entering_a_trainer_battle_coef:float = 1.0):
         if current_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE:
             self.reward_for_entering_a_trainer_battle = 1 * reward_for_entering_a_trainer_battle_coef

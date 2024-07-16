@@ -562,3 +562,6 @@ def get_enemy_current_pokemon_level(game):
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_MOVE_EFFECT
 def get_enemy_move_effect(game):
     return game.get_memory_value(ENEMY_MOVE_EFFECT)
+from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_POWER
+def get_enemy_move_effect_target_address(game):
+    return game.get_memory_value(ENEMY_POKEMON_MOVE_POWER)
