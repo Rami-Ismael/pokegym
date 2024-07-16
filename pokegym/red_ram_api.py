@@ -8,7 +8,7 @@ class PyBoyRAMInterface:
         self.pyboy = pyboy
 
     def read_memory(self, address):
-        return self.pyboy.get_memory_value(address)
+        return self.pyboy.memory[address]
 
     def write_memory(self, address, value):
         return self.pyboy.set_memory_value(address, value)

@@ -141,33 +141,33 @@ def bit_count(bits):
 
 def read_bit(game, addr, bit) -> bool:
     # add padding so zero will read '0b100000000' instead of '0b0'
-    return bin(256 + game.get_memory_value(addr))[-bit-1] == '1'
+    return bin(256 + game.memory[addr])[-bit-1] == '1'
 
 def read_uint16(game, start_addr)-> int:
     '''Read 2 bytes'''
     ## Binary you read right to left
-    val_256 = game.get_memory_value(start_addr)
-    val_1 = game.get_memory_value(start_addr + 1)
+    val_256 = game.memory[start_addr]
+    val_1 = game.memory[start_addr + 1]
     return 256*val_256 + val_1
 
 def position(game):
-    r_pos = game.get_memory_value(Y_POS_ADDR)
-    c_pos = game.get_memory_value(X_POS_ADDR)
-    map_n = game.get_memory_value(MAP_N_ADDR)
+    r_pos = game.memory[Y_POS_ADDR]
+    c_pos = game.memory[X_POS_ADDR]
+    map_n = game.memory[MAP_N_ADDR]
     return r_pos, c_pos, map_n
 
 def party(game):
-    party = [game.get_memory_value(addr) for addr in PARTY_ADDR]
-    party_size = game.get_memory_value(PARTY_SIZE_ADDR)
-    party_levels = [game.get_memory_value(addr) for addr in PARTY_LEVEL_ADDR]
+    party = [game.memory[addr] for addr in PARTY_ADDR]
+    party_size = game.memory[PARTY_SIZE_ADDR]
+    party_levels = [game.memory[addr] for addr in PARTY_LEVEL_ADDR]
     return party, party_size, party_levels
 def get_party_pokemon_level(game)-> list[int]:
-    return [game.get_memory_value(addr) for addr in PARTY_LEVEL_ADDR]
+    return [game.memory[addr] for addr in PARTY_LEVEL_ADDR]
 def get_party_size(game)-> int:
-    return game.get_memory_value(PARTY_SIZE_ADDR)
+    return game.memory[PARTY_SIZE_ADDR]
 
 def opponent(game):
-    return [game.get_memory_value(addr) for addr in OPPONENT_LEVEL_ADDR]
+    return [game.memory[addr] for addr in OPPONENT_LEVEL_ADDR]
 
 def oak_parcel(game):
     return read_bit(game, OAK_PARCEL_ADDR, 1) 
@@ -176,10 +176,10 @@ def pokedex_obtained(game):
     return read_bit(game, OAK_POKEDEX_ADDR, 5)
  
 def pokemon_seen(game):
-    seen_bytes = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
+    seen_bytes = [game.memory[addr] for addr in SEEN_POKE_ADDR]
     return sum([bit_count(b) for b in seen_bytes])
 def total_pokemon_seen(game):
-    seen_bytes = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
+    seen_bytes = [game.memory[addr] for addr in SEEN_POKE_ADDR]
     return sum([bit_count(b) for b in seen_bytes])
 def pokemon_see_in_the_pokedex(game):
     '''
@@ -187,17 +187,17 @@ def pokemon_see_in_the_pokedex(game):
     wPokedexSeenEnd::
     https://github.com/pret/pokered/blob/fc23e72a39eb9cb9ca0651ea805abb6f47ee458c/ram/wram.asm#L1735
     '''
-    seen_bytes = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
+    seen_bytes = [game.memory[addr] for addr in SEEN_POKE_ADDR]
     return  seen_bytes
 def get_pokedex_entries_of_caught_pokemon(game):
     # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red_and_Blue/RAM_map#Menu_Data
-    bytes_address_represeting_eight_pokemon_pokedex_entries = [game.get_memory_value(addr) for addr in SEEN_POKE_ADDR]
+    bytes_address_represeting_eight_pokemon_pokedex_entries = [game.memory[addr] for addr in SEEN_POKE_ADDR]
     return bytes_address_represeting_eight_pokemon_pokedex_entries
 def pokemon_caught(game):
     '''
     This will calculate how much pokemon you have that complete the pokedex
     '''
-    caught_bytes = [game.get_memory_value(addr) for addr in CAUGHT_POKE_ADDR]
+    caught_bytes = [game.memory[addr] for addr in CAUGHT_POKE_ADDR]
     return sum([bit_count(b) for b in caught_bytes])
 
 def party_health_ratio(game) -> float:
@@ -214,17 +214,17 @@ def party_health_ratio(game) -> float:
 
 
 def money(game):
-    return (100 * 100 * bcd(game.get_memory_value(MONEY_ADDR_1))
-        + 100 * bcd(game.get_memory_value(MONEY_ADDR_100))
-        + bcd(game.get_memory_value(MONEY_ADDR_10000)))
+    return (100 * 100 * bcd(game.memory[MONEY_ADDR_1])
+        + 100 * bcd(game.memory[MONEY_ADDR_100])
+        + bcd(game.memory[MONEY_ADDR_10000]))
 
 def check_if_player_has_gym_one_badge(game):
-    badges = game.get_memory_value(BADGE_1_ADDR)
+    badges = game.memory[BADGE_1_ADDR]
     return bit_count(badges)
 
 def events(game):
     '''Adds up all event flags, exclude museum ticket'''
-    num_events = sum(bit_count(game.get_memory_value(i))
+    num_events = sum(bit_count(game.memory[i])
         for i in range(EVENT_FLAGS_START_ADDR, EVENT_FLAGS_END_ADDR))
     museum_ticket = int(read_bit(game, MUSEUM_TICKET_ADDR, 0))
 
@@ -235,16 +235,16 @@ def events(game):
 def total_items(game):
     # https://github.com/pret/pokered/blob/0b20304e6d22baaf7c61439e5e087f2d93f98e39/ram/wram.asm#L1741
     # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Items
-    return game.get_memory_value(TOTAL_ITEMS_ADDR)
+    return game.memory[TOTAL_ITEMS_ADDR]
 
 
 def total_unique_moves(game):
     # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Wild_Pok%C3%A9mon
     hash_set = set()
     for pokemon_addr in PLAYER_POKEMON_TEAM_ADDR:
-        if game.get_memory_value(pokemon_addr) != 0:
+        if game.memory[pokemon_addr] != 0:
             for increment in range(8, 12):
-                move_id = game.get_memory_value(pokemon_addr + increment)
+                move_id = game.memory[pokemon_addr + increment]
                 if move_id != 0:
                     hash_set.add(move_id)
     return len(hash_set)
@@ -255,7 +255,7 @@ def get_items_in_bag(game):
         # item1, quantity1, item2, quantity2, ...
         item_ids = []
         for i in range(0, 20, 2):
-            item_id = game.get_memory_value(FIRST_ITEM_ADDR + i)
+            item_id = game.memory[FIRST_ITEM_ADDR + i]
             if item_id != 0:
                 item_ids.append(item_id)
         return item_ids
@@ -267,7 +267,7 @@ def total_hm_party_has(game) -> int:
     
     total_hm_count = 0
     for hm_iitem_addr in HM_ITEMS_ADDR:
-        hm_item_id = game.get_memory_value(hm_iitem_addr)
+        hm_item_id = game.memory[hm_iitem_addr]
         if hm_item_id != 0:
             total_hm_count += 1
     return total_hm_count
@@ -276,7 +276,7 @@ def number_of_pokemon_that_hm_in_move_pool_in_your_part_your_party(game) -> int:
     
     count = 0
     for pokemon_party_move_addr in POKEMON_PARTY_MOVES_ADDR:
-        pokemon_party_move_id = game.get_memory_value(pokemon_party_move_addr)
+        pokemon_party_move_id = game.memory[pokemon_party_move_addr]
         if pokemon_party_move_id in HM_ITEMS_ADDR:
             count += 1
     return count
@@ -287,7 +287,7 @@ def is_in_battle(game):
     # 2 trainer battle
     # -1 lost battle
     #https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/wram.asm#L1629C1-L1634C6
-    bflag = game.get_memory_value(BATTLE_FLAG)
+    bflag = game.memory[BATTLE_FLAG]
     try:
         return BattleState(bflag)
     except ValueError:
@@ -298,95 +298,95 @@ def pokecenter(game):
     return 5
 def check_if_gym_leader_music_is_playing(game):
     # https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Menu_Data
-    return game.get_memory_value(BOOLEAN_FLAG_THAT_INDICATES_THE_GAME_GYM_LEADER_MUSIC_IS_PLAYING)
+    return game.memory[BOOLEAN_FLAG_THAT_INDICATES_THE_GAME_GYM_LEADER_MUSIC_IS_PLAYING]
 def number_of_attempt_running(game)-> int:
-    return game.get_memory_value(NUMBER_RUN_ATTEMPTS_ADDR)
+    return game.memory[NUMBER_RUN_ATTEMPTS_ADDR]
 
 def get_party_pokemon_id(self) -> np.array:
-    return np.array( [self.get_memory_value(single_pokemon_pokemon_id_addr) for single_pokemon_pokemon_id_addr in POKEMONI_PARTY_IDS_ADDR]) 
+    return np.array( [self.memory[single_pokemon_pokemon_id_addr] for single_pokemon_pokemon_id_addr in POKEMONI_PARTY_IDS_ADDR]) 
 def get_opponent_party_pokemon_id(self) -> np.array:
-    return np.array( [self.get_memory_value(single_pokemon_pokemon_id_addr) for single_pokemon_pokemon_id_addr in OPPONENT_PARRTY_IDS_ADDR])
+    return np.array( [self.memory[single_pokemon_pokemon_id_addr] for single_pokemon_pokemon_id_addr in OPPONENT_PARRTY_IDS_ADDR])
 
 def get_opponent_party_pokemon_hp(self) -> np.array:
-    return np.array( [self.get_memory_value(single_pokemon_pokemon_hp_addr) for single_pokemon_pokemon_hp_addr in OPPONENT_HP_ADDR])
+    return np.array( [self.memory[single_pokemon_pokemon_hp_addr] for single_pokemon_pokemon_hp_addr in OPPONENT_HP_ADDR])
 
 def set_perfect_iv_dvs(self):
-    party_size:int = self.get_memory_value(PARTY_SIZE_ADDR)
+    party_size:int = self.memory[PARTY_SIZE_ADDR]
     for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
         for m in range(12):  # Number of offsets for IV/DV
             self.pyboy.set_memory_value(i + 17 + m, 0xFF)
 
 def check_if_party_has_cut(self) -> bool:
-    party_size:int = self.get_memory_value(PARTY_SIZE_ADDR)
+    party_size:int = self.memory[PARTY_SIZE_ADDR]
     for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
         for m in range(4):
-            if self.pyboy.get_memory_value(i + 8 + m) == 15:
+            if self.pyboy.memory[i + 8 + m] == 15:
                 return True
     return False
 
 def check_if_in_start_menu(self) -> bool:
     return (
-        self.get_memory_value(0xD057) == 0
-        and self.get_memory_value(0xCF13) == 0
-        and self.get_memory_value(0xFF8C) == 6
-        and self.get_memory_value(0xCF94) == 0
+        self.memory[0xD057] == 0
+        and self.memory[0xCF13] == 0
+        and self.memory[0xFF8C] == 6
+        and self.memory[0xCF94] == 0
     )
 
 def check_if_in_pokemon_menu(self) -> bool:
     return (
-        self.get_memory_value(0xD057) == 0
-        and self.get_memory_value(0xCF13) == 0
-        and self.get_memory_value(0xFF8C) == 6
-        and self.get_memory_value(0xCF94) == 2
+        self.memory[0xD057] == 0
+        and self.memory[0xCF13] == 0
+        and self.memory[0xFF8C] == 6
+        and self.memory[0xCF94] == 2
     )
 
 def check_if_in_stats_menu(self) -> bool:
     return (
-        self.get_memory_value(0xD057) == 0
-        and self.get_memory_value(0xCF13) == 0
-        and self.get_memory_value(0xFF8C) == 6
-        and self.get_memory_value(0xCF94) == 1
+        self.memory[0xD057] == 0
+        and self.memory[0xCF13] == 0
+        and self.memory[0xFF8C] == 6
+        and self.memory[0xCF94] == 1
     )
 
 def check_if_in_bag_menu(self) -> bool:
     return (
-        self.get_memory_value(0xD057) == 0
-        and self.get_memory_value(0xCF13) == 0
-        # and self.get_memory_value(0xFF8C) == 6 # only sometimes
-        and self.get_memory_value(0xCF94) == 3
+        self.memory[0xD057] == 0
+        and self.memory[0xCF13] == 0
+        # and self.memory[0xFF8C] == 6 # only sometimes
+        and self.memory[0xCF94] == 3
     )
 
 def check_if_cancel_bag_menu(game,  action) -> bool:
     return (
         action == WindowEvent.PRESS_BUTTON_A
-        and game.get_memory_value(0xD057) == 0
-        and game.get_memory_value(0xCF13) == 0
-        # and self.get_memory_value(0xFF8C) == 6
-        and game.get_memory_value(0xCF94) == 3
-        and game.get_memory_value(0xD31D) == game.get_memory_value(0xCC36) + game.get_memory_value(0xCC26)
+        and game.memory[0xD057] == 0
+        and game.memory[0xCF13] == 0
+        # and self.memory[0xFF8C] == 6
+        and game.memory[0xCF94] == 3
+        and game.memory[0xD31D] == game.memory[0xCC36] + game.memory[0xCC26]
     )
 
 def check_if_in_overworld(game) -> bool:
-    return game.get_memory_value(0xD057) == 0 and game.get_memory_value(0xCF13) == 0 and game.get_memory_value(0xFF8C) == 0
+    return game.memory[0xD057] == 0 and game.memory[0xCF13] == 0 and game.memory[0xFF8C] == 0
 
 def get_number_of_run_attempts(game) -> int:
-    return game.get_memory_value(NUMBER_RUN_ATTEMPTS_ADDR)
+    return game.memory[NUMBER_RUN_ATTEMPTS_ADDR]
 def get_player_direction(game) -> int:
     # C1x9: facing direction (0: down, 4: up, 8: left, $c: right)
-    return game.get_memory_value(0xC109) 
+    return game.memory[0xC109] 
 def get_battle_result(game)-> BattleResult:
-    battle_result_flag = game.get_memory_value(BATTLE_RESULT_FLAG)
+    battle_result_flag = game.memory[BATTLE_RESULT_FLAG]
     try:
         return BattleResult(battle_result_flag)
     except ValueError:
         return BattleResult.IDK
 ## https://github.com/luckytyphlosion/pokered/blob/c43bd68f01b794f61025ac2e63c9e043634ffdc8/wram.asm#L2361C1-L2368C1
 def get_map_music_id(game):
-    return game.get_memory_value(MAP_MUSIC_ID)
+    return game.memory[MAP_MUSIC_ID]
 def get_map_music_rom_bank(game):
-    return game.get_memory_value(MAP_MUSIC_ROM_BANK)
+    return game.memory[MAP_MUSIC_ROM_BANK]
 def get_last_pokecenter_id(game , pokecenter_ids) -> int:
-    last_pokecenter = game.get_memory_value(LAST_BLACKOUT_MAP)
+    last_pokecenter = game.memory[LAST_BLACKOUT_MAP]
     # will throw error if last_pokecenter not in pokecenter_ids, intended
     if last_pokecenter == 0:
         # no pokecenter visited yet
@@ -397,7 +397,7 @@ def get_last_pokecenter_id(game , pokecenter_ids) -> int:
     else:
         return pokecenter_ids.index(last_pokecenter)
 def get_number_of_turns_in_current_battle(game):
-    return game.get_memory_value(NUMBER_OF_TURNS_IN_CURRENT_BATTLE)
+    return game.memory[NUMBER_OF_TURNS_IN_CURRENT_BATTLE]
 '''
 That guy  code ideas
 def get_pokemon_health(self , offset):
@@ -419,12 +419,12 @@ def total_party_max_hit_point(game) -> int:
     party_max_hp = [read_uint16(game, addr) for addr in MAX_HP_ADDR]
     return sum(party_max_hp)
 def get_battle_turn_moves(game):
-        player_selected_move = game.get_memory_value(PLAYER_SELECTED_MOVE)
-        enemy_selected_move = game.get_memory_value(ENEMY_SELECTED_MOVE)
+        player_selected_move = game.memory[PLAYER_SELECTED_MOVE]
+        enemy_selected_move = game.memory[ENEMY_SELECTED_MOVE]
 
         return player_selected_move, enemy_selected_move
 def read_memory(game , address):
-    return game.get_memory_value(address)
+    return game.memory[address]
 def get_pokemon_xp(game, offset):
     xp = ((read_memory( game , POKEMON_1_EXPERIENCE[0] + offset) << 16) +
             (read_memory( game , POKEMON_1_EXPERIENCE[1] + offset) << 8) +
@@ -440,7 +440,7 @@ def get_low_health_alarm(game):
 def get_opponent_pokemon_levels(game) -> List[int]:
     opponent_level_addr = [0] * 6
     for index , addr in enumerate(OPPONENT_LEVEL_ADDR):
-        opponent_level_addr[index] = game.get_memory_value(addr)
+        opponent_level_addr[index] = game.memory[addr]
     return opponent_level_addr
 
 def get_enemys_pokemon_hp(game)-> int:
@@ -458,7 +458,7 @@ def total_events_that_occurs_in_game(game)-> int:
     return max(
         sum(
             [
-                game.get_memory_value(i).bit_count()
+                game.memory[i].bit_count()
                 for i in range(EVENT_FLAGS_START, EVENT_FLAGS_START + EVENTS_FLAGS_LENGTH)
             ]
         )
@@ -475,7 +475,7 @@ def get_pokemon_pp_avail(game) -> List[int]:
     return pp_teams
 
 def wild_pokemon_encounter_rate_on_grass(game):
-    return game.get_memory_value(WILD_POKEMON_ENCONTER_RATE_ON_GRASS)
+    return game.memory[WILD_POKEMON_ENCONTER_RATE_ON_GRASS]
 
 def get_pokemon_party_move_ids(game):
     pokemon_party_move_ids = [0] *24
@@ -491,7 +491,7 @@ def get_pokemon_party_move_ids(game):
     return pokemon_party_move_ids 
 #def get_Opponent Party Data
 def total_number_of_enemy_pokemon_in_opponent_party(game):
-    return game.get_memory_value(ENEMY_PARTY_COUNT)
+    return game.memory[ENEMY_PARTY_COUNT]
 def get_opponent_party_move_id(game):
     # https://gamefaqs.gamespot.com/gameboy/367023-pokemon-red-version/faqs/74734#section5
     opponent_party_move_ids: List[int] = [0] * 24
@@ -512,14 +512,14 @@ def get_opponent_party_move_id(game):
 
 def get_enemy_pokemon_base_exp_yield(game):
     # https://github.com/pret/pokered/blob/095c7d7227ea958c1afa76765c044793b9e8dc5a/pokered.sym#L18619C1-L18620C25
-    return game.get_memory_value( ENEMY_POKEMON_BASE_EXP_YIELD)
+    return game.memory[ ENEMY_POKEMON_BASE_EXP_YIELD]
 
 def get_enemy_monster_actually_catch_rate(game):
     # https://github.com/pret/pokered/blob/095c7d7227ea958c1afa76765c044793b9e8dc5a/pokered.sym#L18618
-    return game.get_memory_value( ENEMY_MONSTER_ACTUALLY_CATCH_RATE)
+    return game.memory[ ENEMY_MONSTER_ACTUALLY_CATCH_RATE]
 
 def get_opponent_trainer_party_count(game):
-    return game.get_memory_value(OPPONENT_TRAINER_PARTY_COUNT)
+    return game.memory[OPPONENT_TRAINER_PARTY_COUNT]
 
 def get_opponent_trainer_party_monster_stats_defense(game):
     defense_stats = [0] * 6
@@ -528,40 +528,40 @@ def get_opponent_trainer_party_monster_stats_defense(game):
     return defense_stats
 
 def get_last_black_out_map_id(game):
-    return game.get_memory_value(LAST_BLACK_OUT_MAP_ID)
+    return game.memory[LAST_BLACK_OUT_MAP_ID]
 # Battle Stuff
 from pokegym.ram_reader.red_memory_battle_stats import PLAYER_MONSTER_STATS_MODIFIER_ATTACK , PLAYER_MONSTER_STATS_MODIFIER_DEFENSE , PLAYER_MONSTER_STATS_MODIFIER_SPEED , PLAYER_MONSTER_STATS_MODIFIER_SPECIAL , PLAYER_MONSTER_STATS_MODIFIER_ACCURACY
 def get_player_current_monster_modifier_attack(game):
-    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_ATTACK)
+    return game.memory[PLAYER_MONSTER_STATS_MODIFIER_ATTACK]
 def get_player_current_monster_modifier_defense(game):
-    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_DEFENSE)
+    return game.memory[PLAYER_MONSTER_STATS_MODIFIER_DEFENSE]
 def get_player_current_monster_modifier_speed(game):
-    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_SPEED)
+    return game.memory[PLAYER_MONSTER_STATS_MODIFIER_SPEED]
 def get_player_current_monster_modifier_special(game):
-    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_SPECIAL)
+    return game.memory[PLAYER_MONSTER_STATS_MODIFIER_SPECIAL]
 def get_player_current_monster_modifier_accuracy(game):
-    return game.get_memory_value(PLAYER_MONSTER_STATS_MODIFIER_ACCURACY)
+    return game.memory[PLAYER_MONSTER_STATS_MODIFIER_ACCURACY]
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ATTACK , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_DEFENSE , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPEED , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPECIAL , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ACCURACY , ENEMY_CURRENT_POKEMON_STATS_MODIFIER_EVASTION
 def get_enemy_current_monster_modifier_attack(game):
-    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ATTACK)
+    return game.memory[ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ATTACK]
 def get_enemy_current_monster_modifier_defense(game):
-    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_DEFENSE)
+    return game.memory[ENEMY_CURRENT_POKEMON_STATS_MODIFIER_DEFENSE]
 def get_enemy_current_monster_modifier_speed(game):# -> Any:
-    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPEED)
+    return game.memory[ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPEED]
 def get_enemy_current_monster_modifier_special(game):
-    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPECIAL)
+    return game.memory[ENEMY_CURRENT_POKEMON_STATS_MODIFIER_SPECIAL]
 def get_enemy_current_monster_modifier_accuracy(game):
-    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ACCURACY)
+    return game.memory[ENEMY_CURRENT_POKEMON_STATS_MODIFIER_ACCURACY]
 def get_enemy_current_monster_modifier_evastion(game):
-    return game.get_memory_value(ENEMY_CURRENT_POKEMON_STATS_MODIFIER_EVASTION)
+    return game.memory[ENEMY_CURRENT_POKEMON_STATS_MODIFIER_EVASTION]
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_CURRENT_POKEMON_LEVEL , PLAYER_CURRENT_POKEMON_LEVEL
 def get_player_current_pokemon_level(game):
-    return game.get_memory_value(PLAYER_CURRENT_POKEMON_LEVEL)
+    return game.memory[PLAYER_CURRENT_POKEMON_LEVEL]
 def get_enemy_current_pokemon_level(game):
-    return game.get_memory_value(ENEMY_CURRENT_POKEMON_LEVEL)
+    return game.memory[ENEMY_CURRENT_POKEMON_LEVEL]
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_MOVE_EFFECT
 def get_enemy_move_effect(game):
-    return game.get_memory_value(ENEMY_MOVE_EFFECT)
+    return game.memory[ENEMY_MOVE_EFFECT]
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_POWER
 def get_enemy_move_effect_target_address(game):
-    return game.get_memory_value(ENEMY_POKEMON_MOVE_POWER)
+    return game.memory[ENEMY_POKEMON_MOVE_POWER]

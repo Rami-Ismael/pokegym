@@ -190,7 +190,7 @@ class Base:
 
         # Make the environment
         self.game, self.screen = make_env(rom_path, headless, quiet,
-                                          save_video=False, **kwargs)
+                                           **kwargs)
         self.initial_states = open_state_file(state_path)
         self.headless = headless
         self.action_space = spaces.Discrete(len(ACTIONS))
@@ -563,7 +563,7 @@ class Environment(Base):
         # 0xCFCB - wUpdateSpritesEnabled
         if self.read_m(0xD057) == 0:
             if False :#self.taught_cut:
-                player_direction = self.game.get_memory_value(0xC109)
+                player_direction = self.game.memory[0xC109]
                 x, y, map_id = self.get_game_coords()  # x, y, map_id
                 if player_direction == 0:  # down
                     coords = (x, y + 1, map_id)
@@ -575,12 +575,12 @@ class Environment(Base):
                     coords = (x + 1, y, map_id)
                 self.cut_state.append(
                     (
-                        self.game.get_memory_value(0xCFC6),
-                        self.game.get_memory_value(0xCFCB),
-                        self.game.get_memory_value(0xCD6A),
-                        self.game.get_memory_value(0xD367),
-                        self.game.get_memory_value(0xD125),
-                        self.game.get_memory_value(0xCD3D),
+                        self.game.memory[0xCFC6],
+                        self.game.memory[0xCFCB],
+                        self.game.memory[0xCD6A],
+                        self.game.memory[0xD367],
+                        self.game.memory[0xD125],
+                        self.game.memory[0xCD3D],
                     )
                 )
                 if tuple(list(self.cut_state)[1:]) in CUT_SEQ:
@@ -594,33 +594,33 @@ class Environment(Base):
                     self.cut_tiles[self.cut_state[-1][0]] = 1
 
             # check if the font is loaded this occur when you are talking 
-            if self.game.get_memory_value(0xCFC4):
+            if self.game.memory[0xCFC4]:
                 # check if we are talking to a hidden object:
-                player_direction = self.game.get_memory_value(0xC109)
-                player_y_tiles = self.game.get_memory_value(0xD361)
-                player_x_tiles = self.game.get_memory_value(0xD362)
+                player_direction = self.game.memory[0xC109]
+                player_y_tiles = self.game.memory[0xD361]
+                player_x_tiles = self.game.memory[0xD362]
                 if (
-                    self.game.get_memory_value(0xCD3D) != 0x0
-                    and self.game.get_memory_value(0xCD3E) != 0x0
+                    self.game.memory[0xCD3D] != 0x0
+                    and self.game.memory[0xCD3E] != 0x0
                 ):
                     # add hidden object to seen hidden objects
                     self.seen_hidden_objs[
                         (
-                            self.game.get_memory_value(0xD35E),
-                            self.game.get_memory_value(0xCD3F),
+                            self.game.memory[0xD35E],
+                            self.game.memory[0xCD3F],
                         )
                     ] = 1
                 elif any(
                     self.find_neighboring_sign(
                         sign_id, player_direction, player_x_tiles, player_y_tiles
                     )
-                    for sign_id in range(self.game.get_memory_value(0xD4B0))
+                    for sign_id in range(self.game.memory[0xD4B0])
                 ):
                     pass
                 else:
                     # get information for player
-                    player_y = self.game.get_memory_value(0xC104)
-                    player_x = self.game.get_memory_value(0xC106)
+                    player_y = self.game.memory[0xC104]
+                    player_x = self.game.memory[0xC106]
                     # get the npc who is closest to the player and facing them
                     # we go through all npcs because there are npcs like
                     # nurse joy who can be across a desk and still talk to you
@@ -631,14 +631,14 @@ class Environment(Base):
                             self.find_neighboring_npc(npc_id, player_direction, player_x, player_y),
                             npc_id,
                         )
-                        for npc_id in range(1, self.game.get_memory_value(0xD4E1))
+                        for npc_id in range(1, self.game.memory[0xD4E1])
                     )
                     npc_candidates = [x for x in npc_distances if x[0]]
                     if npc_candidates:
                         _, npc_id = min(npc_candidates, key=lambda x: x[0])
-                        self.seen_npcs[(self.game.get_memory_value(0xD35E), npc_id)] = 1
+                        self.seen_npcs[(self.game.memory[0xD35E], npc_id)] = 1
                         self.seen_npcs_since_blackout.add(
-                            (self.game.get_memory_value(0xD35E), npc_id)
+                            (self.game.memory[0xD35E], npc_id)
                         )
         # check if the npc is talking to you
 
@@ -908,7 +908,7 @@ class Environment(Base):
 
         return False
     def read_m(self, addr):
-        return self.game.get_memory_value(addr)
+        return self.game.memory[addr]
 
     def read_bit(self, addr, bit: int) -> bool:
         # add padding so zero will read '0b100000000' instead of '0b0'

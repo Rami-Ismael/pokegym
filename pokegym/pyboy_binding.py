@@ -51,9 +51,7 @@ def make_env(gb_path, headless=True, quiet=False, **kwargs):
     gb_path='pokemon_red.gb'
     game = PyBoy(
         gb_path,
-        debugging=False,
-        window_type='headless' if headless else 'SDL2',
-        hide_window=quiet,
+        sound = False , 
         **kwargs,
     )
 
