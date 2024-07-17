@@ -76,7 +76,7 @@ class Observation:
     enemy_pokemon_move_type:int = field(default_factory=int)
     
     # World Map
-    map_id = field(default_factory=int)
+    map_id: int = field(default_factory=int)
     
    
     def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
