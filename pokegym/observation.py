@@ -75,6 +75,9 @@ class Observation:
     enemy_pokemon_move_power:float = field(default_factory=float)
     enemy_pokemon_move_type:int = field(default_factory=int)
     
+    # World Map
+    map_id = field(default_factory=int)
+    
    
     def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
        self.map_music_sound_bank = next_state_internal_game_state.map_music_rom_bank
@@ -145,6 +148,9 @@ class Observation:
        self.enemy_pokemon_move_type = next_state_internal_game_state.enemy_pokemon_move_type
        
        self.last_black_out_map_id = next_state_internal_game_state.last_black_out_map_id
+       
+       # Map
+       self.map_id = next_state_internal_game_state.map_id
        
        
        

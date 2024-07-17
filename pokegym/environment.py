@@ -345,14 +345,12 @@ class Environment(Base):
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
-        random_number = random.randint(0, 32)
         # Reset
-        if self.first or random_number == 0:
+        if self.first:
             self.external_game_state = External_Game_State()
             self.init_mem()
             self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
             self.counts_map = np.zeros((444, 436)) # to solve the map
-            self.seen_maps = set()
             load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.reset_count += 1
             self.time = 0
@@ -367,8 +365,6 @@ class Environment(Base):
         
         
 
-        #return self.render()[::2, ::2], {}
-        assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
         old_observation = self._get_obs()
         old_observation.update(observation_game_state.to_json())
         return old_observation, {}
@@ -382,7 +378,6 @@ class Environment(Base):
         self.seen_coords.add((x_pos, y_pos, map_n))
         self.explore_map[local_to_global(y_pos, x_pos, map_n)] = 1
         # self.seen_global_coords[local_to_global(y_pos, x_pos, map_n)] = 1
-        self.seen_map_ids[map_n] = 1
     def render(self):
         # (144, 160, 3)
         try:
@@ -749,7 +744,6 @@ class Environment(Base):
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
-                'maps_explored': len(self.seen_maps),
                 "number_of_uniqiue_coordinate_it_explored": len(self.seen_coords),
                 'badge_1': ram_map.check_if_player_has_gym_one_badge(self.game),
                 "badges": self.get_badges(), # Fix it latter
@@ -873,8 +867,6 @@ class Environment(Base):
         self.seen_coords: set = set()
         self.seen_coords_since_blackout = set([])
         # self.seen_global_coords = np.zeros(GLOBAL_MAP_SHAPE)
-        self.seen_map_ids = np.zeros(256)
-        self.seen_map_ids_since_blackout = set([])
 
         self.seen_npcs = {}
         self.seen_npcs_since_blackout = set([])
@@ -936,7 +928,6 @@ class Environment(Base):
             "direction": np.array(ram_map.get_player_direction(self.game) // 4, dtype=np.uint8), 
             "x": np.array(player_x, dtype=np.float32),
             "y": np.array(player_y, dtype=np.float32),
-            "map_id": np.array(self.read_m(0xD35E), dtype=np.float32),
         }
     def get_last_pokecenter_list(self):
         pc_list = [0, ] * len(self.pokecenter_ids)

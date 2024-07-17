@@ -573,3 +573,6 @@ def get_enemy_move_effect_target_address(game):
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_TYPE
 def get_enemy_pokemon_move_type(game):
     return game.get_memory_value(ENEMY_POKEMON_MOVE_TYPE)
+from pokegym.ram_reader.red_memory_world import CURRENT_MAP_ID
+def get_current_map_id(game):
+    return game.get_memory_value(CURRENT_MAP_ID)

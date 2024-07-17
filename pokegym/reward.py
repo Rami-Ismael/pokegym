@@ -5,6 +5,7 @@ from pokegym.ram_reader.red_memoy_moves import GROWL_DECIMAL_VALUE_OF_MOVE_ID , 
 
 @dataclass
 class Reward:
+    
     #use max to make sure the agent cannot gain the system with the PC
     reward_for_increasing_the_max_size_of_the_trainer_team:float = 0
     
@@ -37,6 +38,7 @@ class Reward:
     reward_for_finding_higher_enemy_pokemon_base_exp_yeild:int = 0
     reward_for_having_last_black_out_id_proximaly_an_pokecenter:int = 0
     reward_for_finding_higher_level_wild_pokemon:int = 0
+    reward_for_finding_new_maps:int = 0
     
     negative_reward_for_player_monster_stats_modifier_accuracy_drop:float = 0
     negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon:float = 0
@@ -86,6 +88,7 @@ class Reward:
             self.reward_for_finding_higher_enemy_pokemon_base_exp_yeild+=1
         self.update_reward_for_entering_a_trainer_battle(current_state_internal_game_state , next_state_internal_game_state , reward_for_entering_a_trainer_battle_coef)
         self.update_reward_for_finding_higher_level_wild_pokemon(current_state_internal_game_state , next_state_internal_game_state , external_game_state)
+        self.update_reward_for_finding_new_maps(current_state_internal_game_state , next_state_internal_game_state , external_game_state)
         
         self.update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(current_state_internal_game_state , next_state_internal_game_state)
         
@@ -110,6 +113,9 @@ class Reward:
     def update_reward_for_finding_higher_level_wild_pokemon(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0 , ):
         if external_game_state.max_wild_pokemon_level < next_state_internal_game_state.enemy_current_pokemon_levelel and current_state_internal_game_state == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE:
             self.reward_for_finding_higher_level_wild_pokemon = 1
+    def update_reward_for_finding_new_maps(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_new_maps_coef:float = 1.0):
+        if current_state_internal_game_state.map_id != next_state_internal_game_state.map_id and  external_game_state.seem_map_ids[next_state_internal_game_state.map_id] == 0:
+            self.reward_for_finding_new_maps = 1
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())

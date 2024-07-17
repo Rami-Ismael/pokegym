@@ -108,6 +108,9 @@ class Internal_Game_State:
     enemy_pokemon_move_power: int = field(default_factory=int)
     enemy_pokemon_move_type: int = field(default_factory=int)
     
+    # World Map
+    map_id: int = field(default_factory=int)
+    
     
 
 
@@ -214,6 +217,9 @@ class Internal_Game_State:
         self.enemy_pokemon_move_power = ram_map.get_enemy_move_effect_target_address(game)
         self.enemy_pokemon_move_type = ram_map.get_enemy_pokemon_move_type(game)
         
+        # World Map
+        self.map_id = ram_map.get_current_map_id(game)
+        
         self.validation()
     def to_json(self) -> dict:
         assert all(v is not None for v in self.each_pokemon_level)
@@ -231,6 +237,10 @@ class Internal_Game_State:
         assert isinstance(self.last_black_out_map_id, int)
 @dataclass
 class External_Game_State:
+    # World map
+    
+    seen_map_ids  = np.zeros(256 , dtype = np.uint8)
+    
     #visited_pokecenter_list: List[int] = field(default_factory=list)
     number_of_battles_wins: int = field(default_factory=int)
     number_of_battles_loses: int = field(default_factory=int)
@@ -252,6 +262,8 @@ class External_Game_State:
     number_of_wild_battle:int = 0 
     number_of_time_entering_a_trainer_battle:int = 0
     
+
+    
     def update(self, game , current_interngal_game_state , next_next_internal_game_state ):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
@@ -264,6 +276,11 @@ class External_Game_State:
         self.max_enemy_pokemon_base_exp_yeild:int = max(self.max_enemy_pokemon_base_exp_yeild , game.enemy_pokemon_base_exp_yeild)
         self.update_number_of_time_entering_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
         self.update_max_wild_pokemon_level(game, current_internal_game_state , next_internal_game_state)
+        self.update_seen_map_ids(game, current_internal_game_state , next_internal_game_state)
+    
+    def update_seen_map_ids(self, game, current_interngal_game_state , next_next_internal_game_state):
+        self.seen_map_ids[current_interngal_game_state.map_id] = 1
+        self.seen_map_ids[next_next_internal_game_state.map_id] = 1
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):
