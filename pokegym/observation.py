@@ -164,6 +164,7 @@ class Observation:
         assert self.time <= 1 , T()
         assert self.last_black_out_map_id <= 150 , T()
         assert isinstance(self.last_black_out_map_id, int) , T()
+        assert self.map_id <= 247 , T()
         
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:
