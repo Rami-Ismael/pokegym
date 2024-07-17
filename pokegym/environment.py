@@ -320,6 +320,7 @@ class Environment(Base):
             "enemy_current_pokemon_stats_modifier_evasion": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_move_effect": spaces.Box(low=0, high=56, shape=(1,), dtype=np.uint8),
             "enemy_pokemon_move_power" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_pokemon_move_type" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 1)
@@ -344,9 +345,9 @@ class Environment(Base):
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
-        reset_state = random_number = random.randint(0, 32)
+        random_number = random.randint(0, 32)
         # Reset
-        if self.first or ( reset_state == 1 and self.external_game_state.total_number_of_wipe_out_in_episode > 1):
+        if self.first or random_number == 0:
             self.external_game_state = External_Game_State()
             self.init_mem()
             self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)

@@ -5,6 +5,7 @@ from pokegym.ram_reader.red_memory_opponents import OPPONENT_TRAINER_PARTY_MONST
 from pokegym.ram_reader.red_memory_world import LAST_BLACK_OUT_MAP_ID
 from pyboy.utils import WindowEvent
 from typing import List
+from pdb import set_trace as T
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
 HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248] # This work fine
@@ -455,16 +456,20 @@ def get_enemy_trainer_pokemon_hp(game)-> List[int]:
     return enemy_trainer_pokemon_hp
 def total_events_that_occurs_in_game(game)-> int:
     # adds up all event flags, exclude museum ticket
-    return max(
-        sum(
-            [
-                game.get_memory_value(i).bit_count()
-                for i in range(EVENT_FLAGS_START, EVENT_FLAGS_START + EVENTS_FLAGS_LENGTH)
-            ]
+    try:
+        return max(
+            sum(
+                [
+                    game.get_memory_value(i).bit_count()
+                    for i in range(EVENT_FLAGS_START, EVENT_FLAGS_START + EVENTS_FLAGS_LENGTH)
+                ]
+            )
+            - int(read_bit(game, MUSEUM_TICKET_ADDR, 0)),
+            0,
         )
-        - int(read_bit(game, MUSEUM_TICKET_ADDR, 0)),
-        0,
-    )
+    except Exception as e:
+        print(e)
+        T()
 def get_pokemon_pp_avail(game) -> List[int]:
     pp_teams:list[int] = [0] * 24
     for index in range(0 , get_party_size(game)):
@@ -565,3 +570,6 @@ def get_enemy_move_effect(game):
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_POWER
 def get_enemy_move_effect_target_address(game):
     return game.get_memory_value(ENEMY_POKEMON_MOVE_POWER)
+from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_TYPE
+def get_enemy_pokemon_move_type(game):
+    return game.get_memory_value(ENEMY_POKEMON_MOVE_TYPE)

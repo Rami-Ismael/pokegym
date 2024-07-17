@@ -73,6 +73,7 @@ class Observation:
     enemy_current_pokemon_stats_modifier_accuracy: int = field(default_factory=int)
     enemy_current_move_effect:int = field(default_factory=int)
     enemy_pokemon_move_power:float = field(default_factory=float)
+    enemy_pokemon_move_type:int = field(default_factory=int)
     
    
     def __init__( self , next_state_internal_game_state, time:int , max_episode_steps:int):
@@ -141,6 +142,7 @@ class Observation:
        self.enemy_current_pokemon_stats_modifier_evasion = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_evasion
        self.enemy_current_move_effect = next_state_internal_game_state.enemy_current_move_effect
        self.enemy_pokemon_move_power = next_state_internal_game_state.enemy_pokemon_move_power
+       self.enemy_pokemon_move_type = next_state_internal_game_state.enemy_pokemon_move_type
        
        self.last_black_out_map_id = next_state_internal_game_state.last_black_out_map_id
        
@@ -177,6 +179,7 @@ class Observation:
         # A bad way to encode on the map music sound id so far will later get a better way in these method 
         self.map_music_sound_id = self.map_music_sound_id - 176
         self.low_health_alarm =  1 if self.low_health_alarm != 0 else 0 
+        self.encode_move_type()
     def normalize(self):
         for index in range(len(self.each_pokemon_health_points)):
             if self.each_pokemon_max_health_points[index] >0:
@@ -213,6 +216,25 @@ class Observation:
         return self.enemy_current_pokemon_stats_modifier_evasion / 255.0
     def obs_enemy_pokemon_move_power(self):
         return self.enemy_pokemon_move_power / 255.0
+    def encode_move_type(self):
+        new_dict = {
+            0: 0,
+            1: 1,
+            2: 2,
+            3: 3,
+            4: 4,
+            5: 5,
+            7: 6,
+            8: 7,
+            20: 8 , 
+            21: 9 , 
+            22: 10  ,
+            23: 11 ,
+            24: 12 ,
+            25: 13 ,
+            26: 14 ,
+        }
+        self.enemy_pokemon_move_type = new_dict[self.enemy_pokemon_move_type]
     
     def get_obs(self) -> dict[str, Any]:
         return asdict(self)
