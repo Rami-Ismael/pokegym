@@ -376,7 +376,7 @@ class Environment(Base):
             return (self.read_m(0xD362), self.read_m(0xD361), self.read_m(0xD35E))
     def update_seen_coords(self):
         x_pos, y_pos, map_n = self.get_game_coords()
-        self.seen_coords.add((x_pos, y_pos, map_n))
+        #self.seen_coords.add((x_pos, y_pos, map_n))
         self.explore_map[local_to_global(y_pos, x_pos, map_n)] = 1
         # self.seen_global_coords[local_to_global(y_pos, x_pos, map_n)] = 1
     def render(self):
@@ -433,7 +433,7 @@ class Environment(Base):
                         :,
                     ] = int(
                         (
-                            (player_x + x + 1, player_y + y + 1, map_n) in self.seen_coords
+                            (player_x + x + 1, player_y + y + 1, map_n) in self.external_game_state.seen_coords
                         )
                         * 255
                     )
@@ -549,6 +549,7 @@ class Environment(Base):
                                                     reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef = self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef , 
                                                     reward_for_entering_a_trainer_battle_coef = self.reward_for_entering_a_trainer_battle_coef , 
                                                     negative_reward_for_wiping_out_coef = self.negative_reward_for_wiping_out_coef,
+                                                    reward_for_explore_unique_coor_coef = self.reward_for_explore_unique_coor_coef,
                                                     )
 
         # Seen Coordinate
@@ -654,14 +655,6 @@ class Environment(Base):
             print(f'IndexError: index {global_row} or {global_column} for {map_n} is out of bounds for axis 0 with size 444.')
             global_row = -1
             global_column = -1
-        exploration_reward = 0
-        if (row, column, map_n) not in self.seen_coords:
-            prev_size = len(self.seen_coords)
-            self.seen_coords.add((row, column, map_n))
-            exploration_reward: float =  1.0 - ( len(self.seen_coords) / ( 436 * 444 ) ) #  it cannot visit all the places, therefore it should low esimate but at the point it should be able many thing at ht epoint
-            assert exploration_reward >= 0.0 and exploration_reward <= 1.0, f"normalize_gaine_exploration: {exploration_reward}"
-            assert len(self.seen_coords) > prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
-            assert len(self.seen_coords) - prev_size == 1, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
         
         
         self.update_heat_map(row, column, map_n)
@@ -722,7 +715,6 @@ class Environment(Base):
         reward: float =  (
                 + reward_the_agent_seing_new_pokemon 
                 + badges_reward 
-                +  ( exploration_reward * self.reward_for_explore_unique_coor_coef )
                 + normalize_gain_of_new_money_reward
                 +  reward_seeen_npcs  
         )
@@ -737,7 +729,6 @@ class Environment(Base):
                 'reward': {
                     'reward': reward,
                     'badges': badges_reward,
-                    'exploration': exploration_reward * self.reward_for_explore_unique_coor_coef ,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
                     "reward_seeen_npcs": reward_seeen_npcs,
@@ -745,7 +736,6 @@ class Environment(Base):
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
-                "number_of_uniqiue_coordinate_it_explored": len(self.seen_coords),
                 'badge_1': ram_map.check_if_player_has_gym_one_badge(self.game),
                 "badges": self.get_badges(), # Fix it latter
                 "npc": sum(self.seen_npcs.values()),
@@ -800,8 +790,6 @@ class Environment(Base):
         if self.verbose:
             print(
                 f'time: {self.time}',
-                f'exploration reward: {exploration_reward}',
-                f'death: {death_reward}',
                 f'badges reward: {badges_reward}',
                 f'ai reward: {reward}',
                 f"In a trainer battle: {current_state_is_in_battle}",
@@ -865,7 +853,6 @@ class Environment(Base):
     def init_mem(self):
         # Maybe I should preallocate a giant matrix for all map ids
         # All map ids have the same size, right?
-        self.seen_coords: set = set()
         self.seen_coords_since_blackout = set([])
         # self.seen_global_coords = np.zeros(GLOBAL_MAP_SHAPE)
 

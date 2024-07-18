@@ -110,6 +110,8 @@ class Internal_Game_State:
     
     # World Map
     map_id: int = field(default_factory=int)
+    player_x:int = field(default_factory=int)
+    player_y:int = field(default_factory=int)
     
     
 
@@ -219,6 +221,7 @@ class Internal_Game_State:
         
         # World Map
         self.map_id = ram_map.get_current_map_id(game)
+        self.player_x , self.player_y,_ = ram_map.position(game)
         
         self.validation()
     def to_json(self) -> dict:
@@ -240,6 +243,8 @@ class External_Game_State:
     # World map
     
     seen_map_ids  = np.zeros(256 , dtype = np.uint8)
+    seen_coords  = set()
+    number_of_uniqiue_coordinate_it_explored:int = field(default_factory=int)
     
     #visited_pokecenter_list: List[int] = field(default_factory=list)
     number_of_battles_wins: int = field(default_factory=int)
@@ -277,6 +282,8 @@ class External_Game_State:
         self.update_number_of_time_entering_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
         self.update_max_wild_pokemon_level(game, current_internal_game_state , next_internal_game_state)
         self.update_seen_map_ids(game, current_internal_game_state , next_internal_game_state)
+        self.seen_coords.add((next_internal_game_state.player_x, next_internal_game_state.player_y , next_internal_game_state.map_id))
+        self.number_of_uniqiue_coordinate_it_explored = len(self.seen_coords)
     
     def update_seen_map_ids(self, game, current_interngal_game_state , next_next_internal_game_state):
         self.seen_map_ids[current_interngal_game_state.map_id] = 1
