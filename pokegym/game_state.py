@@ -107,6 +107,7 @@ class Internal_Game_State:
     enemy_current_move_effect: int = field(default_factory=int)
     enemy_pokemon_move_power: int = field(default_factory=int)
     enemy_pokemon_move_type: int = field(default_factory=int)
+    enemy_pokemon_move_accuracy:float = field(default_factory=float)
     
     # World Map
     map_id: int = field(default_factory=int)
@@ -218,6 +219,7 @@ class Internal_Game_State:
         self.enemy_current_move_effect = ram_map.get_enemy_move_effect(game)
         self.enemy_pokemon_move_power = ram_map.get_enemy_move_effect_target_address(game)
         self.enemy_pokemon_move_type = ram_map.get_enemy_pokemon_move_type(game)
+        self.enemy_pokemon_move_accuracy = ram_map.get_enemy_pokemon_move_accuracy(game)
         
         # World Map
         self.map_id = ram_map.get_current_map_id(game)

@@ -20,3 +20,4 @@ ENEMY_MOVE_EFFECT = 0xCFCD
 # https://github.com/pret/pokered/blob/095c7d7227ea958c1afa76765c044793b9e8dc5a/pokered.sym#L18585C1-L18585C24
 ENEMY_POKEMON_MOVE_POWER = wEnemyMovePower = 0xCFCE
 ENEMY_POKEMON_MOVE_TYPE =  wEnemyMoveType = 0xCFCF 
+ENEMY_POKEMON_MOVE_ACCURACY = wEnemyMoveAccuracy = 0xCFD0

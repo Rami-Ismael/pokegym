@@ -146,6 +146,7 @@ class Observation:
        self.enemy_current_move_effect = next_state_internal_game_state.enemy_current_move_effect
        self.enemy_pokemon_move_power = next_state_internal_game_state.enemy_pokemon_move_power
        self.enemy_pokemon_move_type = next_state_internal_game_state.enemy_pokemon_move_type
+       self.enemy_pokemon_move_accuracy = next_state_internal_game_state.enemy_pokemon_move_accuracy
        
        self.last_black_out_map_id = next_state_internal_game_state.last_black_out_map_id
        
@@ -197,6 +198,7 @@ class Observation:
         self.obs_player_current_monster_stats_modifier_speed()
         self.obs_player_current_monster_stats_modifier_special()
         self.obs_player_current_monster_stats_modifier_accuracy()
+        self.obs_enemy_pokemon_move_accuracy()
     def obs_player_total_max_health_points(self):
         self.total_party_max_hit_points = self.total_party_max_hit_points / ( 705.0 * 6.0)
     def obs_player_current_monster_stats_modifier_attack(self):
@@ -242,6 +244,8 @@ class Observation:
             26: 14 ,
         }
         self.enemy_pokemon_move_type = new_dict[self.enemy_pokemon_move_type]
+    def obs_enemy_pokemon_move_accuracy(self):
+        return self.enemy_pokemon_move_accuracy / 255.0
     
     def get_obs(self) -> dict[str, Any]:
         return asdict(self)

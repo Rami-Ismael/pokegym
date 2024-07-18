@@ -321,7 +321,7 @@ class Environment(Base):
             "enemy_current_move_effect": spaces.Box(low=0, high=56, shape=(1,), dtype=np.uint8),
             "enemy_pokemon_move_power" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_pokemon_move_type" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            
+            "enemy_pokemon_move_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 1)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
