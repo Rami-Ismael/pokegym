@@ -325,7 +325,7 @@ class Environment(Base):
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 1)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
-        self.max_episode_steps = kwargs.get("max_episode_steps", 65536)
+        self.max_episode_steps = kwargs.get("max_episode_steps", 2048)
         self.reward_for_increase_pokemon_level_coef = kwargs.get("reward_for_increase_pokemon_level_coef", 1.1)
         self.reward_for_explore_unique_coor_coef = kwargs.get("reward_for_explore_unique_coor_coef", 0)
         self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float = reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef
@@ -333,6 +333,7 @@ class Environment(Base):
         self.negative_reward_for_wiping_out_coef:float = negative_reward_for_wiping_out_coef
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
+        self.go_explored_list_of_episodes:list  = list()
         
         
         self.probaility_wild_grass_pokemon_encounter_rate_per_env = -1
@@ -342,12 +343,10 @@ class Environment(Base):
         self.first = True
 
 
-    def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
+    def reset(self, seed=None,  options = None ):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
-        random_number = random.randint(0 , 128)
-        # Reset
-        if self.first or random_number == 1:
+        if self.first:
             self.external_game_state = External_Game_State()
             self.init_mem()
             self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
@@ -355,6 +354,34 @@ class Environment(Base):
             load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.reset_count += 1
             self.time = 0
+        elif not self.first:
+            def fresh_game_state():
+                state = io.BytesIO()
+                state.seek(0)
+                self.game.save_state(state)
+                return state
+            self.go_explored_list_of_episodes.append(
+                {
+                    "external_game_state": self.external_game_state , 
+                    "explore_map": self.explore_map,
+                    "seen_npcs": self.seen_npcs,
+                    "counts_map": self.counts_map,
+                    "game_state": fresh_game_state(),
+                    "reset_count" : self.reset_count +1 ,
+                }
+            )
+            random_number = random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
+            self.external_game_state = self.go_explored_list_of_episodes[random_number]["external_game_state"]
+            self.explore_map = self.go_explored_list_of_episodes[random_number]["explore_map"]
+            self.seen_npcs = self.go_explored_list_of_episodes[random_number]["seen_npcs"]
+            self.counts_map = self.go_explored_list_of_episodes[random_number]["counts_map"]
+            load_pyboy_state(self.game, self.go_explored_list_of_episodes[random_number]["game_state"])
+            self.reset_count = self.go_explored_list_of_episodes[random_number]["reset_count"]
+            self.time = self.go_explored_list_of_episodes[random_number]["time"]
+            self.time = 0 
+            assert self.time ==0 , T()
+            
+            
         self.first = False  
         
         #load_pyboy_state(self.game, self.initial_state)
@@ -772,6 +799,7 @@ class Environment(Base):
                 "current_state_pokemon_seen": current_state_pokemon_seen,
                 "next_state_pokemon_seen": next_state_pokemon_seen,
                 "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
+                "size_of_total_number_of_episodes_in_store": len(self.go_explored_list_of_episodes)
             }
             info.update(next_state_internal_game.to_json())
             info.update(self.external_game_state.to_json())
