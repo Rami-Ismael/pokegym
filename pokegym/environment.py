@@ -377,7 +377,6 @@ class Environment(Base):
             self.counts_map = self.go_explored_list_of_episodes[random_number]["counts_map"]
             load_pyboy_state(self.game, self.go_explored_list_of_episodes[random_number]["game_state"])
             self.reset_count = self.go_explored_list_of_episodes[random_number]["reset_count"]
-            self.time = self.go_explored_list_of_episodes[random_number]["time"]
             self.time = 0 
             assert self.time ==0 , T()
             
