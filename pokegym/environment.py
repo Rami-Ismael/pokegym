@@ -354,8 +354,9 @@ class Environment(Base):
             self.counts_map = np.zeros((444, 436)) # to solve the map
             load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.reset_count += 1
-            self.time = 0
         self.first = False  
+        self.time = 0 
+        assert self.time == 0 , T() # Please it will fuck you up becaus self.time >= max epsiodes step this will cause a huge problem in this erro o th edetails on the action 
         
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
