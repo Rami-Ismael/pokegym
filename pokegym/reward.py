@@ -41,6 +41,9 @@ class Reward:
     reward_for_finding_new_maps:int = 0
     reward_for_seeing_new_coords:float = 0
     
+    # Reward for entering bad trainer battle
+    negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level:float = 0
+    
     negative_reward_for_player_monster_stats_modifier_accuracy_drop:float = 0
     negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon:float = 0
     
@@ -50,6 +53,7 @@ class Reward:
                  reward_for_entering_a_trainer_battle_coef:float = 1.0 , 
                  negative_reward_for_wiping_out_coef:float = 1.0,
                  reward_for_explore_unique_coor_coef:float = 1.0 ,
+                 negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef = 1.0 ,
                  ):
         
         if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size and external_game_state.max_party_size:
@@ -96,8 +100,13 @@ class Reward:
         self.update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(current_state_internal_game_state , next_state_internal_game_state)
         
         self.update_negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon(current_state_internal_game_state , next_state_internal_game_state)
+        self.update_negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level(current_state_internal_game_state , next_state_internal_game_state , negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef)
     def took_the_step_to_win_a_wild_battle(self , current_state_internal_game_state , next_state_internal_game_state):
         if current_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE and next_state_internal_game_state.battle_result == BattleResult.WIN and next_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
+            return True
+        return False
+    def took_the_step_to_enter_a_trainer_battle(self , current_state_internal_game_state , next_state_internal_game_state):
+        if current_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE:
             return True
         return False
             
@@ -122,6 +131,9 @@ class Reward:
     def update_reward_for_seeing_new_coords( self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_explore_unique_coor_coef:float = 1.0):
         if ( next_state_internal_game_state.player_x  , next_state_internal_game_state.player_y  , next_state_internal_game_state.map_id) not in external_game_state.seen_coords:
             self.reward_for_seeing_new_coords = 1 * reward_for_explore_unique_coor_coef
+    def update_negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level(self , current_state_internal_game_state , next_state_internal_game_state , negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = 1.0):
+        if current_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.total_opponent_party_pokemon_level > current_state_internal_game_state.total_party_level:
+            self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level = -1 * negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())

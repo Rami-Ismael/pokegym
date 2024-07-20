@@ -171,6 +171,7 @@ class Internal_Game_State:
         
         ### Opponents
         self.opponent_pokemon_levels = ram_map.get_opponent_pokemon_levels(game)
+        self.total_opponent_party_pokemon_level = sum(self.opponent_pokemon_levels)
         
         #### Trainer
         self.enemy_trainer_pokemon_hp = ram_map.get_enemy_trainer_pokemon_hp(game)
