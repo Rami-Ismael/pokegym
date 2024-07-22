@@ -320,7 +320,8 @@ class Environment(Base):
             "enemy_current_pokemon_stats_modifier_evasion": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_move_effect": spaces.Box(low=0, high=56, shape=(1,), dtype=np.uint8),
             "enemy_pokemon_move_power" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            
+            "enemy_pokemon_move_type" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_pokemon_move_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 1)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
@@ -344,18 +345,18 @@ class Environment(Base):
     def reset(self, seed=None,  options = None , max_episode_steps = 524288, reward_scale=1):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
-        reset_state = random_number = random.randint(0, 32)
+        random_number = random.randint(0 , 128)
         # Reset
-        if self.first or reset_state == 1:
+        if self.first or random_number == 1:
             self.external_game_state = External_Game_State()
             self.init_mem()
             self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
             self.counts_map = np.zeros((444, 436)) # to solve the map
-            self.seen_maps = set()
             load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.reset_count += 1
-            self.time = 0
         self.first = False  
+        self.time = 0 
+        assert self.time == 0 , T() # Please it will fuck you up becaus self.time >= max epsiodes step this will cause a huge problem in this erro o th edetails on the action 
         
         #load_pyboy_state(self.game, self.initial_state)
         """Resets the game. Seeding is NOT supported"""
@@ -366,8 +367,6 @@ class Environment(Base):
         
         
 
-        #return self.render()[::2, ::2], {}
-        assert isinstance( np.array(ram_map.party(self.game)[2]), np.ndarray)
         old_observation = self._get_obs()
         old_observation.update(observation_game_state.to_json())
         return old_observation, {}
@@ -378,10 +377,9 @@ class Environment(Base):
             return (self.read_m(0xD362), self.read_m(0xD361), self.read_m(0xD35E))
     def update_seen_coords(self):
         x_pos, y_pos, map_n = self.get_game_coords()
-        self.seen_coords.add((x_pos, y_pos, map_n))
+        #self.seen_coords.add((x_pos, y_pos, map_n))
         self.explore_map[local_to_global(y_pos, x_pos, map_n)] = 1
         # self.seen_global_coords[local_to_global(y_pos, x_pos, map_n)] = 1
-        self.seen_map_ids[map_n] = 1
     def render(self):
         # (144, 160, 3)
         try:
@@ -436,7 +434,7 @@ class Environment(Base):
                         :,
                     ] = int(
                         (
-                            (player_x + x + 1, player_y + y + 1, map_n) in self.seen_coords
+                            (player_x + x + 1, player_y + y + 1, map_n) in self.external_game_state.seen_coords
                         )
                         * 255
                     )
@@ -552,6 +550,7 @@ class Environment(Base):
                                                     reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef = self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef , 
                                                     reward_for_entering_a_trainer_battle_coef = self.reward_for_entering_a_trainer_battle_coef , 
                                                     negative_reward_for_wiping_out_coef = self.negative_reward_for_wiping_out_coef,
+                                                    reward_for_explore_unique_coor_coef = self.reward_for_explore_unique_coor_coef,
                                                     )
 
         # Seen Coordinate
@@ -657,14 +656,6 @@ class Environment(Base):
             print(f'IndexError: index {global_row} or {global_column} for {map_n} is out of bounds for axis 0 with size 444.')
             global_row = -1
             global_column = -1
-        exploration_reward = 0
-        if (row, column, map_n) not in self.seen_coords:
-            prev_size = len(self.seen_coords)
-            self.seen_coords.add((row, column, map_n))
-            exploration_reward: float =  1.0 - ( len(self.seen_coords) / ( 436 * 444 ) ) #  it cannot visit all the places, therefore it should low esimate but at the point it should be able many thing at ht epoint
-            assert exploration_reward >= 0.0 and exploration_reward <= 1.0, f"normalize_gaine_exploration: {exploration_reward}"
-            assert len(self.seen_coords) > prev_size, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
-            assert len(self.seen_coords) - prev_size == 1, f"len(self.seen_coords): {len(self.seen_coords)} prev_size: {prev_size}"
         
         
         self.update_heat_map(row, column, map_n)
@@ -725,13 +716,10 @@ class Environment(Base):
         reward: float =  (
                 + reward_the_agent_seing_new_pokemon 
                 + badges_reward 
-                +  ( exploration_reward * self.reward_for_explore_unique_coor_coef )
                 + normalize_gain_of_new_money_reward
                 +  reward_seeen_npcs  
         )
         reward += reward_for_stateless_class.total_reward()
-        if self.step == 0:
-            reward=0
         
         self.external_game_state.post_reward_update(next_state_internal_game , current_internal_game_state = state_internal_game , next_internal_game_state = next_state_internal_game)
 
@@ -742,7 +730,6 @@ class Environment(Base):
                 'reward': {
                     'reward': reward,
                     'badges': badges_reward,
-                    'exploration': exploration_reward * self.reward_for_explore_unique_coor_coef ,
                     "seeing_new_pokemon": reward_the_agent_seing_new_pokemon,
                     "normalize_gain_of_new_money": normalize_gain_of_new_money_reward,
                     "reward_seeen_npcs": reward_seeen_npcs,
@@ -750,8 +737,6 @@ class Environment(Base):
                 },
                 'time': self.time,
                 "max_episode_steps": self.max_episode_steps,
-                'maps_explored': len(self.seen_maps),
-                "number_of_uniqiue_coordinate_it_explored": len(self.seen_coords),
                 'badge_1': ram_map.check_if_player_has_gym_one_badge(self.game),
                 "badges": self.get_badges(), # Fix it latter
                 "npc": sum(self.seen_npcs.values()),
@@ -806,8 +791,6 @@ class Environment(Base):
         if self.verbose:
             print(
                 f'time: {self.time}',
-                f'exploration reward: {exploration_reward}',
-                f'death: {death_reward}',
                 f'badges reward: {badges_reward}',
                 f'ai reward: {reward}',
                 f"In a trainer battle: {current_state_is_in_battle}",
@@ -871,11 +854,8 @@ class Environment(Base):
     def init_mem(self):
         # Maybe I should preallocate a giant matrix for all map ids
         # All map ids have the same size, right?
-        self.seen_coords: set = set()
         self.seen_coords_since_blackout = set([])
         # self.seen_global_coords = np.zeros(GLOBAL_MAP_SHAPE)
-        self.seen_map_ids = np.zeros(256)
-        self.seen_map_ids_since_blackout = set([])
 
         self.seen_npcs = {}
         self.seen_npcs_since_blackout = set([])
@@ -937,7 +917,6 @@ class Environment(Base):
             "direction": np.array(ram_map.get_player_direction(self.game) // 4, dtype=np.uint8), 
             "x": np.array(player_x, dtype=np.float32),
             "y": np.array(player_y, dtype=np.float32),
-            "map_id": np.array(self.read_m(0xD35E), dtype=np.float32),
         }
     def get_last_pokecenter_list(self):
         pc_list = [0, ] * len(self.pokecenter_ids)

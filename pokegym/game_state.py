@@ -106,6 +106,13 @@ class Internal_Game_State:
     enemy_current_pokemon_stats_modifier_evasion: int = field(default_factory=int)
     enemy_current_move_effect: int = field(default_factory=int)
     enemy_pokemon_move_power: int = field(default_factory=int)
+    enemy_pokemon_move_type: int = field(default_factory=int)
+    enemy_pokemon_move_accuracy:float = field(default_factory=float)
+    
+    # World Map
+    map_id: int = field(default_factory=int)
+    player_x:int = field(default_factory=int)
+    player_y:int = field(default_factory=int)
     
     
 
@@ -211,6 +218,12 @@ class Internal_Game_State:
         self.enemy_current_pokemon_levelel = ram_map.get_enemy_current_pokemon_level(game)
         self.enemy_current_move_effect = ram_map.get_enemy_move_effect(game)
         self.enemy_pokemon_move_power = ram_map.get_enemy_move_effect_target_address(game)
+        self.enemy_pokemon_move_type = ram_map.get_enemy_pokemon_move_type(game)
+        self.enemy_pokemon_move_accuracy = ram_map.get_enemy_pokemon_move_accuracy(game)
+        
+        # World Map
+        self.map_id = ram_map.get_current_map_id(game)
+        self.player_x , self.player_y,_ = ram_map.position(game)
         
         self.validation()
     def to_json(self) -> dict:
@@ -229,6 +242,12 @@ class Internal_Game_State:
         assert isinstance(self.last_black_out_map_id, int)
 @dataclass
 class External_Game_State:
+    # World map
+    
+    seen_map_ids  = np.zeros(256 , dtype = np.uint8)
+    seen_coords  = set()
+    number_of_uniqiue_coordinate_it_explored:int = field(default_factory=int)
+    
     #visited_pokecenter_list: List[int] = field(default_factory=list)
     number_of_battles_wins: int = field(default_factory=int)
     number_of_battles_loses: int = field(default_factory=int)
@@ -250,6 +269,8 @@ class External_Game_State:
     number_of_wild_battle:int = 0 
     number_of_time_entering_a_trainer_battle:int = 0
     
+
+    
     def update(self, game , current_interngal_game_state , next_next_internal_game_state ):
         #self.update_visited_pokecenter_list(game_state)
         self.update_battle_results(game)
@@ -262,6 +283,13 @@ class External_Game_State:
         self.max_enemy_pokemon_base_exp_yeild:int = max(self.max_enemy_pokemon_base_exp_yeild , game.enemy_pokemon_base_exp_yeild)
         self.update_number_of_time_entering_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
         self.update_max_wild_pokemon_level(game, current_internal_game_state , next_internal_game_state)
+        self.update_seen_map_ids(game, current_internal_game_state , next_internal_game_state)
+        self.seen_coords.add((next_internal_game_state.player_x, next_internal_game_state.player_y , next_internal_game_state.map_id))
+        self.number_of_uniqiue_coordinate_it_explored = len(self.seen_coords)
+    
+    def update_seen_map_ids(self, game, current_interngal_game_state , next_next_internal_game_state):
+        self.seen_map_ids[current_interngal_game_state.map_id] = 1
+        self.seen_map_ids[next_next_internal_game_state.map_id] = 1
     
     def update_battle_results(self, game) -> None:
         if ram_map.is_in_battle(game):

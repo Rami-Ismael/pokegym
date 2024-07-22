@@ -5,6 +5,7 @@ from pokegym.ram_reader.red_memory_opponents import OPPONENT_TRAINER_PARTY_MONST
 from pokegym.ram_reader.red_memory_world import LAST_BLACK_OUT_MAP_ID
 from pyboy.utils import WindowEvent
 from typing import List
+from pdb import set_trace as T
 # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
 # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
 HP_ADDR =  [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248] # This work fine
@@ -565,3 +566,11 @@ def get_enemy_move_effect(game):
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_POWER
 def get_enemy_move_effect_target_address(game):
     return game.memory[ENEMY_POKEMON_MOVE_POWER]
+from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_TYPE , ENEMY_POKEMON_MOVE_ACCURACY
+def get_enemy_pokemon_move_type(game):
+    return game.get_memory_value(ENEMY_POKEMON_MOVE_TYPE)
+def get_enemy_pokemon_move_accuracy(game):
+    return game.get_memory_value(ENEMY_POKEMON_MOVE_ACCURACY)
+from pokegym.ram_reader.red_memory_world import CURRENT_MAP_ID
+def get_current_map_id(game):
+    return game.get_memory_value(CURRENT_MAP_ID)
