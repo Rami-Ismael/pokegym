@@ -164,7 +164,7 @@ class Base:
             state_path=None, headless=True, quiet=False, **kwargs):
         '''Creates a PokemonRed environment'''
         random_starter_pokemon:bool = kwargs.get('random_starter_pokemon', False)
-        def determine_pyboy_game_state_file(random_starter_pokemon:bool = True):
+        def determine_pyboy_game_state_file(random_starter_pokemon:bool = False):
             if random_starter_pokemon:
                     # pick a random number between 1 to 3
                 import random
