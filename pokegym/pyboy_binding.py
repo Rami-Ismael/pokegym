@@ -45,22 +45,22 @@ class Select:
     RELEASE = WindowEvent.RELEASE_BUTTON_SELECT
 
 # TODO: Add start button to actions when we need it
-ACTIONS = (Down, Left, Right, Up, A, B)
+VALID_ACTION = ACTIONS = (Down, Left, Right, Up, A, B)
 
-def make_env(gb_path, headless=True, quiet=False, **kwargs):
+def make_env(gb_path, headless=True, quiet=False):
     gb_path='pokemon_red.gb'
     game = PyBoy(
         gb_path,
         sound = False , 
-        **kwargs,
+        window_type='null'
     )
 
-    screen = game.botsupport_manager().screen()
+    #screen = game.botsupport_manager().screen()
 
     if not headless:
         game.set_emulation_speed(6)
 
-    return game, screen
+    return game
 
 def open_state_file(path):
     '''Load state file with BytesIO so we can cache it'''
@@ -74,7 +74,7 @@ def load_pyboy_state(pyboy, state):
     state.seek(0)
     pyboy.load_state(state)
 
-def run_action_on_emulator(pyboy, screen, action,
+def run_action_on_emulator_old(pyboy, screen, action,
         headless=True, fast_video=True, frame_skip=24):
     '''Sends actions to PyBoy'''
     press, release = action.PRESS, action.RELEASE

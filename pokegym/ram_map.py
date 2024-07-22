@@ -452,7 +452,7 @@ def get_enemys_pokemon_hp(game)-> int:
 def get_enemy_trainer_pokemon_hp(game)-> List[int]:
     enemy_trainer_pokemon_hp = [0] * 6
     for index in range(0 , get_party_size(game)):
-        enemy_trainer_pokemon_hp[index] = 256*game.get_memory_value(ENEMY_TRAINER_POKEMON_HP[0] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )) + game.get_memory_value(ENEMY_TRAINER_POKEMON_HP[1] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET ))
+        enemy_trainer_pokemon_hp[index] = 256*game.memory[ENEMY_TRAINER_POKEMON_HP[0] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )] + game.memory[ENEMY_TRAINER_POKEMON_HP[1] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )]
     return enemy_trainer_pokemon_hp
 def total_events_that_occurs_in_game(game)-> int:
     # adds up all event flags, exclude museum ticket
@@ -469,39 +469,42 @@ def total_events_that_occurs_in_game(game)-> int:
 def get_pokemon_pp_avail(game) -> List[int]:
     pp_teams:list[int] = [0] * 24
     for index in range(0 , get_party_size(game)):
-        pp_teams[index * 4 + 0] = game.get_memory_value(POKEMON_1_PP_MOVES[0] + (index * PARTY_OFFSET))
-        pp_teams[index * 4 + 1] = game.get_memory_value(POKEMON_1_PP_MOVES[1] + (index * PARTY_OFFSET))
-        pp_teams[index * 4 + 2] = game.get_memory_value(POKEMON_1_PP_MOVES[2] + (index * PARTY_OFFSET))
-        pp_teams[index * 4 + 3] = game.get_memory_value(POKEMON_1_PP_MOVES[3] + (index * PARTY_OFFSET))
+        pp_teams[index * 4 + 0] = game.memory[POKEMON_1_PP_MOVES[0] + (index * PARTY_OFFSET)]
+        pp_teams[index * 4 + 1] = game.memory[POKEMON_1_PP_MOVES[1] + (index * PARTY_OFFSET)]
+        pp_teams[index * 4 + 2] = game.memory[POKEMON_1_PP_MOVES[2] + (index * PARTY_OFFSET)]
+        pp_teams[index * 4 + 3] = game.memory[POKEMON_1_PP_MOVES[3] + (index * PARTY_OFFSET)]
     return pp_teams
 
 def wild_pokemon_encounter_rate_on_grass(game):
     return game.memory[WILD_POKEMON_ENCONTER_RATE_ON_GRASS]
 
-def get_pokemon_party_move_ids(game):
+def get_pokemon_party_move_ids(game , party_size):
     pokemon_party_move_ids = [0] *24
     # https://gamefaqs.gamespot.com/gameboy/367023-pokemon-red-version/faqs/74734#section8
     assert PARTY_OFFSET == 44
-    
-    for index in range( 0 , get_party_size(game)):
-        
-        pokemon_party_move_ids[ index * 4 + 0 ] = game.get_memory_value( POKEMON_1_MOVES_ID[0] + ( index * PARTY_OFFSET ) )
-        pokemon_party_move_ids[ index * 4 + 1 ] = game.get_memory_value( POKEMON_1_MOVES_ID[1] + ( index * PARTY_OFFSET ) )
-        pokemon_party_move_ids[ index * 4 + 2 ] = game.get_memory_value( POKEMON_1_MOVES_ID[2] + ( index * PARTY_OFFSET ) )
-        pokemon_party_move_ids[ index * 4 + 3 ] = game.get_memory_value( POKEMON_1_MOVES_ID[3] + ( index * PARTY_OFFSET ) )
+    try: 
+        for index in range( 0 , party_size):
+            
+            pokemon_party_move_ids[ index * 4 + 0 ] = game.memory[ POKEMON_1_MOVES_ID[0] + ( index * PARTY_OFFSET ) ]
+            pokemon_party_move_ids[ index * 4 + 1 ] = game.memory[ POKEMON_1_MOVES_ID[1] + ( index * PARTY_OFFSET ) ]
+            pokemon_party_move_ids[ index * 4 + 2 ] = game.memory[ POKEMON_1_MOVES_ID[2] + ( index * PARTY_OFFSET ) ]
+            pokemon_party_move_ids[ index * 4 + 3 ] = game.memory[ POKEMON_1_MOVES_ID[3] + ( index * PARTY_OFFSET ) ]
+    except Exception as e:
+        print(e)
+        T()
     return pokemon_party_move_ids 
 #def get_Opponent Party Data
 def total_number_of_enemy_pokemon_in_opponent_party(game):
     return game.memory[ENEMY_PARTY_COUNT]
-def get_opponent_party_move_id(game):
+def get_opponent_party_move_id(game , party_size):
     # https://gamefaqs.gamespot.com/gameboy/367023-pokemon-red-version/faqs/74734#section5
     opponent_party_move_ids: List[int] = [0] * 24
     opponent_party_uniques_moves_id = set()
-    for index in range( 0 , total_number_of_enemy_pokemon_in_opponent_party(game) ):
-        opponent_party_move_ids[ index * 4 + 0 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[0] + ( index * PARTY_OFFSET ) )
-        opponent_party_move_ids[ index * 4 + 1 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[1] + ( index * PARTY_OFFSET ) )
-        opponent_party_move_ids[ index * 4 + 2 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[2] + ( index * PARTY_OFFSET ) )
-        opponent_party_move_ids[ index * 4 + 3 ] = game.get_memory_value( OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[3] + ( index * PARTY_OFFSET ) )
+    for index in range( 0 , party_size ):
+        opponent_party_move_ids[ index * 4 + 0 ] = game.memory[OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[0] + ( index * PARTY_OFFSET ) ]
+        opponent_party_move_ids[ index * 4 + 1 ] = game.memory[ OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[1] + ( index * PARTY_OFFSET ) ]
+        opponent_party_move_ids[ index * 4 + 2 ] = game.memory[ OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[2] + ( index * PARTY_OFFSET ) ]
+        opponent_party_move_ids[ index * 4 + 3 ] = game.memory[ OPPONENT_POKEMON_PARTY_MOVE_ID_ADDRESS[3] + ( index * PARTY_OFFSET ) ]
     return opponent_party_move_ids 
 
 #def get_opponent_party_defense_stats(game):
@@ -525,7 +528,7 @@ def get_opponent_trainer_party_count(game):
 def get_opponent_trainer_party_monster_stats_defense(game):
     defense_stats = [0] * 6
     for index in range(0 , get_opponent_trainer_party_count(game)):
-        defense_stats[index] = 256*game.get_memory_value(OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[0] + ( index * PARTY_OFFSET )) + game.get_memory_value(OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[1] + ( index * PARTY_OFFSET ))
+        defense_stats[index] = 256*game.memory[OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[0] + ( index * PARTY_OFFSET )] + game.memory[OPPONENT_TRAINER_PARTY_MONSTER_1_STATS_DEFENSE[1] + ( index * PARTY_OFFSET )]
     return defense_stats
 
 def get_last_black_out_map_id(game):
@@ -568,9 +571,9 @@ def get_enemy_move_effect_target_address(game):
     return game.memory[ENEMY_POKEMON_MOVE_POWER]
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_TYPE , ENEMY_POKEMON_MOVE_ACCURACY
 def get_enemy_pokemon_move_type(game):
-    return game.get_memory_value(ENEMY_POKEMON_MOVE_TYPE)
+    return game.memory[ENEMY_POKEMON_MOVE_TYPE]
 def get_enemy_pokemon_move_accuracy(game):
-    return game.get_memory_value(ENEMY_POKEMON_MOVE_ACCURACY)
+    return game.memory[ENEMY_POKEMON_MOVE_ACCURACY]
 from pokegym.ram_reader.red_memory_world import CURRENT_MAP_ID
 def get_current_map_id(game):
-    return game.get_memory_value(CURRENT_MAP_ID)
+    return game.memory[CURRENT_MAP_ID]

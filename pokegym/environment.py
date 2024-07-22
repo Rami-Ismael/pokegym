@@ -10,7 +10,7 @@ from pokegym.game_state import External_Game_State, Internal_Game_State
 from pokegym.reward import Reward
 from skimage.transform import resize
 
-from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,load_pyboy_state, run_action_on_emulator)
+from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,load_pyboy_state)
 from pokegym import ram_map, game_map 
 from pokegym.global_map import GLOBAL_MAP_SHAPE , local_to_global
 from rich import print as print
@@ -189,8 +189,7 @@ class Base:
             assert os.path.exists(state_path), f"State file {state_path} does not exist , {T()}"
 
         # Make the environment
-        self.game, self.screen = make_env(rom_path, headless, quiet,
-                                           **kwargs)
+        self.game = make_env(rom_path, headless, quiet)
         self.initial_states = open_state_file(state_path)
         self.headless = headless
         self.action_space = spaces.Discrete(len(ACTIONS))
@@ -201,7 +200,8 @@ class Base:
     '''
     # https://github.com/thatguy11325/pokemonred_puffer/blob/b5b0d0960661ed96e05b08fdbafeb9e8ba803ffa/pokemonred_puffer/environment.py#L582https://github.com/thatguy11325/pokemonred_puffer/blob/b5b0d0960661ed96e05b08fdbafeb9e8ba803ffa/pokemonred_puffer/environment.py#L582
     def render(self):
-        return self.screen.screen_ndarray()
+        # botsupport_manager has been removed. You can now find the API calls directly on the PyBoy object. And in case of tilemap_background, tilemap_window and screen, they are all properties instead of functions:
+        return self.game.screen.ndarray
 
     def step(self, action):
         run_action_on_emulator(self.game, self.screen, ACTIONS[action], self.headless)
@@ -233,8 +233,9 @@ class Environment(Base):
         self.reset_count = 0
         self.perfect_ivs = perfect_ivs
         self.pokecenter_ids: list[int] = [0x01, 0x02, 0x03, 0x0F, 0x15, 0x05, 0x06, 0x04, 0x07, 0x08, 0x0A, 0x09]
-        R, C = self.screen.raw_screen_buffer_dims()
-        self.two_bit = False 
+        R, C = self.game.screen.ndarray.shape[0] , self.game.screen.ndarray.shape[1]
+        self.two_bit = False
+        self.action_freq = 24 #env_config.action_freq which is the frame skip
         self.seed = 1
         
         self.reduce_res = True
@@ -383,7 +384,10 @@ class Environment(Base):
     def render(self):
         # (144, 160, 3)
         try:
-            game_pixels_render = np.expand_dims(self.screen.screen_ndarray()[:, :, 1], axis=-1)
+            #game_pixels_render = np.expand_dims(self.screen.screen_ndarray()[:, :, 1], axis=-1)
+            game_pixels_render = np.expand_dims(
+                self.game.screen.ndarray[:, :, 1], axis=-1
+            )
         except Exception as e:
             print(e)
             T()
@@ -514,7 +518,21 @@ class Environment(Base):
             "visited_mask": visited_mask,
             "global_map": global_map,
         }
-    def step(self, action, fast_video=True):
+    def run_action_on_emulator(self, action):
+        #self.action_hist[action] += 1
+        # press button then release after some steps
+        # TODO: Add video saving logic
+        try:
+            self.game.send_input(ACTIONS[action].PRESS)# Press
+        except Exception as e:
+            print(e)
+            print(action)
+            print(ACTIONS)
+            raise Exception("Action not found")
+        
+        self.game.send_input(ACTIONS[action].RELEASE, delay=8) # Release
+        self.game.tick(self.action_freq, render=True)
+    def step(self, action):
         # Reward the agent for seeing new pokemon that it never had seen 
         current_state_pokemon_seen = ram_map.pokemon_seen(self.game) # this is new pokemon you have seen
         # Reward teh agent for catching new pokemon to copmlete the pokedex
@@ -529,8 +547,6 @@ class Environment(Base):
         # Reward the increaseing the team pokemon levels
         prev_party, prev_party_size, prev_party_levels = ram_map.party(self.game)
         
-        # Previous Health Ratio
-        prev_health_ratio = ram_map.party_health_ratio(self.game)
         
         # Previous own a gym badge
         prev_badges_one  = ram_map.check_if_player_has_gym_one_badge(self.game)
@@ -540,8 +556,7 @@ class Environment(Base):
         
         
         state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
-        run_action_on_emulator(self.game, self.screen, ACTIONS[action],
-            self.headless, fast_video=fast_video)
+        self.run_action_on_emulator(action)
         self.time += 1
         next_state_internal_game: game_state.Internal_Game_State = Internal_Game_State( game = self.game)
         self.external_game_state.update( game = self.game , current_interngal_game_state = state_internal_game ,  next_next_internal_game_state  = next_state_internal_game)
@@ -838,8 +853,8 @@ class Environment(Base):
         self.last_map = current_map
     # Code snippet https://github.com/thatguy11325/pokemonred_puffer/blob/main/pokemonred_puffer/environment.py
     def find_neighboring_sign(self, sign_id, player_direction, player_x, player_y) -> bool:
-        sign_y = self.game.get_memory_value(0xD4B1 + (2 * sign_id))
-        sign_x = self.game.get_memory_value(0xD4B1 + (2 * sign_id + 1))
+        sign_y = self.game.memory[0xD4B1 + (2 * sign_id)]
+        sign_x = self.game.memory[0xD4B1 + (2 * sign_id + 1)]
 
         # Check if player is facing the sign (skip sign direction)
         # 0 - down, 4 - up, 8 - left, 0xC - right
@@ -872,8 +887,8 @@ class Environment(Base):
         
         self.visited_pokecenter_list = []
     def find_neighboring_npc(self, npc_id, player_direction, player_x, player_y) -> int:
-        npc_y = self.game.get_memory_value(0xC104 + (npc_id * 0x10))
-        npc_x = self.game.get_memory_value(0xC106 + (npc_id * 0x10))
+        npc_y = self.game.memory[0xC104 + (npc_id * 0x10)]
+        npc_x = self.game.memory[0xC106 + (npc_id * 0x10)]
 
         # Check if player is facing the NPC (skip NPC direction)
         # 0 - down, 4 - up, 8 - left, 0xC - right
@@ -909,7 +924,7 @@ class Environment(Base):
         party_size = self.read_m(PARTY_SIZE)
         for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
             for m in range(12):  # Number of offsets for IV/DV
-                self.game.set_memory_value(i + 17 + m, 0xFF)
+                self.game.memory[i + 17 + m] = 0xFF
     def _get_obs(self):
         player_x, player_y, map_n = ram_map.position(self.game)
         return {
