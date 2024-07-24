@@ -1,5 +1,6 @@
 from pdb import set_trace as T
 from io import BytesIO
+import os
 
 from pyboy import PyBoy
 from pyboy.utils import WindowEvent
@@ -48,11 +49,15 @@ class Select:
 VALID_ACTION = ACTIONS = (Down, Left, Right, Up, A, B)
 
 def make_env(gb_path, headless=True, quiet=False):
+    assert os.path.exists(gb_path), f"Could not find {gb_path}"
+    assert os.path.exists(os.path.join(os.path.dirname(__file__), "pokered.sym")), "Could not find pokered.sym"  
     gb_path='pokemon_red.gb'
     game = PyBoy(
         gb_path,
         sound = False , 
-        window_type='null'
+        window_type='null' , 
+        log_level = "CRITICAL" , 
+        symbols=os.path.join(os.path.dirname(__file__), "pokered.sym"),
     )
 
     #screen = game.botsupport_manager().screen()
