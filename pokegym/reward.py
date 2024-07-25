@@ -22,7 +22,7 @@ class Reward:
     
     reward_for_taking_action_that_start_playing_the_gym_player_music:int = 0
     
-    reward_for_using_bad_moves:int = 0
+    reward_for_using_bad_moves:float = 0
     
     knocking_out_enemy_pokemon:float = 0
     
@@ -54,6 +54,7 @@ class Reward:
                  negative_reward_for_wiping_out_coef:float = 1.0,
                  reward_for_explore_unique_coor_coef:float = 1.0 ,
                  negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef = 1.0 ,
+                 reward_for_using_bad_moves_coef = 1.0
                  ):
         
         if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size and external_game_state.max_party_size:
@@ -72,8 +73,8 @@ class Reward:
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
             self.reward_for_taking_action_that_start_playing_the_gym_player_music = 1
         
-        if next_state_internal_game_state.player_selected_move_id in [GROWL_DECIMAL_VALUE_OF_MOVE_ID , TAIL_DECIAML_VALUE_OF_MOVE_ID , LEER_DECIMAL_VALUE_OF_MOVE_ID]:
-            self.reward_for_using_bad_moves -= 1
+        if next_state_internal_game_state.player_selected_move_id in [GROWL_DECIMAL_VALUE_OF_MOVE_ID , TAIL_DECIAML_VALUE_OF_MOVE_ID , LEER_DECIMAL_VALUE_OF_MOVE_ID] and current_state_internal_game_state.player_selected_move_id not in [GROWL_DECIMAL_VALUE_OF_MOVE_ID , TAIL_DECIAML_VALUE_OF_MOVE_ID , LEER_DECIMAL_VALUE_OF_MOVE_ID]:
+            self.reward_for_using_bad_moves -= 1 * reward_for_using_bad_moves_coef
             assert self.reward_for_using_bad_moves <= 0
         
         if self.took_the_step_to_win_a_wild_battle(current_state_internal_game_state , next_state_internal_game_state):

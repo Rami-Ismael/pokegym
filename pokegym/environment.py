@@ -225,6 +225,7 @@ class Environment(Base):
             reward_for_entering_a_trainer_battle_coef:float = 1.0,
             negative_reward_for_wiping_out_coef:float = 1.0,
             negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = 1.0 , 
+            reward_for_using_bad_moves_coef:float = 1.0
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -334,6 +335,7 @@ class Environment(Base):
         self.reward_for_entering_a_trainer_battle_coef:float = reward_for_entering_a_trainer_battle_coef
         self.negative_reward_for_wiping_out_coef:float = negative_reward_for_wiping_out_coef
         self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef
+        self.reward_for_using_bad_moves_coef = reward_for_using_bad_moves_coef
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
@@ -596,6 +598,7 @@ class Environment(Base):
                                                     negative_reward_for_wiping_out_coef = self.negative_reward_for_wiping_out_coef,
                                                     reward_for_explore_unique_coor_coef = self.reward_for_explore_unique_coor_coef,
                                                     negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef = self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef,
+                                                    reward_for_using_bad_moves_coef = self.reward_for_using_bad_moves_coef
                                                     )
 
         # Seen Coordinate
