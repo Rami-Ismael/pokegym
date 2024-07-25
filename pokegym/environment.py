@@ -755,7 +755,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time %  self.display_info_interval_divisor == 0 or done or self.time == 2 or self.time == 4:
+        if self.time %  self.display_info_interval_divisor == 0 or done or self.time == 2 or self.time == 4 or self.time == 8:
             info = {
                 'reward': {
                     'reward': reward,
