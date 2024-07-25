@@ -225,7 +225,7 @@ class Environment(Base):
             reward_for_entering_a_trainer_battle_coef:float = 1.0,
             negative_reward_for_wiping_out_coef:float = 1.0,
             negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = 1.0 , 
-            reward_for_using_bad_moves_coef:float = 1.0
+            reward_for_using_bad_moves_coef:float = 1.0 , 
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
