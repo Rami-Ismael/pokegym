@@ -687,6 +687,7 @@ class Environment(Base):
         next_state_money = ram_map.money(self.game)
         assert next_state_money >= 0 and next_state_money <= 999999, f"next_state_money: {next_state_money}"
         normalize_gain_of_new_money_reward = normalize_value(next_state_money - current_state_money, -999999, 999999, -1, 1)
+        normalize_gain_of_new_money_reward = max(0 , normalize_gain_of_new_money_reward)
         if next_state_money - current_state_money == 0 and normalize_gain_of_new_money_reward == .5:
             assert False, f"next_state_money: {next_state_money} current_state_money: {current_state_money} and the normalize_gain_of_new_money_reward is {normalize_gain_of_new_money_reward}"
         assert normalize_gain_of_new_money_reward >=  ( -1.0 - 1e5) and normalize_gain_of_new_money_reward <= 1.0, f"normalize_gain_of_new_money_reward: {normalize_gain_of_new_money_reward} the current state money is {current_state_money} and the next state money is {next_state_money}"
@@ -740,7 +741,7 @@ class Environment(Base):
 
         info = {}
         done = self.time >= self.max_episode_steps
-        if self.time %  self.display_info_interval_divisor == 0 or done or self.time == 2:
+        if self.time %  self.display_info_interval_divisor == 0 or done or self.time == 1 or self.time == 2  or self.time==3 or self.time == 4:
             info = {
                 'reward': {
                     'reward': reward,
