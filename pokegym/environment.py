@@ -226,6 +226,7 @@ class Environment(Base):
             negative_reward_for_wiping_out_coef:float = 1.0,
             negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = 1.0 , 
             reward_for_using_bad_moves_coef:float = 1.0 , 
+            disable_wild_encounters:bool = False,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -340,6 +341,7 @@ class Environment(Base):
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
         
+        self.disable_wild_encounters = disable_wild_encounters 
         
         self.probaility_wild_grass_pokemon_encounter_rate_per_env = -1
         if self.random_wild_grass_pokemon_encounter_rate_per_env:
@@ -402,7 +404,23 @@ class Environment(Base):
         old_observation = self._get_obs()
         old_observation.update(observation_game_state.to_json())
         return old_observation, {}
+    
+    def register_hooks(self):
+        if self.disable_wild_encounters:
+            self.setup_disable_wild_encounters()
 
+    def setup_disable_wild_encounters(self):
+        bank, addr = self.game.symbol_lookup("TryDoWildEncounter.gotWildEncounterType")
+        self.game.hook_register(
+            bank,
+            addr + 8,
+            self.disable_wild_encounter_hook,
+            None,
+        )
+    def disable_wild_encounter_hook(self, *args, **kwargs):
+        self.game.memory[self.game.symbol_lookup("wRepelRemainingSteps")[1]] = 0xFF
+        # https://bulbapedia.bulbagarden.net/wiki/Repel
+        self.game.memory[self.game.symbol_lookup("wCurEnemyLVL")[1]] = 0x01 # In Generation I, and from Generation VI onwards, this applies to wild Pokémon with a lower level than the first member of the party.
 
     
     def get_game_coords(self):
