@@ -21,7 +21,6 @@ EVENT_FLAGS_END = (
     0xD7F6  # 0xD761 # 0xD886 temporarily lower event flag range for obs input
 )
 
-PARTY_SIZE = 0xD163
 CUT_SEQ = [
     ((0x3D, 1, 1, 0, 4, 1), (0x3D, 1, 1, 0, 1, 1)),
     ((0x50, 1, 1, 0, 4, 1), (0x50, 1, 1, 0, 1, 1)),
@@ -226,7 +225,7 @@ class Environment(Base):
             negative_reward_for_wiping_out_coef:float = 1.0,
             negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = 1.0 , 
             reward_for_using_bad_moves_coef:float = 1.0 , 
-            disable_wild_encounters:bool = False,
+            disable_wild_encounters:bool = True,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -341,7 +340,8 @@ class Environment(Base):
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
         
-        self.disable_wild_encounters = disable_wild_encounters 
+        self.disable_wild_encounters = disable_wild_encounters
+        self.register_hooks()
         
         self.probaility_wild_grass_pokemon_encounter_rate_per_env = -1
         if self.random_wild_grass_pokemon_encounter_rate_per_env:
@@ -976,6 +976,7 @@ class Environment(Base):
     def bit_count(self, bits):
         return bin(bits).count("1")
     def set_perfect_iv_dvs(self):
+        PARTY_SIZE=PARTY_SIZE_ADDR = 0xD163
         party_size = self.read_m(PARTY_SIZE)
         for i in [0xD16B, 0xD197, 0xD1C3, 0xD1EF, 0xD21B, 0xD247][:party_size]:
             for m in range(12):  # Number of offsets for IV/DV
