@@ -55,7 +55,7 @@ def make_env(gb_path, headless=True, quiet=False):
     game = PyBoy(
         gb_path,
         sound = False , 
-        window_type='null' , 
+        window='null' , 
         log_level = "CRITICAL" , 
         symbols=os.path.join(os.path.dirname(__file__), "pokered.sym"),
     )
