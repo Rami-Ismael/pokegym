@@ -70,7 +70,7 @@ class Reward:
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state >= 0
         
         if current_state_internal_game_state.total_party_level < next_state_internal_game_state.total_party_level and next_state_internal_game_state.total_party_level > external_game_state.max_total_party_level:
-            self.reward_for_increasing_the_total_party_level =  1 * reward_for_increasing_the_total_party_level
+            self.reward_for_increasing_the_total_party_level =  ( ( 600 - external_game_state.max_total_party_level ) / 600) * reward_for_increasing_the_total_party_level
         
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
             self.reward_for_taking_action_that_start_playing_the_gym_player_music = 1
@@ -87,7 +87,7 @@ class Reward:
         
         
         if current_state_internal_game_state.highest_pokemon_level < next_state_internal_game_state.highest_pokemon_level and next_state_internal_game_state.highest_pokemon_level > external_game_state.max_highest_level_in_the_party_teams:
-            self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle =  ( next_state_internal_game_state.highest_pokemon_level - external_game_state.max_highest_level_in_the_party_teams )
+            self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle =  ( ( 100 - next_state_internal_game_state.highest_pokemon_level ) / 100 ) * reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef #( next_state_internal_game_state.highest_pokemon_level - external_game_state.max_highest_level_in_the_party_teams )
             assert self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle >= 0
         
         if not current_state_internal_game_state.wipe_out and next_state_internal_game_state.wipe_out:
