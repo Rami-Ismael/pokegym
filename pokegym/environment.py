@@ -226,6 +226,8 @@ class Environment(Base):
             negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = 1.0 , 
             reward_for_using_bad_moves_coef:float = 1.0 , 
             disable_wild_encounters:bool = True,
+            reward_for_increasing_the_total_party_level:float = 1.0,
+            reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -336,6 +338,8 @@ class Environment(Base):
         self.negative_reward_for_wiping_out_coef:float = negative_reward_for_wiping_out_coef
         self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef
         self.reward_for_using_bad_moves_coef = reward_for_using_bad_moves_coef
+        self. reward_for_increasing_the_total_party_level = reward_for_increasing_the_total_party_level
+        self.reward_for_knocking_out_wild_pokemon_by_battle_coef = reward_for_knocking_out_wild_pokemon_by_battle_coef
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
@@ -438,8 +442,7 @@ class Environment(Base):
                 self.game.screen.ndarray[:, :, 1], axis=-1
             )
         except Exception as e:
-            print(e)
-            T()
+            raise  e
 
         if self.reduce_res:
             game_pixels_render = game_pixels_render[::2, ::2, :] # # x, y, map_id
@@ -616,7 +619,9 @@ class Environment(Base):
                                                     negative_reward_for_wiping_out_coef = self.negative_reward_for_wiping_out_coef,
                                                     reward_for_explore_unique_coor_coef = self.reward_for_explore_unique_coor_coef,
                                                     negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef = self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef,
-                                                    reward_for_using_bad_moves_coef = self.reward_for_using_bad_moves_coef
+                                                    reward_for_using_bad_moves_coef = self.reward_for_using_bad_moves_coef , 
+                                                    reward_for_knocking_out_wild_pokemon_by_battle_coef = self.reward_for_knocking_out_wild_pokemon_by_battle_coef ,s
+                                                    reward_for_increasing_the_total_party_level = self.reward_for_increasing_the_total_party_level,
                                                     )
 
         # Seen Coordinate

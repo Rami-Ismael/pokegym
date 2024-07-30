@@ -108,6 +108,7 @@ class Internal_Game_State:
     enemy_pokemon_move_power: int = field(default_factory=int)
     enemy_pokemon_move_type: int = field(default_factory=int)
     enemy_pokemon_move_accuracy:float = field(default_factory=float)
+    enemy_pokemon_move_max_pp:int = field(default_factory=int)
     
     # World Map
     map_id: int = field(default_factory=int)
@@ -221,6 +222,7 @@ class Internal_Game_State:
         self.enemy_pokemon_move_power = ram_map.get_enemy_move_effect_target_address(game)
         self.enemy_pokemon_move_type = ram_map.get_enemy_pokemon_move_type(game)
         self.enemy_pokemon_move_accuracy = ram_map.get_enemy_pokemon_move_accuracy(game)
+        self.enemy_pokemon_move_max_pp = ram_map.get_enemy_pokemon_move_max_pp(game)
         
         # World Map
         self.map_id = ram_map.get_current_map_id(game)
@@ -306,7 +308,7 @@ class External_Game_State:
             self.number_of_time_entering_a_trainer_battle += 1
     def update_max_wild_pokemon_level(self, game , current_interngal_game_state , next_next_internal_game_state):
         if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.WILD_BATTLE:
-            self.max_wild_pokemon_level = max(self.max_wild_pokemon_level, game.enemy_current_pokemon_levelel)
+            self.max_wild_pokemon_level = max(self.max_wild_pokemon_level, next_next_internal_game_state.enemy_current_pokemon_levelel)
 
     
     #def update_visited_pokecenter_list(self, game_state) -> None:

@@ -577,3 +577,6 @@ def get_enemy_pokemon_move_accuracy(game):
 from pokegym.ram_reader.red_memory_world import CURRENT_MAP_ID
 def get_current_map_id(game):
     return game.memory[CURRENT_MAP_ID]
+from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_MAX_PP
+def get_enemy_pokemon_move_max_pp(game):
+    return game.memory[ENEMY_POKEMON_MOVE_MAX_PP]

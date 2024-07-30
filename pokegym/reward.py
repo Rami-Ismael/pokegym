@@ -54,7 +54,9 @@ class Reward:
                  negative_reward_for_wiping_out_coef:float = 1.0,
                  reward_for_explore_unique_coor_coef:float = 1.0 ,
                  negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef = 1.0 ,
-                 reward_for_using_bad_moves_coef = 1.0
+                 reward_for_using_bad_moves_coef = 1.0 , 
+                 reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 ,
+                 reward_for_increasing_the_total_party_level:float = 1.0
                  ):
         
         if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size and external_game_state.max_party_size:
@@ -68,7 +70,7 @@ class Reward:
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state >= 0
         
         if current_state_internal_game_state.total_party_level < next_state_internal_game_state.total_party_level and next_state_internal_game_state.total_party_level > external_game_state.max_total_party_level:
-            self.reward_for_increasing_the_total_party_level =  0
+            self.reward_for_increasing_the_total_party_level =  1 * reward_for_increasing_the_total_party_level
         
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
             self.reward_for_taking_action_that_start_playing_the_gym_player_music = 1
@@ -78,7 +80,7 @@ class Reward:
             assert self.reward_for_using_bad_moves <= 0
         
         if self.took_the_step_to_win_a_wild_battle(current_state_internal_game_state , next_state_internal_game_state):
-            self.knocking_out_wild_pokemon = .1
+            self.knocking_out_wild_pokemon = 1 * reward_for_knocking_out_wild_pokemon_by_battle_coef
         
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats != BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
             self.knocking_out_enemy_pokemon = .1
@@ -86,6 +88,7 @@ class Reward:
         
         if current_state_internal_game_state.highest_pokemon_level < next_state_internal_game_state.highest_pokemon_level and next_state_internal_game_state.highest_pokemon_level > external_game_state.max_highest_level_in_the_party_teams:
             self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle =  ( next_state_internal_game_state.highest_pokemon_level - external_game_state.max_highest_level_in_the_party_teams )
+            assert self.reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle >= 0
         
         if not current_state_internal_game_state.wipe_out and next_state_internal_game_state.wipe_out:
             self.negative_reward_for_wiping_out = -1.0 * negative_reward_for_wiping_out_coef
