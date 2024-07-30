@@ -620,7 +620,7 @@ class Environment(Base):
                                                     reward_for_explore_unique_coor_coef = self.reward_for_explore_unique_coor_coef,
                                                     negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef = self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef,
                                                     reward_for_using_bad_moves_coef = self.reward_for_using_bad_moves_coef , 
-                                                    reward_for_knocking_out_wild_pokemon_by_battle_coef = self.reward_for_knocking_out_wild_pokemon_by_battle_coef ,s
+                                                    reward_for_knocking_out_wild_pokemon_by_battle_coef = self.reward_for_knocking_out_wild_pokemon_by_battle_coef ,
                                                     reward_for_increasing_the_total_party_level = self.reward_for_increasing_the_total_party_level,
                                                     )
 
