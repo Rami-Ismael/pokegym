@@ -226,7 +226,7 @@ class Environment(Base):
             disable_wild_encounters:bool = True,
             reward_for_increasing_the_total_party_level:float = 1.0,
             reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 , 
-            level_up_reward_threshold:int = 8
+            level_up_reward_threshold:int = 8 , 
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
