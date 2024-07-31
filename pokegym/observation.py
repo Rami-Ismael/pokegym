@@ -74,6 +74,7 @@ class Observation:
     enemy_current_move_effect:int = field(default_factory=int)
     enemy_pokemon_move_power:float = field(default_factory=float)
     enemy_pokemon_move_type:int = field(default_factory=int)
+    #enemy_pokemon_move_max_pp:int = field(default_factory=int)
     
     # World Map
     map_id: int = field(default_factory=int)
@@ -246,7 +247,6 @@ class Observation:
         self.enemy_pokemon_move_type = new_dict[self.enemy_pokemon_move_type]
     def obs_enemy_pokemon_move_accuracy(self):
         return self.enemy_pokemon_move_accuracy / 255.0
-    
     def get_obs(self) -> dict[str, Any]:
         return asdict(self)
     def to_json(self):

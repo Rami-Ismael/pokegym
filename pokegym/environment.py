@@ -139,8 +139,6 @@ def play():
         input_events = env.game.get_input()
         env.game.tick()
         env.render()
-        if len(input_events) == 0:
-            continue
 
         for event in input_events:
             event_str = str(event)
@@ -228,6 +226,7 @@ class Environment(Base):
             disable_wild_encounters:bool = True,
             reward_for_increasing_the_total_party_level:float = 1.0,
             reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 , 
+            level_up_reward_threshold:int = 8
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -340,6 +339,7 @@ class Environment(Base):
         self.reward_for_using_bad_moves_coef = reward_for_using_bad_moves_coef
         self. reward_for_increasing_the_total_party_level = reward_for_increasing_the_total_party_level
         self.reward_for_knocking_out_wild_pokemon_by_battle_coef = reward_for_knocking_out_wild_pokemon_by_battle_coef
+        self.level_up_reward_threshold = level_up_reward_threshold
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()

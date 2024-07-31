@@ -6,15 +6,11 @@ from pokegym import pyboy_binding
 from rich import print
 
 from pokegym.pyboy_binding import (ACTIONS, make_env, open_state_file,
-    load_pyboy_state, run_action_on_emulator)
+    load_pyboy_state)
 from pokegym import ram_map, game_map
 from pokegym.environment import Environment
 
 from pyboy import PyBoy
-try:
-    from pyboy import logger
-except ImportError:
-    print('pyboy logger not found')
 from pyboy.utils import WindowEvent
 from rich import print
 from pokegym.environment import play

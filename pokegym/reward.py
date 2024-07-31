@@ -56,7 +56,8 @@ class Reward:
                  negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef = 1.0 ,
                  reward_for_using_bad_moves_coef = 1.0 , 
                  reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 ,
-                 reward_for_increasing_the_total_party_level:float = 1.0
+                 reward_for_increasing_the_total_party_level:float = 1.0 , 
+                 level_up_reward_threshold:float = 1.0 ,
                  ):
         
         if current_state_internal_game_state.party_size < next_state_internal_game_state.party_size and next_state_internal_game_state.party_size > external_game_state.max_party_size and external_game_state.max_party_size:
@@ -79,7 +80,7 @@ class Reward:
             self.reward_for_using_bad_moves -= 1 * reward_for_using_bad_moves_coef
             assert self.reward_for_using_bad_moves <= 0
         
-        if self.took_the_step_to_win_a_wild_battle(current_state_internal_game_state , next_state_internal_game_state):
+        if self.took_the_step_to_win_a_wild_battle(current_state_internal_game_state , next_state_internal_game_state) and abs(next_state_internal_game_state.highest_pokemon_level - next_state_internal_game_state.enemys_pokemon_level) <= level_up_reward_threshold:
             self.knocking_out_wild_pokemon = 1 * reward_for_knocking_out_wild_pokemon_by_battle_coef
         
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats != BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:

@@ -580,3 +580,5 @@ def get_current_map_id(game):
 from pokegym.ram_reader.red_memory_battle_stats import ENEMY_POKEMON_MOVE_MAX_PP
 def get_enemy_pokemon_move_max_pp(game):
     return game.memory[ENEMY_POKEMON_MOVE_MAX_PP]
+def get_enemy_pokemon_level(game):
+    return game.memory[ENEMYS_POKEMON_LEVEL]
