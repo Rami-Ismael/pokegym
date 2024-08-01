@@ -71,7 +71,8 @@ class Reward:
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state >= 0
         
         if current_state_internal_game_state.total_party_level < next_state_internal_game_state.total_party_level and next_state_internal_game_state.total_party_level > external_game_state.max_total_party_level:
-            self.reward_for_increasing_the_total_party_level =  ( ( 600 - external_game_state.max_total_party_level ) / 600) * reward_for_increasing_the_total_party_level
+            self.reward_for_increasing_the_total_party_level =  ( ( next_state_internal_game_state.party_size * 100  - external_game_state.max_total_party_level ) / (next_state_internal_game_state.party_size * 100 )) * reward_for_increasing_the_total_party_level
+            assert self.reward_for_increasing_the_total_party_level >= 0
         
         if not current_state_internal_game_state.gym_leader_music_is_playing and next_state_internal_game_state.gym_leader_music_is_playing:
             self.reward_for_taking_action_that_start_playing_the_gym_player_music = 1
@@ -80,8 +81,11 @@ class Reward:
             self.reward_for_using_bad_moves -= 1 * reward_for_using_bad_moves_coef
             assert self.reward_for_using_bad_moves <= 0
         
-        if self.took_the_step_to_win_a_wild_battle(current_state_internal_game_state , next_state_internal_game_state) and abs(next_state_internal_game_state.highest_pokemon_level - next_state_internal_game_state.enemys_pokemon_level) <= level_up_reward_threshold:
-            self.knocking_out_wild_pokemon = 1 * reward_for_knocking_out_wild_pokemon_by_battle_coef
+        if self.took_the_step_to_win_a_wild_battle(current_state_internal_game_state , next_state_internal_game_state):
+            assert next_state_internal_game_state.enemys_pokemon_level !=0
+            assert next_state_internal_game_state.highest_pokemon_level !=0
+            if next_state_internal_game_state.highest_pokemon_level - next_state_internal_game_state.enemys_pokemon_level <= level_up_reward_threshold:
+                self.knocking_out_wild_pokemon = 1 * reward_for_knocking_out_wild_pokemon_by_battle_coef
         
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats != BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
             self.knocking_out_enemy_pokemon = .1
