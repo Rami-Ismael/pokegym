@@ -64,7 +64,7 @@ class Reward:
             self.reward_for_increasing_the_max_size_of_the_trainer_team = 0
         # Events
         if current_state_internal_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
-            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * 2 ) 
+            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * 10 ) 
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state >= 0
         if external_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
             self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state +=  ( next_state_internal_game_state.total_events_that_occurs_in_game - external_game_state.total_events_that_occurs_in_game )
@@ -82,8 +82,9 @@ class Reward:
             assert self.reward_for_using_bad_moves <= 0
         
         if self.took_the_step_to_win_a_wild_battle(current_state_internal_game_state , next_state_internal_game_state):
-            assert next_state_internal_game_state.enemys_pokemon_level !=0
-            assert next_state_internal_game_state.highest_pokemon_level !=0
+            assert next_state_internal_game_state.enemys_pokemon_level > 0
+            assert next_state_internal_game_state.highest_pokemon_level > 0
+            assert current_state_internal_game_state.enemy_pokemon_level > 0
             if next_state_internal_game_state.highest_pokemon_level - next_state_internal_game_state.enemys_pokemon_level <= level_up_reward_threshold:
                 self.knocking_out_wild_pokemon = 1 * reward_for_knocking_out_wild_pokemon_by_battle_coef
         
