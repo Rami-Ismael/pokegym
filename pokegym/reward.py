@@ -85,7 +85,7 @@ class Reward:
             assert next_state_internal_game_state.enemys_pokemon_level > 0
             assert next_state_internal_game_state.highest_pokemon_level > 0
             assert current_state_internal_game_state.enemys_pokemon_level > 0
-            if next_state_internal_game_state.highest_pokemon_level - next_state_internal_game_state.enemys_pokemon_level <= level_up_reward_threshold:
+            if abs(next_state_internal_game_state.highest_pokemon_level - next_state_internal_game_state.enemys_pokemon_level) <= level_up_reward_threshold:
                 self.knocking_out_wild_pokemon = 1 * reward_for_knocking_out_wild_pokemon_by_battle_coef
         
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats != BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
