@@ -273,6 +273,7 @@ class External_Game_State:
     # Battles
     number_of_wild_battle:int = 0 
     number_of_time_entering_a_trainer_battle:int = 0
+    number_of_time_winning_a_trainer_battle:int = 0
     
 
     
@@ -287,6 +288,7 @@ class External_Game_State:
         self.total_number_of_wipe_out_in_episode+=game.wipe_out
         self.max_enemy_pokemon_base_exp_yeild:int = max(self.max_enemy_pokemon_base_exp_yeild , game.enemy_pokemon_base_exp_yeild)
         self.update_number_of_time_entering_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
+        self.update_number_of_time_winning_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
         self.update_max_wild_pokemon_level(game, current_internal_game_state , next_internal_game_state)
         self.update_seen_map_ids(game, current_internal_game_state , next_internal_game_state)
         self.seen_coords.add((next_internal_game_state.player_x, next_internal_game_state.player_y , next_internal_game_state.map_id))
@@ -308,6 +310,9 @@ class External_Game_State:
     def update_number_of_time_entering_a_trainer_battle(self, game, current_interngal_game_state , next_next_internal_game_state):
         if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.TRAINER_BATTLE:
             self.number_of_time_entering_a_trainer_battle += 1
+    def update_number_of_time_winning_a_trainer_battle(self, game, current_interngal_game_state , next_next_internal_game_state):
+        if current_interngal_game_state.battle_stats == ram_map.BattleState.TRAINER_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_result == ram_map.BattleResult.WIN:
+            self.number_of_time_winning_a_trainer_battle += 1
     def update_max_wild_pokemon_level(self, game , current_interngal_game_state , next_next_internal_game_state):
         if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.WILD_BATTLE:
             self.max_wild_pokemon_level = max(self.max_wild_pokemon_level, next_next_internal_game_state.enemys_pokemon_level)
