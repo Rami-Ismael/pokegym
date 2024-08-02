@@ -272,6 +272,7 @@ class External_Game_State:
     
     # Battles
     number_of_wild_battle:int = 0 
+    number_of_wild_battle_wins:int = 0
     number_of_time_entering_a_trainer_battle:int = 0
     number_of_time_winning_a_trainer_battle:int = 0
     
@@ -287,6 +288,8 @@ class External_Game_State:
         self.max_highest_level_in_the_party_teams = max( self.max_highest_level_in_the_party_teams , game.highest_pokemon_level)
         self.total_number_of_wipe_out_in_episode+=game.wipe_out
         self.max_enemy_pokemon_base_exp_yeild:int = max(self.max_enemy_pokemon_base_exp_yeild , game.enemy_pokemon_base_exp_yeild)
+        self.update_number_of_wild_battle(game, current_internal_game_state , next_internal_game_state)
+        self.update_number_of_wild_battle_wins(game, current_internal_game_state , next_internal_game_state)
         self.update_number_of_time_entering_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
         self.update_number_of_time_winning_a_trainer_battle(game, current_internal_game_state , next_internal_game_state)
         self.update_max_wild_pokemon_level(game, current_internal_game_state , next_internal_game_state)
@@ -307,6 +310,12 @@ class External_Game_State:
                 self.number_of_battles_loses += 1
             elif battle_result == ram_map.BattleResult.DRAW:
                 self.number_of_battles_draw += 1
+    def update_number_of_wild_battle_wins(self, game, current_interngal_game_state , next_next_internal_game_state):
+        if current_interngal_game_state.battle_stats == ram_map.BattleState.WILD_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_result == ram_map.BattleResult.WIN and current_interngal_game_state.party_size == next_next_internal_game_state.party_size:
+            self.number_of_wild_battle_wins += 1
+    def update_number_of_wild_battle(self, game, current_interngal_game_state , next_next_internal_game_state):
+        if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.WILD_BATTLE:
+            self.number_of_wild_battle += 1
     def update_number_of_time_entering_a_trainer_battle(self, game, current_interngal_game_state , next_next_internal_game_state):
         if current_interngal_game_state.battle_stats == ram_map.BattleState.NOT_IN_BATTLE and next_next_internal_game_state.battle_stats == ram_map.BattleState.TRAINER_BATTLE:
             self.number_of_time_entering_a_trainer_battle += 1

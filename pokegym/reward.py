@@ -33,6 +33,7 @@ class Reward:
     negative_reward_for_wiping_out:float = 0
 
     reward_for_entering_a_trainer_battle:float = 0
+    reward_for_winning_a_trainer_battle:float = 0
     
     # Extra Exploration Bonus
     reward_for_finding_higher_enemy_pokemon_base_exp_yeild:int = 0
@@ -85,7 +86,7 @@ class Reward:
             assert next_state_internal_game_state.enemys_pokemon_level > 0
             assert next_state_internal_game_state.highest_pokemon_level > 0
             assert current_state_internal_game_state.enemys_pokemon_level > 0
-            if abs(next_state_internal_game_state.highest_pokemon_level - next_state_internal_game_state.enemys_pokemon_level) <= level_up_reward_threshold:
+            if abs(current_state_internal_game_state.highest_pokemon_level - current_state_internal_game_state.enemys_pokemon_level) <= level_up_reward_threshold:
                 self.knocking_out_wild_pokemon = 1 * reward_for_knocking_out_wild_pokemon_by_battle_coef
         
         if current_state_internal_game_state.enemy_pokemon_hp  > 0 and next_state_internal_game_state.enemy_pokemon_hp == 0 and current_state_internal_game_state.battle_stats != BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
@@ -98,6 +99,10 @@ class Reward:
         
         if not current_state_internal_game_state.wipe_out and next_state_internal_game_state.wipe_out:
             self.negative_reward_for_wiping_out = -1.0 * negative_reward_for_wiping_out_coef
+        
+        self.reward_for_winning_a_trainer_battle = 0
+        if current_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.battle_result == BattleResult.WIN and next_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
+            self.reward_for_winning_a_trainer_battle = 10
         
         # Exploration Benefit
         if current_state_internal_game_state.enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild and external_game_state.max_enemy_pokemon_base_exp_yeild < next_state_internal_game_state.enemy_pokemon_base_exp_yeild:
@@ -128,10 +133,10 @@ class Reward:
             self.reward_for_having_last_black_out_id_proximaly_an_pokecenter = 1
     def update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_player_moving_to_a_pokecenter_coef:float = 1.0):
         if current_state_internal_game_state.player_current_monster_stats_modifier_accuracy > next_state_internal_game_state.player_current_monster_stats_modifier_accuracy and next_state_internal_game_state.player_current_monster_stats_modifier_accuracy > 0:
-            self.negative_reward_for_player_monster_stats_modifier_accuracy_drop = -1 # to make sand attack stop considering this action
+            self.negative_reward_for_player_monster_stats_modifier_accuracy_drop = -.5 # to make sand attack stop considering this action
     def update_negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_player_moving_to_a_pokecenter_coef:float = 1.0):
         if next_state_internal_game_state.player_current_pokemon_level < next_state_internal_game_state.enemy_current_pokemon_levelel:
-            self.negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon = -1 # stop fighting with weak pokemon 
+            self.negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon = -.5 # stop fighting with weak pokemon 
     def update_reward_for_finding_higher_level_wild_pokemon(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0 , ):
         if external_game_state.max_wild_pokemon_level < next_state_internal_game_state.enemy_current_pokemon_levelel and current_state_internal_game_state == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE:
             self.reward_for_finding_higher_level_wild_pokemon = 1
