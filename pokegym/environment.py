@@ -299,10 +299,10 @@ class Environment(Base):
             
             
             ### Trainer Opponents
-            "enemy_trainer_pokemon_hp": spaces.Box(low=0, high=705, shape=(6,), dtype=np.float16) , 
+            "enemy_trainer_pokemon_hp": spaces.Box(low=0, high=705, shape=(6,), dtype=np.float32) , 
             
             ### Wild Opponents I think
-            "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.float16),
+            "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.float32)
             
             ## Events
             "total_events_that_occurs_in_game": spaces.Box(low=0, high=2560, shape=(1,), dtype=np.float32),
