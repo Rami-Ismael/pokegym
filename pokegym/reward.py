@@ -143,7 +143,7 @@ class Reward:
             self.reward_for_finding_higher_level_wild_pokemon = 1
     def update_reward_for_finding_new_maps(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_new_maps_coef:float = 1.0):
         if current_state_internal_game_state.map_id != next_state_internal_game_state.map_id and  external_game_state.seen_map_ids[next_state_internal_game_state.map_id] == 0:
-            self.reward_for_finding_new_maps = 1
+            self.reward_for_finding_new_maps = 4
     def update_reward_for_seeing_new_coords( self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_explore_unique_coor_coef:float = 1.0):
         if ( next_state_internal_game_state.player_x  , next_state_internal_game_state.player_y  , next_state_internal_game_state.map_id) not in external_game_state.seen_coords:
             self.reward_for_seeing_new_coords = 1 * reward_for_explore_unique_coor_coef
