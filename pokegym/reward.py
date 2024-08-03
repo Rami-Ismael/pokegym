@@ -58,6 +58,7 @@ class Reward:
                  reward_for_using_bad_moves_coef = 1.0 , 
                  reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 ,
                  reward_for_increasing_the_total_party_level:float = 1.0 , 
+                 reward_for_doing_new_events:float = 1.0 ,
                  level_up_reward_threshold:float = 1.0 ,
                  ):
         
@@ -65,7 +66,7 @@ class Reward:
             self.reward_for_increasing_the_max_size_of_the_trainer_team = 0
         # Events
         if current_state_internal_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
-            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * 10 ) 
+            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * reward_for_doing_new_events  ) 
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state >= 0
         if external_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
             self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state +=  ( next_state_internal_game_state.total_events_that_occurs_in_game - external_game_state.total_events_that_occurs_in_game )
@@ -130,7 +131,7 @@ class Reward:
             self.reward_for_entering_a_trainer_battle = 1 * reward_for_entering_a_trainer_battle_coef
     def update_reward_for_having_last_black_out_id_proximaly_an_pokecenter(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_having_last_black_out_id_proximaly_an_pokecenter_coef:float = 1.0):
         if current_state_internal_game_state.last_black_out_map_id < next_state_internal_game_state.last_black_out_map_id and next_state_internal_game_state.last_black_out_map_id in [1 , 2]:
-            self.reward_for_having_last_black_out_id_proximaly_an_pokecenter = 1
+            self.reward_for_having_last_black_out_id_proximaly_an_pokecenter = 10
     def update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_player_moving_to_a_pokecenter_coef:float = 1.0):
         if current_state_internal_game_state.player_current_monster_stats_modifier_accuracy > next_state_internal_game_state.player_current_monster_stats_modifier_accuracy and next_state_internal_game_state.player_current_monster_stats_modifier_accuracy > 0:
             self.negative_reward_for_player_monster_stats_modifier_accuracy_drop = -.5 # to make sand attack stop considering this action

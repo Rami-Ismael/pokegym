@@ -21,6 +21,7 @@ EVENT_FLAGS_END = (
     0xD7F6  # 0xD761 # 0xD886 temporarily lower event flag range for obs input
 )
 
+WCUTTILE = 0xCD4D # 61 if Cut used; 0 default. resets to default on map_n change or battle.
 CUT_SEQ = [
     ((0x3D, 1, 1, 0, 4, 1), (0x3D, 1, 1, 0, 1, 1)),
     ((0x50, 1, 1, 0, 4, 1), (0x50, 1, 1, 0, 1, 1)),
@@ -226,6 +227,7 @@ class Environment(Base):
             disable_wild_encounters:bool = True,
             reward_for_increasing_the_total_party_level:float = 1.0,
             reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 , 
+            reward_for_doing_new_events:float = 1.0,
             level_up_reward_threshold:int = 8 , 
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
@@ -340,6 +342,7 @@ class Environment(Base):
         self. reward_for_increasing_the_total_party_level = reward_for_increasing_the_total_party_level
         self.reward_for_knocking_out_wild_pokemon_by_battle_coef = reward_for_knocking_out_wild_pokemon_by_battle_coef
         self.level_up_reward_threshold = level_up_reward_threshold
+        self.reward_for_doing_new_events = reward_for_doing_new_events
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
@@ -410,9 +413,34 @@ class Environment(Base):
         return old_observation, {}
     
     def register_hooks(self):
+        #if self.setup_make_sure_never_reach_zero()
         if self.disable_wild_encounters:
             self.setup_disable_wild_encounters()
-
+    def setup_make_sure_never_reach_zero(self):
+        from pokegym.ram_map import HP_ADDR , MAX_HP_ADDR
+        from pokegym.ram_reader.red_memory_battle_stats import PLAYER_CURRENT_BATTLE_POKEMON_CURRENT_HP , PLAYER_CURRENT_BATTLE_POKEMON_MAX_HP
+        bank , addr = self.game.symbol_lookup("wBattleMonHP")
+        self.game.hook_register(
+            bank,
+            addr,
+            self.make_sure_never_reach_zero,
+            None,
+        )
+        bank , addr = self.game.symbol_lookup("wBattleMonMaxHP")
+        self.game.hook_register(
+            bank,
+            addr,
+            self.make_sure_never_reach_zero,
+            None,
+        )
+    def make_sure_never_reach_zero(self, *args, **kwargs):
+        self.game.memory[self.game.symbol_lookup("wBattleMonHP")[1]] = 1000
+        assert isinstance(self.game.memory[self.game.symbol_lookup("wBattleMonHP")[1]] == 1 , int) , T()
+        assert 0xD015 + 1 == 0xD016 , T()
+        assert self.game.symbol_lookup("wBattleMonMaxHP")[1] == 0xD016 , T()
+        self.game.memory[self.game.symbol_lookup("wBattleMonMaxHP")[1] + 1] = 1
+        self.game.memory[self.game.symbol_lookup("wBattleMonMaxHP")[1] + 1] = 1000
+        
     def setup_disable_wild_encounters(self):
         bank, addr = self.game.symbol_lookup("TryDoWildEncounter.gotWildEncounterType")
         self.game.hook_register(
@@ -621,6 +649,7 @@ class Environment(Base):
                                                     negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef = self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef,
                                                     reward_for_using_bad_moves_coef = self.reward_for_using_bad_moves_coef , 
                                                     reward_for_knocking_out_wild_pokemon_by_battle_coef = self.reward_for_knocking_out_wild_pokemon_by_battle_coef ,
+                                                    reward_for_doing_new_events = self.reward_for_doing_new_events,
                                                     reward_for_increasing_the_total_party_level = self.reward_for_increasing_the_total_party_level,
                                                     )
 
