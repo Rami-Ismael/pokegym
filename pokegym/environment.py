@@ -427,7 +427,7 @@ class Environment(Base):
     
     def register_hooks(self):
         #if self.setup_make_sure_never_reach_zero()
-        if self.multiple_exp_gain_by_n !=1 1:
+        if self.multiple_exp_gain_by_n !=1 :
             self.setup_multiple_exp_gain_by_n()
         if self.disable_wild_encounters:
             self.setup_disable_wild_encounters()
