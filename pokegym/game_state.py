@@ -116,6 +116,10 @@ class Internal_Game_State:
     player_x:int = field(default_factory=int)
     player_y:int = field(default_factory=int)
     
+    # Expereinces
+    gained_boosted_exp: int = field(default_factory=int)
+    exp_amount_gained: int = field(default_factory=int)
+    
     
 
 
@@ -229,6 +233,10 @@ class Internal_Game_State:
         # World Map
         self.map_id = ram_map.get_current_map_id(game)
         self.player_x , self.player_y,_ = ram_map.position(game)
+        
+        ## Experiences
+        self.gained_boosted_exp = ram_map.get_wGainBoostedExp(game)
+        self.exp_amount_gained = ram_map.get_w_exp_amount_gained(game)
         
         self.validation()
     def to_json(self) -> dict:
