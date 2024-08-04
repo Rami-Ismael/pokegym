@@ -346,86 +346,6 @@ class Environment(Base):
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
-        self.observation_space = spaces.Dict({
-            'screen': spaces.Box(
-                low=0, high=255, dtype=np.uint8,
-                shape=(R // 2, C // 2, 3),
-            ),
-            "visited_mask": spaces.Box(
-                    low=0, high=255, shape=self.screen_output_shape, dtype=np.uint8
-            ),
-            "global_map": spaces.Box(
-                    low=0, high=255, shape=self.screen_output_shape, dtype=np.uint8
-            ),
-            # Discrete is more apt, but pufferlib is slower at processing Discrete
-            "direction": spaces.Box(low=0, high=4, shape=(1,), dtype=np.uint8),
-            "x": spaces.Box(low=0, high=444, shape=(1,), dtype=np.float32),
-            "y": spaces.Box(low=0, high=436, shape=(1,), dtype=np.float32),
-            "map_id": spaces.Box(low=0, high=0xF7, shape=(1,), dtype=np.float32),
-            "map_music_sound_bank": spaces.Box(low=0, high=3, shape=(1,), dtype=np.uint8),
-            "map_music_sound_id": spaces.Box(low=0, high=84, shape=(1,), dtype=np.uint8),
-            "party_size": spaces.Box(low = 1 , high = 6, shape=(1,), dtype=np.uint8),
-            "each_pokemon_level": spaces.Box(low = 1, high = 100, shape=(6,), dtype=np.uint8),
-            "total_party_level": spaces.Box(low = 0, high = 100, shape=(1,), dtype=np.uint8),
-            "battle_stats": spaces.Box(low = 0, high = 4, shape=(1,), dtype=np.uint8),
-            "battle_result": spaces.Box(low = 0, high = 4, shape=(1,), dtype=np.uint8),
-            "number_of_turns_in_current_battle": spaces.Box(low = 0, high = 255, shape=(1,), dtype=np.uint8),
-            "each_pokemon_health_points": spaces.Box(low = 0, high = 99, shape=(6,), dtype=np.uint8),
-            "each_pokemon_max_health_points": spaces.Box(low = 0, high = 99, shape=(6,), dtype=np.uint8),
-            "total_party_health_points": spaces.Box(low = 0, high = 99, shape=(1,), dtype=np.uint8),
-            "total_party_max_hit_points": spaces.Box(low = 0, high = 1, shape=(1,), dtype=np.float32),
-            "low_health_alarm": spaces.Box(low = 0, high = 1, shape=(1,), dtype=np.uint8),
-            "opponent_pokemon_levels": spaces.Box(low = 0, high = 100, shape=(6,), dtype=np.uint8),
-            "total_number_of_items": spaces.Box(low = 0, high = 64, shape=(1,), dtype=np.uint8),
-            "money": spaces.Box(low = 0, high = 999999, shape=(1,), dtype=np.uint32),
-            "player_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
-            "enemy_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
-            #"total_number_of_unique_moves_in_the_teams": spaces.Box(low = 0, high = 24, shape=(1,), dtype=np.uint8)
-            "player_xp": spaces.Box(low=0, high=1, shape=(6, ), dtype=np.float32),
-            "total_player_lineup_xp": spaces.Box(low=0, high=250000, shape=(1,), dtype=np.float32),
-            "total_pokemon_seen": spaces.Box(low=0, high=152, shape=(1,), dtype=np.uint8),
-            "pokemon_seen_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
-            "byte_representation_of_caught_pokemon_in_the_pokedex": spaces.Box(low=0, high=1, shape=(19,), dtype=np.uint8),
-            
-            # Player
-            
-            "pokemon_party_move_id": spaces.Box(low=0, high=255, shape=(24,), dtype=np.uint8),
-            
-            ## POkemon
-            "each_pokemon_pp": spaces.Box(low=0, high=40, shape=(24,), dtype=np.uint8),
-            
-            
-            ### Trainer Opponents
-            "enemy_trainer_pokemon_hp": spaces.Box(low=0, high=705, shape=(6,), dtype=np.float32) , 
-            
-            ### Wild Opponents I think
-            "enemy_pokemon_hp": spaces.Box(low=0, high=705, shape=(1,), dtype=np.float32) , 
-            
-            ## Events
-            "total_events_that_occurs_in_game": spaces.Box(low=0, high=2560, shape=(1,), dtype=np.float32),
-            "time": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_monster_actually_catch_rate": spaces.Box(low=0 , high = 1 , shape=(1,), dtype=np.float32) , 
-            
-            # World
-            "last_black_out_map_id": spaces.Box(low=0, high=150, shape=(1,), dtype=np.float32),
-            # Battle Stuff
-            "player_current_monster_stats_modifier_attack": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "player_current_monster_stats_modifier_defense": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "player_current_monster_stats_modifier_speed": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "player_current_monster_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "player_current_monster_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            
-            "enemy_current_pokemon_stats_modifier_attack": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_current_pokemon_stats_modifier_defense": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_current_pokemon_stats_modifier_speed": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_current_pokemon_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_current_pokemon_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_current_pokemon_stats_modifier_evasion": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_current_move_effect": spaces.Box(low=0, high=56, shape=(1,), dtype=np.uint8),
-            "enemy_pokemon_move_power" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_pokemon_move_type" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_pokemon_move_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
-        })
         self.disable_wild_encounters = disable_wild_encounters
         self.register_hooks()
         
@@ -434,6 +354,7 @@ class Environment(Base):
             import random
             self.probaility_wild_grass_pokemon_encounter_rate_per_env = random.randint(0 , 255)
         self.first = True
+        self.set_of_map_ids_explored = set()
 
 
     def reset(self, seed=None,  options = None ):
@@ -742,7 +663,6 @@ class Environment(Base):
                                                     reward_for_doing_new_events = self.reward_for_doing_new_events,
                                                     reward_for_increasing_the_total_party_level = self.reward_for_increasing_the_total_party_level,
                                                     )
-
         # Seen Coordinate
         self.update_seen_coords()
         ### Cut and Talking to NPCS
