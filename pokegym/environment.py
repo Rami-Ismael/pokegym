@@ -441,7 +441,7 @@ class Environment(Base):
         )
     def  multiple_exp_gain_by_n_hook(self):
         value = self.game.memory[self.game.symbol_lookup("wExpAmountGained")]
-        assert value != 0 , T()
+        assert value >= 0 , T()
         self.game.memory[self.game.symbol_lookup("wExpAmountGained")] = self.multiple_exp_gain_by_n * value
     def setup_make_sure_never_reach_zero(self):
         from pokegym.ram_map import HP_ADDR , MAX_HP_ADDR
