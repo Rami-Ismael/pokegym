@@ -584,13 +584,13 @@ def get_enemy_pokemon_level(game):
     return game.memory[ENEMYS_POKEMON_LEVEL]
 def get_wGainBoostedExp(game):
     return game.memory[
-        game.symbol_table(
+        game.symbol_lookup(
             "wGainBoostedExp"
         )
     ]
 def get_w_exp_amount_gained(game):
     return game.memory[
-        game.symbol_table(
+        game.symbol_lookup(
             "wExpAmountGained"
         )
     ]
