@@ -137,8 +137,7 @@ def play():
 
     while True:
         # Get input from pyboy's get_input method
-        input_events = env.game.get_input()
-        env.game.tick()
+        input_events = env.game._handle_events()
         env.render()
 
         for event in input_events:
@@ -432,7 +431,8 @@ class Environment(Base):
         if self.disable_wild_encounters:
             self.setup_disable_wild_encounters()
     def setup_multiple_exp_gain_by_n(self):
-        bank ,  addr = self.game.symbol_lookup("GainExperience.partyMonLoop")
+        #bank ,  addr = self.game.symbol_lookup("GainExperience.partyMonLoop")
+        bank , addr = self.game.symbol_lookup("GainExperience.gainStatExpLoop")
         self.game.hook_register(
             bank , 
             addr , 
