@@ -229,6 +229,7 @@ class Environment(Base):
             reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 , 
             reward_for_doing_new_events:float = 1.0,
             level_up_reward_threshold:int = 8 , 
+            multiple_exp_gain_by_n:int = 6,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -343,6 +344,7 @@ class Environment(Base):
         self.reward_for_knocking_out_wild_pokemon_by_battle_coef = reward_for_knocking_out_wild_pokemon_by_battle_coef
         self.level_up_reward_threshold = level_up_reward_threshold
         self.reward_for_doing_new_events = reward_for_doing_new_events
+        self.multiple_exp_gain_by_n = multiple_exp_gain_by_n
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
@@ -425,8 +427,21 @@ class Environment(Base):
     
     def register_hooks(self):
         #if self.setup_make_sure_never_reach_zero()
+        if self.multiple_exp_gain_by_n !=1 1:
+            self.setup_multiple_exp_gain_by_n()
         if self.disable_wild_encounters:
             self.setup_disable_wild_encounters()
+    def setup_multiple_exp_gain_by_n(self):
+        bank ,  addr = self.game.symbol_lookup("wExpAmountGained")
+        self.game.hook_register(
+            bank , 
+            addr , 
+            self.multiple_exp_gain_by_n_hook(),
+            None,
+        )
+    def  multiple_exp_gain_by_n_hook(self):
+        value = self.game.memory[self.game.symbol_lookup("wExpAmountGained")]
+        self.game.memory[self.game.symbol_lookup("wExpAmountGained")] = self.multiple_exp_gain_by_n * value
     def setup_make_sure_never_reach_zero(self):
         from pokegym.ram_map import HP_ADDR , MAX_HP_ADDR
         from pokegym.ram_reader.red_memory_battle_stats import PLAYER_CURRENT_BATTLE_POKEMON_CURRENT_HP , PLAYER_CURRENT_BATTLE_POKEMON_MAX_HP
