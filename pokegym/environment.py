@@ -432,7 +432,7 @@ class Environment(Base):
         if self.disable_wild_encounters:
             self.setup_disable_wild_encounters()
     def setup_multiple_exp_gain_by_n(self):
-        bank ,  addr = self.game.symbol_lookup("GainExperience.next")
+        bank ,  addr = self.game.symbol_lookup("GainExperience.partyMonLoop")
         self.game.hook_register(
             bank , 
             addr , 
