@@ -933,7 +933,6 @@ class Environment(Base):
                 "next_state_pokemon_seen": next_state_pokemon_seen,
                 "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
                 "size_of_total_number_of_episodes_in_store": len(self.go_explored_list_of_episodes)
-                ""
             }
             info.update(next_state_internal_game.to_json())
             info.update(self.external_game_state.to_json())
