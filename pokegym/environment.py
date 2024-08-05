@@ -388,6 +388,7 @@ class Environment(Base):
                 
             ) 
         elif not self.first:
+            '''
             self.go_explored_list_of_episodes.append(
                 {
                     "external_game_state": self.external_game_state , 
@@ -398,6 +399,7 @@ class Environment(Base):
                     "reset_count" : self.reset_count +1 ,
                 }
             )
+            '''
             random_number = random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
             self.external_game_state = self.go_explored_list_of_episodes[random_number]["external_game_state"]
             self.explore_map = self.go_explored_list_of_episodes[random_number]["explore_map"]
@@ -862,7 +864,7 @@ class Environment(Base):
                     "seen_npcs": self.seen_npcs,
                     "counts_map": self.counts_map,
                     "game_state": self.fresh_game_state(),
-                    "reset_count" : self.reset_count +1 ,
+                    "reset_count" : self.reset_count ,
                 }
             )
             self.set_of_map_ids_explored.add(next_state_internal_game.map_id)
