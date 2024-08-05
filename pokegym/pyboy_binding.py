@@ -48,14 +48,14 @@ class Select:
 # TODO: Add start button to actions when we need it
 VALID_ACTION = ACTIONS = (Down, Left, Right, Up, A, B)
 
-def make_env(gb_path, headless=True, quiet=False):
+def make_env(gb_path, headless=True, quiet=False , window = "null"):
     assert os.path.exists(gb_path), f"Could not find {gb_path}"
     assert os.path.exists(os.path.join(os.path.dirname(__file__), "pokered.sym")), "Could not find pokered.sym"  
     gb_path='pokemon_red.gb'
     game = PyBoy(
         gb_path,
         sound = False , 
-        window='null' , 
+        window = window,
         log_level = "CRITICAL" , 
         symbols=os.path.join(os.path.dirname(__file__), "pokered.sym"),
     )
