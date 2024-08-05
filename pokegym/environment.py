@@ -437,7 +437,7 @@ class Environment(Base):
         bank , addr = self.game.symbol_lookup("GainExperience.gainStatExpLoop")
         self.game.hook_register(
             bank , 
-            addr , 
+            addr + 8  , 
             self.multiple_exp_gain_by_n_hook(),
             None,
         )
@@ -854,7 +854,7 @@ class Environment(Base):
     
         self.external_game_state.post_reward_update(next_state_internal_game , current_internal_game_state = state_internal_game , next_internal_game_state = next_state_internal_game)
         # Store the map id 
-        if next_state_internal_game.map_id != state_internal_game.map_id and next_state_internal_game.map_id not in self.set_of_map_ids_explored:
+        if next_state_internal_game.map_id != state_internal_game.map_id and next_state_internal_game.map_id not in self.set_of_map_ids_explored and next_state_internal_game.map_id < 256 and state_internal_game.map_id < 256:
             self.go_explored_list_of_episodes.append(
                 {
                     "external_game_state": self.external_game_state , 
@@ -865,6 +865,22 @@ class Environment(Base):
                     "reset_count" : self.reset_count +1 ,
                 }
             )
+            self.set_of_map_ids_explored.add(next_state_internal_game.map_id)
+            self.set_of_map_ids_explored.add(state_internal_game.map_id)
+        '''
+        # Store the new evnts 
+        if next_state_internal_game.total_events_that_occurs_in_game > state_internal_game.total_events_that_occurs_in_game:
+            self.go_explored_list_of_episodes.append(
+                {
+                    "external_game_state": self.external_game_state ,
+                    "explore_map": self.explore_map,
+                    "seen_npcs": self.seen_npcs,
+                    "counts_map": self.counts_map,
+                    "game_state": self.fresh_game_state(),
+                    "reset_count" : self.reset_count +1 ,
+                }
+            )
+        '''
 
         info = {}
         done = self.time >= self.max_episode_steps
@@ -917,6 +933,7 @@ class Environment(Base):
                 "next_state_pokemon_seen": next_state_pokemon_seen,
                 "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
                 "size_of_total_number_of_episodes_in_store": len(self.go_explored_list_of_episodes)
+                ""
             }
             info.update(next_state_internal_game.to_json())
             info.update(self.external_game_state.to_json())
