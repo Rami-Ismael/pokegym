@@ -112,6 +112,7 @@ def play():
     '''Creates an environment and plays it'''
     env = Environment(rom_path='pokemon_red.gb', state_path=None, headless=False,
         disable_input=False, sound=False, sound_emulated=False, verbose=True,
+        window = "SDL2"
     )
 
     env.reset()
@@ -158,7 +159,9 @@ def play():
 
 class Base:
     def __init__(self, rom_path='pokemon_red.gb',
-            state_path=None, headless=True, quiet=False, **kwargs):
+            state_path=None, headless=True, quiet=False, 
+            window = "null" , 
+            **kwargs):
         '''Creates a PokemonRed environment'''
         random_starter_pokemon:bool = kwargs.get('random_starter_pokemon', False)
         def determine_pyboy_game_state_file(random_starter_pokemon:bool = False):
@@ -186,7 +189,7 @@ class Base:
             assert os.path.exists(state_path), f"State file {state_path} does not exist , {T()}"
 
         # Make the environment
-        self.game = make_env(rom_path, headless, quiet)
+        self.game = make_env(rom_path, headless, quiet , window = window)
         self.initial_states = open_state_file(state_path)
         self.headless = headless
         self.action_space = spaces.Discrete(len(ACTIONS))
@@ -357,13 +360,12 @@ class Environment(Base):
         self.first = True
         self.set_of_map_ids_explored = set()
 
-
+    def fresh_game_state(self):
+        state = io.BytesIO()
+        state.seek(0)
+        self.game.save_state(state)
+        return state
     def reset(self, seed=None,  options = None ):
-        def fresh_game_state():
-            state = io.BytesIO()
-            state.seek(0)
-            self.game.save_state(state)
-            return state
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
         if self.first:
@@ -380,7 +382,7 @@ class Environment(Base):
                     "explore_map": self.explore_map,
                     "seen_npcs": self.seen_npcs,
                     "counts_map": self.counts_map,
-                    "game_state": fresh_game_state(),
+                    "game_state": self.fresh_game_state(),
                     "reset_count" : self.reset_count ,
                 }
                 
@@ -392,7 +394,7 @@ class Environment(Base):
                     "explore_map": self.explore_map,
                     "seen_npcs": self.seen_npcs,
                     "counts_map": self.counts_map,
-                    "game_state": fresh_game_state(),
+                    "game_state": self.fresh_game_state(),
                     "reset_count" : self.reset_count +1 ,
                 }
             )
@@ -849,8 +851,20 @@ class Environment(Base):
                 +  reward_seeen_npcs  
         )
         reward += reward_for_stateless_class.total_reward()
-        
+    
         self.external_game_state.post_reward_update(next_state_internal_game , current_internal_game_state = state_internal_game , next_internal_game_state = next_state_internal_game)
+        # Store the map id 
+        if next_state_internal_game.map_id != state_internal_game.map_id and next_state_internal_game.map_id not in self.set_of_map_ids_explored:
+            self.go_explored_list_of_episodes.append(
+                {
+                    "external_game_state": self.external_game_state , 
+                    "explore_map": self.explore_map,
+                    "seen_npcs": self.seen_npcs,
+                    "counts_map": self.counts_map,
+                    "game_state": self.fresh_game_state(),
+                    "reset_count" : self.reset_count +1 ,
+                }
+            )
 
         info = {}
         done = self.time >= self.max_episode_steps
