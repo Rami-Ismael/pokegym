@@ -253,6 +253,7 @@ class Internal_Game_State:
         assert len(self.pokemon_seen_in_the_pokedex) <=152
         assert self.last_black_out_map_id <=150
         assert isinstance(self.last_black_out_map_id, int)
+        assert self.map_id <= 255   
 @dataclass
 class External_Game_State:
     # World map

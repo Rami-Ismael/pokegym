@@ -454,7 +454,7 @@ def get_enemy_trainer_pokemon_hp(game)-> List[int]:
     for index in range(0 , get_party_size(game)):
         enemy_trainer_pokemon_hp[index] = 256*game.memory[ENEMY_TRAINER_POKEMON_HP[0] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )] + game.memory[ENEMY_TRAINER_POKEMON_HP[1] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )]
     return enemy_trainer_pokemon_hp
-def total_events_that_occurs_in_game(game)-> int:
+def total_events_that_occurs_in_game(game):
     # adds up all event flags, exclude museum ticket
     return max(
         sum(
@@ -466,6 +466,9 @@ def total_events_that_occurs_in_game(game)-> int:
         - int(read_bit(game, MUSEUM_TICKET_ADDR, 0)),
         0,
     )
+#def total_envets_representing_one_hot_encoding(game):
+    
+    
 def get_pokemon_pp_avail(game) -> List[int]:
     pp_teams:list[int] = [0] * 24
     for index in range(0 , get_party_size(game)):
