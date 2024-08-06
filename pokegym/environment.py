@@ -394,6 +394,7 @@ class Environment(Base):
                 }
                 
             ) 
+            self.random_number = 0 # random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
         elif not self.first:
             '''
             self.go_explored_list_of_episodes.append(
