@@ -454,6 +454,11 @@ def get_enemy_trainer_pokemon_hp(game)-> List[int]:
     for index in range(0 , get_party_size(game)):
         enemy_trainer_pokemon_hp[index] = 256*game.memory[ENEMY_TRAINER_POKEMON_HP[0] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )] + game.memory[ENEMY_TRAINER_POKEMON_HP[1] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )]
     return enemy_trainer_pokemon_hp
+def get_enemy_trainer_current_pokemon_hp(game)-> List[int]:
+    enemy_trainer_pokemon_hp = [0] * 6
+    for index in range(0 , get_party_size(game)):
+        enemy_trainer_pokemon_hp[index] = 256*game.memory[ENEMY_TRAINER_POKEMON_HP[0] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )] + game.memory[ENEMY_TRAINER_POKEMON_HP[1] + ( index * ENEMY_TRAINER_POKEMON_HP_OFFSET )]
+    return enemy_trainer_pokemon_hp
 def total_events_that_occurs_in_game(game):
     # adds up all event flags, exclude museum ticket
     return max(
@@ -597,3 +602,20 @@ def get_w_exp_amount_gained(game):
             "wExpAmountGained"
         )
     ]
+from pokegym.ram_reader.red_memory_opponents import OPPOENT_TRAINER_PARTY_MONSTER_1_MAX_HP
+
+def get_enemy_trainer_max_hp(game):
+    enemy_trainer_max_hp = [0]* 6
+    for index in range(0 , get_opponent_trainer_party_count(game)):
+        enemy_trainer_max_hp[index] = 256*game.memory[OPPOENT_TRAINER_PARTY_MONSTER_1_MAX_HP[0] + ( index * PARTY_OFFSET )] + game.memory[OPPOENT_TRAINER_PARTY_MONSTER_1_MAX_HP[1] + ( index * PARTY_OFFSET )]
+    return enemy_trainer_max_hp
+        
+def number_of_dead_pokemon_in_opponent_trainer_party(game):
+    # Becuase we know the max hpa nd currrent hp
+    enemy_trainer_max_hp = get_enemy_trainer_max_hp(game)
+    enemy_trainer_current_hp = get_enemy_trainer_current_pokemon_hp(game)
+    number_of_dead_pokemon_in_enemy_trainer_party = 0
+    for index in range(0 , get_opponent_trainer_party_count(game)):
+        if enemy_trainer_current_hp[index] == 0 and enemy_trainer_max_hp[index] > 0:
+            number_of_dead_pokemon_in_enemy_trainer_party += 1
+    return number_of_dead_pokemon_in_enemy_trainer_party
