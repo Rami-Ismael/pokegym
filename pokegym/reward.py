@@ -39,7 +39,7 @@ class Reward:
     reward_for_finding_higher_enemy_pokemon_base_exp_yeild:int = 0
     reward_for_having_last_black_out_id_proximaly_an_pokecenter:int = 0
     reward_for_finding_higher_level_wild_pokemon:int = 0
-    reward_for_finding_new_maps:int = 0
+    reward_for_finding_new_maps:float = 0
     reward_for_seeing_new_coords:float = 0
     
     # Reward for entering bad trainer battle
@@ -60,6 +60,7 @@ class Reward:
                  reward_for_increasing_the_total_party_level:float = 1.0 , 
                  reward_for_doing_new_events:float = 1.0 ,
                  reward_for_finding_new_maps_coef = 1.0 ,
+                 reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0 ,
                  level_up_reward_threshold:float = 1.0 ,
                  ):
         
@@ -141,7 +142,7 @@ class Reward:
             self.negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon = -.5 # stop fighting with weak pokemon 
     def update_reward_for_finding_higher_level_wild_pokemon(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0 , ):
         if external_game_state.max_wild_pokemon_level < next_state_internal_game_state.enemy_current_pokemon_levelel and current_state_internal_game_state == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE:
-            self.reward_for_finding_higher_level_wild_pokemon = 1
+            self.reward_for_finding_higher_level_wild_pokemon = 1 * reward_for_finding_higher_level_wild_pokemon_coef
     def update_reward_for_finding_new_maps(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_new_maps_coef:float = 1.0):
         if current_state_internal_game_state.map_id != next_state_internal_game_state.map_id and  external_game_state.seen_map_ids[next_state_internal_game_state.map_id] == 0:
             self.reward_for_finding_new_maps = 1 * reward_for_finding_new_maps_coef
