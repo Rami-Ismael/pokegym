@@ -38,7 +38,7 @@ class Reward:
     # Extra Exploration Bonus
     reward_for_finding_higher_enemy_pokemon_base_exp_yeild:int = 0
     reward_for_having_last_black_out_id_proximaly_an_pokecenter:int = 0
-    reward_for_finding_higher_level_wild_pokemon:int = 0
+    reward_for_finding_higher_level_wild_pokemon:floa = 0
     reward_for_finding_new_maps:float = 0
     reward_for_seeing_new_coords:float = 0
     
@@ -71,7 +71,7 @@ class Reward:
             self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - current_state_internal_game_state.total_events_that_occurs_in_game)  * reward_for_doing_new_events  ) 
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_game_state >= 0
         if external_game_state.total_events_that_occurs_in_game < next_state_internal_game_state.total_events_that_occurs_in_game:
-            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state +=  ( next_state_internal_game_state.total_events_that_occurs_in_game - external_game_state.total_events_that_occurs_in_game )
+            self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state +=  ( ( next_state_internal_game_state.total_events_that_occurs_in_game - external_game_state.total_events_that_occurs_in_game ) * reward_for_doing_new_events ) 
             assert self.reward_for_doing_new_events_that_occurs_in_game_calculating_by_external_game_state >= 0
         
         if current_state_internal_game_state.total_party_level < next_state_internal_game_state.total_party_level and next_state_internal_game_state.total_party_level > external_game_state.max_total_party_level:
