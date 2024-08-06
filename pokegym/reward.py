@@ -59,6 +59,7 @@ class Reward:
                  reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 ,
                  reward_for_increasing_the_total_party_level:float = 1.0 , 
                  reward_for_doing_new_events:float = 1.0 ,
+                 reward_for_finding_new_maps_coef = 1.0 ,
                  level_up_reward_threshold:float = 1.0 ,
                  ):
         
@@ -110,7 +111,7 @@ class Reward:
             self.reward_for_finding_higher_enemy_pokemon_base_exp_yeild+=1
         self.update_reward_for_entering_a_trainer_battle(current_state_internal_game_state , next_state_internal_game_state , reward_for_entering_a_trainer_battle_coef)
         self.update_reward_for_finding_higher_level_wild_pokemon(current_state_internal_game_state , next_state_internal_game_state , external_game_state)
-        self.update_reward_for_finding_new_maps(current_state_internal_game_state , next_state_internal_game_state , external_game_state)
+        self.update_reward_for_finding_new_maps(current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_new_maps_coef)
         self.update_reward_for_seeing_new_coords(current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_explore_unique_coor_coef)
         
         self.update_negative_reward_for_player_monster_stats_modifier_accuracy_drop(current_state_internal_game_state , next_state_internal_game_state)
@@ -143,7 +144,7 @@ class Reward:
             self.reward_for_finding_higher_level_wild_pokemon = 1
     def update_reward_for_finding_new_maps(self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_finding_new_maps_coef:float = 1.0):
         if current_state_internal_game_state.map_id != next_state_internal_game_state.map_id and  external_game_state.seen_map_ids[next_state_internal_game_state.map_id] == 0:
-            self.reward_for_finding_new_maps = 4
+            self.reward_for_finding_new_maps = 1 * reward_for_finding_new_maps_coef
     def update_reward_for_seeing_new_coords( self , current_state_internal_game_state , next_state_internal_game_state , external_game_state , reward_for_explore_unique_coor_coef:float = 1.0):
         if ( next_state_internal_game_state.player_x  , next_state_internal_game_state.player_y  , next_state_internal_game_state.map_id) not in external_game_state.seen_coords:
             self.reward_for_seeing_new_coords = 1 * reward_for_explore_unique_coor_coef
