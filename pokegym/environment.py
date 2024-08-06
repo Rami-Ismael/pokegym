@@ -406,7 +406,8 @@ class Environment(Base):
             self.seen_npcs = self.go_explored_list_of_episodes[random_number]["seen_npcs"]
             self.counts_map = self.go_explored_list_of_episodes[random_number]["counts_map"]
             load_pyboy_state(self.game, self.go_explored_list_of_episodes[random_number]["game_state"])
-            self.reset_count = self.go_explored_list_of_episodes[random_number]["reset_count"]
+            #self.reset_count = self.go_explored_list_of_episodes[random_number]["reset_count"]
+            self.rest_count  = self.rest_count + 1
             self.time = 0 
             assert self.time ==0 , T()
             
