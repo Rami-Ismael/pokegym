@@ -38,7 +38,7 @@ class Reward:
     # Extra Exploration Bonus
     reward_for_finding_higher_enemy_pokemon_base_exp_yeild:int = 0
     reward_for_having_last_black_out_id_proximaly_an_pokecenter:int = 0
-    reward_for_finding_higher_level_wild_pokemon:floa = 0
+    reward_for_finding_higher_level_wild_pokemon:float = 0
     reward_for_finding_new_maps:float = 0
     reward_for_seeing_new_coords:float = 0
     
