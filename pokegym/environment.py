@@ -406,11 +406,11 @@ class Environment(Base):
             )
             '''
             self.random_number = random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
-            self.external_game_state = self.go_explored_list_of_episodes[random_number]["external_game_state"]
-            self.explore_map = self.go_explored_list_of_episodes[random_number]["explore_map"]
-            self.seen_npcs = self.go_explored_list_of_episodes[random_number]["seen_npcs"]
-            self.counts_map = self.go_explored_list_of_episodes[random_number]["counts_map"]
-            load_pyboy_state(self.game, self.go_explored_list_of_episodes[random_number]["game_state"])
+            self.external_game_state = self.go_explored_list_of_episodes[self.random_number]["external_game_state"]
+            self.explore_map = self.go_explored_list_of_episodes[self.random_number]["explore_map"]
+            self.seen_npcs = self.go_explored_list_of_episodes[self.random_number]["seen_npcs"]
+            self.counts_map = self.go_explored_list_of_episodes[self.random_number]["counts_map"]
+            load_pyboy_state(self.game, self.go_explored_list_of_episodes[selfrandom_number]["game_state"])
             #self.reset_count = self.go_explored_list_of_episodes[random_number]["reset_count"]
             self.reset_count  = self.reset_count + 1
             self.time = 0 
