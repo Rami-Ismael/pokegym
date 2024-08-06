@@ -158,7 +158,7 @@ class Reward:
         if current_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.total_opponent_party_pokemon_level > current_state_internal_game_state.total_party_level:
             self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level = -1 * negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef
     def update_reward_for_knocking_out_enemy_pokemon_in_trainer_party(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef:float = 1.0):
-        if current_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.number_of_dead_pokemon_in_the_trainer_team - current_state_internal_game_state.number_of_dead_pokemon_in_the_trainer_team == 1:
+        if current_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.number_of_dead_pokemon_in_the_opponent_trainer_party - current_state_internal_game_state.number_of_dead_pokemon_in_the_opponent_trainer_party == 1:
             self.reward_for_knocking_out_enemy_pokemon_in_trainer_party = 1 * reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef
         
     def total_reward(self) -> int:

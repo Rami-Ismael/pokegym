@@ -184,7 +184,7 @@ class Internal_Game_State:
         #### Trainer
         self.enemy_trainer_pokemon_hp = ram_map.get_enemy_trainer_pokemon_hp(game) # # Only valid for trainers/gyms not wild mons. HP doesn't dec until mon is dead, then it's 0
         self.enemey_trainer_max_hp = ram_map.get_enemy_trainer_max_hp(game)
-        self.number_of_dead_pokemon_in_the_trainer_team = ram_map.number_of_dead_pokemon_in_opponent_trainer_party(game)
+        self.number_of_dead_pokemon_in_the_opponent_trainer_party = ram_map.number_of_dead_pokemon_in_opponent_trainer_party(game)
         
         #### Enemy 
         self.enemy_pokemon_hp = ram_map.get_enemys_pokemon_hp(game)
