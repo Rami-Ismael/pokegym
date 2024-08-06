@@ -48,6 +48,9 @@ class Reward:
     negative_reward_for_player_monster_stats_modifier_accuracy_drop:float = 0
     negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon:float = 0
     
+    # Reawrd knocking out enemy pokemon trainer pokemon
+    reward_for_knocking_out_enemy_pokemon_in_trainer_party:float = 0
+    
     def __init__(self, current_state_internal_game_state , next_state_internal_game_state , external_game_state ,  
                  reward_for_increase_pokemon_level_coef:float = 2 , 
                  reward_for_increasing_the_highest_pokemon_level_in_the_team_by_battle_coef:float = 1 , 
@@ -61,6 +64,7 @@ class Reward:
                  reward_for_doing_new_events:float = 1.0 ,
                  reward_for_finding_new_maps_coef = 1.0 ,
                  reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0 ,
+                 reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef:float = 1.0 , 
                  level_up_reward_threshold:float = 1.0 ,
                  ):
         
@@ -119,6 +123,7 @@ class Reward:
         
         self.update_negative_reward_for_using_lower_level_pokemon_against_higher_level_pokemon(current_state_internal_game_state , next_state_internal_game_state)
         self.update_negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level(current_state_internal_game_state , next_state_internal_game_state , negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef)
+        self.update_reward_for_knocking_out_enemy_pokemon_in_trainer_party(current_state_internal_game_state , next_state_internal_game_state , reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef)
     def took_the_step_to_win_a_wild_battle(self , current_state_internal_game_state , next_state_internal_game_state):
         if current_state_internal_game_state.battle_stats == BattleState.WILD_BATTLE and next_state_internal_game_state.battle_result == BattleResult.WIN and next_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and current_state_internal_game_state.party_size == next_state_internal_game_state.party_size:
             return True
@@ -152,6 +157,9 @@ class Reward:
     def update_negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level(self , current_state_internal_game_state , next_state_internal_game_state , negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = 1.0):
         if current_state_internal_game_state.battle_stats == BattleState.NOT_IN_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.total_opponent_party_pokemon_level > current_state_internal_game_state.total_party_level:
             self.negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level = -1 * negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef
+    def update_reward_for_knocking_out_enemy_pokemon_in_trainer_party(self , current_state_internal_game_state , next_state_internal_game_state , reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef:float = 1.0):
+        if current_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.battle_stats == BattleState.TRAINER_BATTLE and next_state_internal_game_state.number_of_dead_pokemon_in_the_trainer_team - current_state_internal_game_state.number_of_dead_pokemon_in_the_trainer_team == 1:
+            self.reward_for_knocking_out_enemy_pokemon_in_trainer_party = 1 * reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef
         
     def total_reward(self) -> int:
         return sum(asdict(self).values())

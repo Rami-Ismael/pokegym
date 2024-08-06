@@ -234,6 +234,7 @@ class Environment(Base):
             reward_for_finding_new_maps_coef:float = 1.0,
             reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0,
             multiple_exp_gain_by_n:int = 6,
+            reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef:float = 1.0 , 
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -352,6 +353,7 @@ class Environment(Base):
         self.reward_for_finding_new_maps_coef = reward_for_finding_new_maps_coef
         self. reward_for_finding_higher_level_wild_pokemon_coef = reward_for_finding_higher_level_wild_pokemon_coef
         self.multiple_exp_gain_by_n = multiple_exp_gain_by_n
+        self.reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef = reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
@@ -689,6 +691,7 @@ class Environment(Base):
                                                     reward_for_doing_new_events = self.reward_for_doing_new_events,
                                                     reward_for_increasing_the_total_party_level = self.reward_for_increasing_the_total_party_level,
                                                     reward_for_finding_higher_level_wild_pokemon_coef = self.reward_for_finding_higher_level_wild_pokemon_coef,
+                                                    reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef = self.reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef , 
                                                     reward_for_finding_new_maps_coef = self.reward_for_finding_new_maps_coef
                                                     )
         # Seen Coordinate
