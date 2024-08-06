@@ -258,8 +258,8 @@ class Internal_Game_State:
         assert self.last_black_out_map_id <=150
         assert isinstance(self.last_black_out_map_id, int)
         assert self.map_id <= 255
-        for index in self.enemey_trainer_max_hp:
-            assert self.enemey_trainer_max_hp[index] <= 415 # https://www.psypokes.com/rby/maxstats.php
+        for element in self.enemey_trainer_max_hp:
+            assert element <= 415 # https://www.psypokes.com/rby/maxstats.php
 @dataclass
 class External_Game_State:
     # World map
