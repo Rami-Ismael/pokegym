@@ -71,6 +71,8 @@ class Internal_Game_State:
     ### Trainer
     # Only valid for trainers/gyms not wild mons. HP doesn't dec until mon is dead, then it's 0
     enemy_trainer_pokemon_hp: List[int] = field(default_factory=list)
+    enemey_trainer_max_hp: List[int] = field(default_factory=list)
+    number_of_dead_pokemon_in_the_opponent_trainer_party: int = field(default_factory=int)
    
     ### Enermy Pokemon Hp
     enemy_pokemon_hp:int = field(default_factory=int)
@@ -180,7 +182,9 @@ class Internal_Game_State:
         self.total_opponent_party_pokemon_level = sum(self.opponent_pokemon_levels)
         
         #### Trainer
-        self.enemy_trainer_pokemon_hp = ram_map.get_enemy_trainer_pokemon_hp(game)
+        self.enemy_trainer_pokemon_hp = ram_map.get_enemy_trainer_pokemon_hp(game) # # Only valid for trainers/gyms not wild mons. HP doesn't dec until mon is dead, then it's 0
+        self.enemey_trainer_max_hp = ram_map.get_enemy_trainer_max_hp(game)
+        self.number_of_dead_pokemon_in_the_trainer_team = ram_map.number_of_dead_pokemon_in_opponent_trainer_party(game)
         
         #### Enemy 
         self.enemy_pokemon_hp = ram_map.get_enemys_pokemon_hp(game)
@@ -253,7 +257,9 @@ class Internal_Game_State:
         assert len(self.pokemon_seen_in_the_pokedex) <=152
         assert self.last_black_out_map_id <=150
         assert isinstance(self.last_black_out_map_id, int)
-        assert self.map_id <= 255   
+        assert self.map_id <= 255
+        for index in self.enemey_trainer_max_hp:
+            assert self.enemey_trainer_max_hp[index] <= 415 # https://www.psypokes.com/rby/maxstats.php
 @dataclass
 class External_Game_State:
     # World map

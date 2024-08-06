@@ -332,7 +332,8 @@ class Environment(Base):
             "enemy_current_move_effect": spaces.Box(low=0, high=56, shape=(1,), dtype=np.uint8),
             "enemy_pokemon_move_power" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_pokemon_move_type" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_pokemon_move_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
+            "enemy_pokemon_move_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32) , 
+            "enemy_pokemon_move_max_pp": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
         })
         self.display_info_interval_divisor = kwargs.get("display_info_interval_divisor", 1)
         #print(f"self.display_info_interval_divisor: {self.display_info_interval_divisor}")
@@ -404,7 +405,7 @@ class Environment(Base):
                 }
             )
             '''
-            random_number = random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
+            self.random_number = random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
             self.external_game_state = self.go_explored_list_of_episodes[random_number]["external_game_state"]
             self.explore_map = self.go_explored_list_of_episodes[random_number]["explore_map"]
             self.seen_npcs = self.go_explored_list_of_episodes[random_number]["seen_npcs"]
@@ -941,7 +942,8 @@ class Environment(Base):
                 "current_state_pokemon_seen": current_state_pokemon_seen,
                 "next_state_pokemon_seen": next_state_pokemon_seen,
                 "current_state_completing_the_pokedex": current_state_completing_the_pokedex,
-                "size_of_total_number_of_episodes_in_store": len(self.go_explored_list_of_episodes)
+                "size_of_total_number_of_episodes_in_store": len(self.go_explored_list_of_episodes) , 
+                "ranmdom_number":self.random_number
             }
             info.update(next_state_internal_game.to_json())
             info.update(self.external_game_state.to_json())
