@@ -235,6 +235,7 @@ class Environment(Base):
             reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0,
             multiple_exp_gain_by_n:int = 6,
             reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef:float = 1.0 , 
+            set_enemy_pokemon_damage_calcuation_to_zero = True,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -358,6 +359,7 @@ class Environment(Base):
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
         self.disable_wild_encounters = disable_wild_encounters
+        self.set_enemy_pokemon_damage_calcuation_to_zero = set_enemy_pokemon_damage_calcuation_to_zero
         self.register_hooks()
         
         self.probaility_wild_grass_pokemon_encounter_rate_per_env = -1
@@ -443,12 +445,24 @@ class Environment(Base):
             self.setup_multiple_exp_gain_by_n()
         if self.disable_wild_encounters:
             self.setup_disable_wild_encounters()
+        if self.set_enemy_pokemon_damage_calcuation_to_zero:
+            self.setup_set_enemy_pokemon_damage_calcuation_to_zero()
+    def setup_set_enemy_pokemon_damage_calcuation_to_zero(self):
+        bank, addr = self.game.symbol_lookup("GetDamageVarsForEnemyAttack")
+        self.game.hook_register(
+            bank,
+            addr,
+            self.set_enemy_pokemon_damage_calcuation_to_zero_hook,
+            None,
+        )
+    def set_enemy_pokemon_damage_calcuation_to_zero_hook(self, *args, **kwargs):
+        self.game.memory[self.game.symbol_lookup("wEnemyMovePower")[1]] = 0
     def setup_multiple_exp_gain_by_n(self):
         #bank ,  addr = self.game.symbol_lookup("GainExperience.partyMonLoop")
-        bank , addr = self.game.symbol_lookup("GainExperience.gainStatExpLoop")
+        bank , addr = self.game.symbol_lookup("GainExperience.next")
         self.game.hook_register(
             bank , 
-            addr + 8  , 
+            addr  , 
             self.multiple_exp_gain_by_n_hook(),
             None,
         )
