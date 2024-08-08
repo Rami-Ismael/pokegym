@@ -477,7 +477,7 @@ class Environment(Base):
             self.set_enemy_accuracy_to_zero_hook,
             None,
         )
-    def set_enemy_accuracy_to_zero_hook(self):
+    def set_enemy_accuracy_to_zero_hook(self  ,  *args, **kwargs):
         self.game.memory[self.game.symbol_lookup("wEnemyMoveAccuracy")[1]] = 0
     def calculate_stat_experience(self):
         bank, addr = self.game.symbol_lookup("GainExperience.partyMonLoop")
@@ -487,7 +487,7 @@ class Environment(Base):
             self.calculate_stat_experience_hook,
             None,
         )
-    def calculate_stat_experience_hook(self):
+    def calculate_stat_experience_hook(self , *args, **kwargs):
         x = 2
         
     def setup_set_enemy_pokemon_damage_calcuation_to_zero(self):
@@ -498,7 +498,7 @@ class Environment(Base):
             self.set_enemy_pokemon_damage_calcuation_to_zero_hook,
             None,
         )
-    def set_enemy_pokemon_damage_calcuation_to_zero_hook(self):
+    def set_enemy_pokemon_damage_calcuation_to_zero_hook(self , *args, **kwargs):
         self.game.memory[self.game.symbol_lookup("wEnemyMovePower")[1]] = 0
     def setup_multiple_exp_gain_by_n(self):
         #bank ,  addr = self.game.symbol_lookup("GainExperience.partyMonLoop")
@@ -509,7 +509,7 @@ class Environment(Base):
             self.multiple_exp_gain_by_n_hook,
             None,
         )
-    def  multiple_exp_gain_by_n_hook(self):
+    def  multiple_exp_gain_by_n_hook(self , *args, **kwargs):
         value = self.game.memory[self.game.symbol_lookup("wExpAmountGained")]
         assert value >= 0 , T()
         self.game.memory[self.game.symbol_lookup("wExpAmountGained")[1]] = 255
