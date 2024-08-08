@@ -260,9 +260,8 @@ class Internal_Game_State:
         assert self.map_id <= 255
         for element in self.enemey_trainer_max_hp:
             assert element <= 415 # https://www.psypokes.com/rby/maxstats.php
-        if self.player_selected_move_id is not None:
-            assert self.player_selected_move_id <= 166
-            raise ValueError("Player Selected Move ID is not valid")
+        if self.player_selected_move_id is not None and self.player_selected_move_id > 166:
+            raise ValueError(f"Player Selected Move ID is not valid and is not in the range of 0-166 the move is {self.player_selected_move_id}")
 @dataclass
 class External_Game_State:
     # World map
