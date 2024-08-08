@@ -226,7 +226,7 @@ class Environment(Base):
             negative_reward_for_wiping_out_coef:float = 1.0,
             negative_reward_for_entering_a_trainer_battle_lower_total_pokemon_level_coef:float = 1.0 , 
             reward_for_using_bad_moves_coef:float = 1.0 , 
-            disable_wild_encounters:bool = True,
+            disable_wild_encounters:bool = False,
             reward_for_increasing_the_total_party_level:float = 1.0,
             reward_for_knocking_out_wild_pokemon_by_battle_coef:float = 1.0 , 
             reward_for_doing_new_events:float = 1.0,
@@ -235,6 +235,9 @@ class Environment(Base):
             reward_for_finding_higher_level_wild_pokemon_coef:float = 1.0,
             multiple_exp_gain_by_n:int = 6,
             reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef:float = 1.0 , 
+            set_enemy_pokemon_accuracy_to_zero = True , 
+            add_random_moves_to_starter_pokemon = True,
+            set_starter_pokemon_speed_values = 0, 
             set_enemy_pokemon_damage_calcuation_to_zero = True,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
@@ -355,6 +358,9 @@ class Environment(Base):
         self. reward_for_finding_higher_level_wild_pokemon_coef = reward_for_finding_higher_level_wild_pokemon_coef
         self.multiple_exp_gain_by_n = multiple_exp_gain_by_n
         self.reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef = reward_for_knocking_out_enemy_pokemon_in_trainer_party_coef
+        self.set_enemy_pokemon_accuracy_to_zero = set_enemy_pokemon_accuracy_to_zero
+        self.add_random_moves_to_starter_pokemon = add_random_moves_to_starter_pokemon
+        self.set_starter_pokemon_speed_values = set_starter_pokemon_speed_values
         
         self.random_wild_grass_pokemon_encounter_rate_per_env = kwargs.get("random_wild_grass_pokemon_encounter_rate_per_env", False)
         self.go_explored_list_of_episodes:list  = list()
@@ -396,7 +402,22 @@ class Environment(Base):
                 }
                 
             ) 
-            self.random_number = 0 # random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
+            self.random_number = 0 # random.randint(0 , len(self.go_explored_list_of_episodes) - 1)        # Add Random move id if their is empty
+            if self.add_random_moves_to_starter_pokemon:
+                import random
+                move_ids = ["wPartyMon1Moves"]
+                move_pps = ["wPartyMon1PP"]
+                print(f"Adding RnadomMOves ")
+                for move_id in move_ids:
+                    bank , addr = self.game.symbol_lookup(move_id)
+                    bank_pp , addr_pp = self.game.symbol_lookup(move_pps[0])
+                    for i in range(0, 5):
+                        if self.game.memory[addr + i] == 0:
+                            self.game.memory[addr + i] = random.randint(0 , 161)
+                            self.game.memory[addr_pp + i] = 2
+            if self.set_starter_pokemon_speed_values != 0:
+                bank , addr = self.game.symbol_lookup("wPartyMon1Speed")
+                self.game.memory[addr] = self.set_starter_pokemon_speed_values
         elif not self.first:
             self.go_explored_list_of_episodes.append(
                 {
@@ -439,12 +460,36 @@ class Environment(Base):
     
     def register_hooks(self):
         #if self.setup_make_sure_never_reach_zero()
-        if self.multiple_exp_gain_by_n !=1 :
-            self.setup_multiple_exp_gain_by_n()
+        #self.setup_multiple_exp_gain_by_n()
         if self.disable_wild_encounters:
             self.setup_disable_wild_encounters()
         if self.set_enemy_pokemon_damage_calcuation_to_zero:
             self.setup_set_enemy_pokemon_damage_calcuation_to_zero()
+        #self.Calculate Stat Experience:
+        self.calculate_stat_experience()
+        if self.set_enemy_pokemon_accuracy_to_zero:
+            self.setup_set_enemy_accuracy_to_zero()
+    def setup_set_enemy_accuracy_to_zero(self):
+        bank, addr = self.game.symbol_lookup("MoveHitTest.calcHitChance")
+        self.game.hook_register(
+            bank,
+            addr,
+            self.set_enemy_accuracy_to_zero_hook,
+            None,
+        )
+    def set_enemy_accuracy_to_zero_hook(self):
+        self.game.memory[self.game.symbol_lookup("wEnemyMoveAccuracy")[1]] = 0
+    def calculate_stat_experience(self):
+        bank, addr = self.game.symbol_lookup("GainExperience.partyMonLoop")
+        self.game.hook_register(
+            bank,
+            addr,
+            self.calculate_stat_experience_hook,
+            None,
+        )
+    def calculate_stat_experience_hook(self):
+        x = 2
+        
     def setup_set_enemy_pokemon_damage_calcuation_to_zero(self):
         bank, addr = self.game.symbol_lookup("GetDamageVarsForEnemyAttack")
         self.game.hook_register(
@@ -453,7 +498,7 @@ class Environment(Base):
             self.set_enemy_pokemon_damage_calcuation_to_zero_hook,
             None,
         )
-    def set_enemy_pokemon_damage_calcuation_to_zero_hook(self, *args, **kwargs):
+    def set_enemy_pokemon_damage_calcuation_to_zero_hook(self):
         self.game.memory[self.game.symbol_lookup("wEnemyMovePower")[1]] = 0
     def setup_multiple_exp_gain_by_n(self):
         #bank ,  addr = self.game.symbol_lookup("GainExperience.partyMonLoop")
@@ -461,13 +506,15 @@ class Environment(Base):
         self.game.hook_register(
             bank , 
             addr  , 
-            self.multiple_exp_gain_by_n_hook(),
+            self.multiple_exp_gain_by_n_hook,
             None,
         )
     def  multiple_exp_gain_by_n_hook(self):
         value = self.game.memory[self.game.symbol_lookup("wExpAmountGained")]
         assert value >= 0 , T()
-        self.game.memory[self.game.symbol_lookup("wExpAmountGained")] = self.multiple_exp_gain_by_n * value
+        self.game.memory[self.game.symbol_lookup("wExpAmountGained")[1]] = 255
+        self.game.memory[self.game.symbol_lookup("wGainBoostedExp")[1]] = 255
+        assert self.game.memory[self.game.symbol_lookup("wExpAmountGained")[1]] == 255 , T()
     def setup_make_sure_never_reach_zero(self):
         from pokegym.ram_map import HP_ADDR , MAX_HP_ADDR
         from pokegym.ram_reader.red_memory_battle_stats import PLAYER_CURRENT_BATTLE_POKEMON_CURRENT_HP , PLAYER_CURRENT_BATTLE_POKEMON_MAX_HP
@@ -485,7 +532,7 @@ class Environment(Base):
             self.make_sure_never_reach_zero,
             None,
         )
-    def make_sure_never_reach_zero(self, *args, **kwargs):
+    def make_sure_never_reach_zero(self):
         self.game.memory[self.game.symbol_lookup("wBattleMonHP")[1]] = 1000
         assert isinstance(self.game.memory[self.game.symbol_lookup("wBattleMonHP")[1]] == 1 , int) , T()
         assert 0xD015 + 1 == 0xD016 , T()
