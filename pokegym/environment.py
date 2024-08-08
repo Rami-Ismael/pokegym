@@ -391,17 +391,17 @@ class Environment(Base):
             load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.reset_count += 1
             self.time = 0
-            self.go_explored_list_of_episodes.append(
-                {
-                    "external_game_state": self.external_game_state ,
-                    "explore_map": self.explore_map,
-                    "seen_npcs": self.seen_npcs,
-                    "counts_map": self.counts_map,
-                    "game_state": self.fresh_game_state(),
-                    "reset_count" : self.reset_count ,
-                }
-                
-            ) 
+            #self.go_explored_list_of_episodes.append(
+            #    {
+            #        "external_game_state": self.external_game_state ,
+            #        "explore_map": self.explore_map,
+            #        "seen_npcs": self.seen_npcs,
+            #        "counts_map": self.counts_map,
+            #        "game_state": self.fresh_game_state(),
+            #        "reset_count" : self.reset_count ,
+            #    }
+            #    
+            #) 
             self.random_number = 0 # random.randint(0 , len(self.go_explored_list_of_episodes) - 1)        # Add Random move id if their is empty
             if self.add_random_moves_to_starter_pokemon:
                 import random
@@ -413,7 +413,7 @@ class Environment(Base):
                     for i in range(0, 5):
                         if self.game.memory[addr + i] == 0:
                             self.game.memory[addr + i] = random.randint(0 , 161)
-                            self.game.memory[addr_pp + i] = 2
+                            self.game.memory[addr_pp + i] = 4
             if self.set_starter_pokemon_speed_values != 0:
                 bank , addr = self.game.symbol_lookup("wPartyMon1Speed")
                 self.game.memory[addr] = self.set_starter_pokemon_speed_values
