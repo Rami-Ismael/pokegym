@@ -407,7 +407,6 @@ class Environment(Base):
                 import random
                 move_ids = ["wPartyMon1Moves"]
                 move_pps = ["wPartyMon1PP"]
-                print(f"Adding RnadomMOves ")
                 for move_id in move_ids:
                     bank , addr = self.game.symbol_lookup(move_id)
                     bank_pp , addr_pp = self.game.symbol_lookup(move_pps[0])
