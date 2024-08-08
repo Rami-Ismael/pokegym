@@ -398,7 +398,6 @@ class Environment(Base):
             ) 
             self.random_number = 0 # random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
         elif not self.first:
-            '''
             self.go_explored_list_of_episodes.append(
                 {
                     "external_game_state": self.external_game_state , 
@@ -409,7 +408,6 @@ class Environment(Base):
                     "reset_count" : self.reset_count +1 ,
                 }
             )
-            '''
             self.random_number = random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
             self.external_game_state = self.go_explored_list_of_episodes[self.random_number]["external_game_state"]
             self.explore_map = self.go_explored_list_of_episodes[self.random_number]["explore_map"]
