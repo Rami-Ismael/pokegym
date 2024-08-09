@@ -168,6 +168,9 @@ class Observation:
         assert self.last_black_out_map_id <= 150 , T()
         assert isinstance(self.last_black_out_map_id, int) , T()
         assert self.map_id <= 250 , T()
+        for key , values in asdict(self).items():
+            if values is None:
+                raise ValueError(f"Key {key} has a value of None")
         
     def normalize_np_array(self , np_array, lookup=True, size=256.0):
         if lookup:
