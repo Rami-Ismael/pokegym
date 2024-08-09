@@ -619,3 +619,6 @@ def number_of_dead_pokemon_in_opponent_trainer_party(game):
         if enemy_trainer_current_hp[index] == 0 and enemy_trainer_max_hp[index] > 0:
             number_of_dead_pokemon_in_enemy_trainer_party += 1
     return number_of_dead_pokemon_in_enemy_trainer_party
+from pokegym.ram_reader.red_memory_battle_stats import PLAYER_MOVE_EFFECT_ID
+def player_move_effect_id(game):
+    return game.memory[PLAYER_MOVE_EFFECT_ID]

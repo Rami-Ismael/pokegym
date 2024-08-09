@@ -327,6 +327,7 @@ class Environment(Base):
             "player_current_monster_stats_modifier_speed": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_current_monster_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_current_monster_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "player_selected_move_effect": spaces.Box(low=0, high=128, shape=(1,), dtype=np.uint8),
             
             "enemy_current_pokemon_stats_modifier_attack": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_pokemon_stats_modifier_defense": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
