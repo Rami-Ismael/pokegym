@@ -292,7 +292,7 @@ class Environment(Base):
             "total_number_of_items": spaces.Box(low = 0, high = 64, shape=(1,), dtype=np.uint8),
             "money": spaces.Box(low = 0, high = 999999, shape=(1,), dtype=np.uint32),
             "player_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
-            "enemy_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
+            "enemy_selected_move_id": spaces.Box(low = 0, high = 255, shape=(1,), dtype=np.uint8),
             #"total_number_of_unique_moves_in_the_teams": spaces.Box(low = 0, high = 24, shape=(1,), dtype=np.uint8)
             "player_xp": spaces.Box(low=0, high=1, shape=(6, ), dtype=np.float32),
             "total_player_lineup_xp": spaces.Box(low=0, high=250000, shape=(1,), dtype=np.float32),

@@ -264,7 +264,7 @@ class Internal_Game_State:
             assert element <= 415 # https://www.psypokes.com/rby/maxstats.php
         if self.player_selected_move_id is not None and self.player_selected_move_id > 166:
             raise ValueError(f"Player Selected Move ID is not valid and is not in the range of 0-166 the move is {self.player_selected_move_id}")
-        if self.enemy_selected_move_id is not None and self.enemy_selected_move_id > 166:
+        if self.enemy_selected_move_id is not None and self.enemy_selected_move_id > 255:
             raise ValueError(f"Enemy Selected Move ID is not valid and is not in the range of 0-166 the move is {self.enemy_selected_move_id}")
         if   self.enemy_current_move_effect is not None and self.enemy_current_move_effect > 56:
             raise ValueError(f"Enemy Current Move Effect is not valid and is not in the range of 0-56 the move is {self.enemy_current_move_effect}")
