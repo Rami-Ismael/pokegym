@@ -271,9 +271,9 @@ class Internal_Game_State:
         if self.enemy_pokemon_move_type is not None and self.enemy_pokemon_move_type > 15:
             raise ValueError(f"Enemy Pokemon Move Type is not valid and is not in the range of 0-15 the move is {self.enemy_pokemon_move_type}")
         if self.player_selected_move_effect >= 58:
-            raise ValueError(f"Player Selected Move Effect is not valid and is not in the range of 0-56 the move is {player_selected_move_effect}")
+            raise ValueError(f"Player Selected Move Effect is not valid and is not in the range of 0-56 the move is {self.player_selected_move_effect}")
         if self.player_selected_move_effect >= 58:
-            raise ValueError(f"Player Selected Move Effect is not valid and is not in the range of 0-56 the move is {player_selected_move_effect}")
+            raise ValueError(f"Player Selected Move Effect is not valid and is not in the range of 0-56 the move is {self.player_selected_move_effect}")
 
 @dataclass
 class External_Game_State:
