@@ -291,7 +291,7 @@ class Environment(Base):
             "opponent_pokemon_levels": spaces.Box(low = 0, high = 100, shape=(6,), dtype=np.uint8),
             "total_number_of_items": spaces.Box(low = 0, high = 64, shape=(1,), dtype=np.uint8),
             "money": spaces.Box(low = 0, high = 999999, shape=(1,), dtype=np.uint32),
-            "player_selected_move_id": spaces.Box(low = 0, high = 166, shape=(1,), dtype=np.uint8),
+            "player_selected_move_id": spaces.Box(low = 0, high = 255, shape=(1,), dtype=np.uint8),
             "enemy_selected_move_id": spaces.Box(low = 0, high = 255, shape=(1,), dtype=np.uint8),
             #"total_number_of_unique_moves_in_the_teams": spaces.Box(low = 0, high = 24, shape=(1,), dtype=np.uint8)
             "player_xp": spaces.Box(low=0, high=1, shape=(6, ), dtype=np.float32),
@@ -327,7 +327,7 @@ class Environment(Base):
             "player_current_monster_stats_modifier_speed": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_current_monster_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_current_monster_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "player_selected_move_effect": spaces.Box(low=0, high=156, shape=(1,), dtype=np.uint8),
+            "player_selected_move_effect": spaces.Box(low=0, high= 165, shape=(1,), dtype=np.uint8),
             
             "enemy_current_pokemon_stats_modifier_attack": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_pokemon_stats_modifier_defense": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
@@ -335,7 +335,7 @@ class Environment(Base):
             "enemy_current_pokemon_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_pokemon_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_pokemon_stats_modifier_evasion": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_current_move_effect": spaces.Box(low=0, high=56, shape=(1,), dtype=np.uint8),
+            "enemy_current_move_effect": spaces.Box(low=0, high=165, shape=(1,), dtype=np.uint8),
             "enemy_pokemon_move_power" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_pokemon_move_type" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_pokemon_move_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32) , 
