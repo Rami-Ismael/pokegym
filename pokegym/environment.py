@@ -6,6 +6,7 @@ import numpy as np
 import os
 import io
 from pokegym import game_state, observation
+from pokegym.data.events import REQUIRED_EVENTS, EventFlags
 from pokegym.game_state import External_Game_State, Internal_Game_State
 from pokegym.reward import Reward
 from skimage.transform import resize
@@ -375,6 +376,7 @@ class Environment(Base):
             self.probaility_wild_grass_pokemon_encounter_rate_per_env = random.randint(0 , 255)
         self.first = True
         self.set_of_map_ids_explored = set()
+        self.set_of_event_ids_explored = set()
 
     def fresh_game_state(self):
         state = io.BytesIO()
@@ -385,6 +387,7 @@ class Environment(Base):
         '''Resets the game to the previous save steps. Seeding is NOT supported'''
         import random
         if self.first:
+            self.events = EventFlags(self.game)
             self.external_game_state = External_Game_State()
             self.init_mem()
             self.explore_map = np.zeros(GLOBAL_MAP_SHAPE, dtype=np.float32)
@@ -419,6 +422,7 @@ class Environment(Base):
                 bank , addr = self.game.symbol_lookup("wPartyMon1Speed")
                 self.game.memory[addr] = self.set_starter_pokemon_speed_values
         elif not self.first:
+            '''
             self.go_explored_list_of_episodes.append(
                 {
                     "external_game_state": self.external_game_state , 
@@ -429,6 +433,7 @@ class Environment(Base):
                     "reset_count" : self.reset_count +1 ,
                 }
             )
+            '''
             self.random_number = random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
             self.external_game_state = self.go_explored_list_of_episodes[self.random_number]["external_game_state"]
             self.explore_map = self.go_explored_list_of_episodes[self.random_number]["explore_map"]
@@ -940,20 +945,21 @@ class Environment(Base):
             )
             self.set_of_map_ids_explored.add(next_state_internal_game.map_id)
             self.set_of_map_ids_explored.add(state_internal_game.map_id)
-        '''
         # Store the new evnts 
         if next_state_internal_game.total_events_that_occurs_in_game > state_internal_game.total_events_that_occurs_in_game:
-            self.go_explored_list_of_episodes.append(
-                {
-                    "external_game_state": self.external_game_state ,
-                    "explore_map": self.explore_map,
-                    "seen_npcs": self.seen_npcs,
-                    "counts_map": self.counts_map,
-                    "game_state": self.fresh_game_state(),
-                    "reset_count" : self.reset_count +1 ,
-                }
-            )
-        '''
+            for event in REQUIRED_EVENTS:
+                if event not in self.set_of_event_ids_explored:
+                    self.set_of_event_ids_explored.add(event)
+                    self.go_explored_list_of_episodes.append(
+                        {
+                            "external_game_state": self.external_game_state ,
+                            "explore_map": self.explore_map,
+                            "seen_npcs": self.seen_npcs,
+                            "counts_map": self.counts_map,
+                            "game_state": self.fresh_game_state(),
+                            "reset_count" : self.reset_count ,
+                        }
+                    )
 
         info = {}
         done = self.time >= self.max_episode_steps
