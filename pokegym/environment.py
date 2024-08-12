@@ -948,7 +948,7 @@ class Environment(Base):
         # Store the new evnts 
         if next_state_internal_game.total_events_that_occurs_in_game > state_internal_game.total_events_that_occurs_in_game:
             for event in REQUIRED_EVENTS:
-                if event not in self.set_of_event_ids_explored:
+                if event not in self.set_of_event_ids_explored and self.events.get_event(event):
                     self.set_of_event_ids_explored.add(event)
                     self.go_explored_list_of_episodes.append(
                         {
