@@ -395,17 +395,17 @@ class Environment(Base):
             load_pyboy_state(self.game, self.load_last_state()) # load a saved state
             self.reset_count += 1
             self.time = 0
-            #self.go_explored_list_of_episodes.append(
-            #    {
-            #        "external_game_state": self.external_game_state ,
-            #        "explore_map": self.explore_map,
-            #        "seen_npcs": self.seen_npcs,
-            #        "counts_map": self.counts_map,
-            #        "game_state": self.fresh_game_state(),
-            #        "reset_count" : self.reset_count ,
-            #    }
-            #    
-            #) 
+            self.go_explored_list_of_episodes.append(
+                {
+                    "external_game_state": self.external_game_state ,
+                    "explore_map": self.explore_map,
+                    "seen_npcs": self.seen_npcs,
+                    "counts_map": self.counts_map,
+                    "game_state": self.fresh_game_state(),
+                    "reset_count" : self.reset_count ,
+                }
+                
+            ) 
             self.random_number = 0 # random.randint(0 , len(self.go_explored_list_of_episodes) - 1)        # Add Random move id if their is empty
             if self.add_random_moves_to_starter_pokemon:
                 import random
