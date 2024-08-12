@@ -443,7 +443,7 @@ class Environment(Base):
                 list_of_number = [0]
                 for i in range(1 , len(self.go_explored_list_of_episodes)+1):
                     list_of_probability_of_selection.append(i / len(self.go_explored_list_of_episodes))
-                    list_of_number.append(i)
+                    list_of_number.append(i-1)
                 self.random_number = np.random.choice(list_of_number, p=list_of_probability_of_selection)
                 self.external_game_state = self.go_explored_list_of_episodes[self.random_number]["external_game_state"]
                 self.explore_map = self.go_explored_list_of_episodes[self.random_number]["explore_map"]
