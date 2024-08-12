@@ -434,16 +434,25 @@ class Environment(Base):
                 }
             )
             '''
-            self.random_number = random.randint(0 , len(self.go_explored_list_of_episodes) - 1)
-            self.external_game_state = self.go_explored_list_of_episodes[self.random_number]["external_game_state"]
-            self.explore_map = self.go_explored_list_of_episodes[self.random_number]["explore_map"]
-            self.seen_npcs = self.go_explored_list_of_episodes[self.random_number]["seen_npcs"]
-            self.counts_map = self.go_explored_list_of_episodes[self.random_number]["counts_map"]
-            load_pyboy_state(self.game, self.go_explored_list_of_episodes[self.random_number]["game_state"])
             #self.reset_count = self.go_explored_list_of_episodes[random_number]["reset_count"]
             self.reset_count  = self.reset_count + 1
             self.time = 0 
             assert self.time ==0 , T()
+            def reduce_selection_probability_base_on_how_close_it_start_state():
+                list_of_probability_of_selection = []
+                list_of_number = [0]
+                for i in range(1 , len(self.go_explored_list_of_episodes)+1):
+                    list_of_probability_of_selection.append(i / len(self.go_explored_list_of_episodes))
+                    list_of_number.append(i)
+                self.random_number = np.random.choice(list_of_number, p=list_of_probability_of_selection)
+                self.external_game_state = self.go_explored_list_of_episodes[self.random_number]["external_game_state"]
+                self.explore_map = self.go_explored_list_of_episodes[self.random_number]["explore_map"]
+                self.seen_npcs = self.go_explored_list_of_episodes[self.random_number]["seen_npcs"]
+                self.counts_map = self.go_explored_list_of_episodes[self.random_number]["counts_map"]
+                load_pyboy_state(self.game, self.go_explored_list_of_episodes[self.random_number]["game_state"])
+            reduce_selection_probability_base_on_how_close_it_start_state()
+                
+                
             
             
         self.first = False  
