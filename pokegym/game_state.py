@@ -100,6 +100,7 @@ class Internal_Game_State:
     player_current_monster_stats_modifier_special: int = field(default_factory=int)
     player_current_monster_stats_modifier_accuracy: int = field(default_factory=int)
     player_selected_move_effect: int = field(default_factory=int)
+    player_move_power: int = field(default_factory=int)
     
     enemy_current_pokemon_stats_modifier_attack: int = field(default_factory=int)
     enemy_current_pokemon_stats_modifier_defense: int = field(default_factory=int)
@@ -220,6 +221,7 @@ class Internal_Game_State:
         self.player_current_monster_stats_modifier_accuracy = ram_map.get_player_current_monster_modifier_accuracy(game)
         self.player_current_pokemon_level = ram_map.get_enemy_current_pokemon_level(game)        
         self.player_selected_move_effect = ram_map.player_move_effect_id(game)
+        self.player_move_power = ram_map.player_move_power(game)
 
         
         self.enemy_current_pokemon_stats_modifier_attack = ram_map.get_enemy_current_monster_modifier_attack(game)

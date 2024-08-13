@@ -8,6 +8,7 @@ import io
 from pokegym import game_state, observation
 from pokegym.data.events import REQUIRED_EVENTS, EventFlags
 from pokegym.game_state import External_Game_State, Internal_Game_State
+from pokegym.ram_reader.red_memory_world import BAD_MAP_ID_TO_START_FROM
 from pokegym.reward import Reward
 from skimage.transform import resize
 
@@ -942,7 +943,7 @@ class Environment(Base):
     
         self.external_game_state.post_reward_update(next_state_internal_game , current_internal_game_state = state_internal_game , next_internal_game_state = next_state_internal_game)
         # Store the map id 
-        if next_state_internal_game.map_id != state_internal_game.map_id and next_state_internal_game.map_id not in self.set_of_map_ids_explored and next_state_internal_game.map_id < 256 and state_internal_game.map_id < 256:
+        if next_state_internal_game.map_id != state_internal_game.map_id and next_state_internal_game.map_id not in self.set_of_map_ids_explored and next_state_internal_game.map_id < 256 and state_internal_game.map_id < 256 and next_state_internal_game.map_id not in BAD_MAP_ID_TO_START_FROM:
             self.go_explored_list_of_episodes.append(
                 {
                     "external_game_state": self.external_game_state , 
