@@ -943,7 +943,7 @@ class Environment(Base):
     
         self.external_game_state.post_reward_update(next_state_internal_game , current_internal_game_state = state_internal_game , next_internal_game_state = next_state_internal_game)
         # Store the map id 
-        if next_state_internal_game.map_id != state_internal_game.map_id and next_state_internal_game.map_id not in self.set_of_map_ids_explored and next_state_internal_game.map_id < 256 and state_internal_game.map_id < 256 and next_state_internal_game.map_id not in BAD_MAP_ID_TO_START_FROM:
+        if next_state_internal_game.map_id != state_internal_game.map_id and next_state_internal_game.map_id not in self.set_of_map_ids_explored and next_state_internal_game.map_id < 256 and state_internal_game.map_id < 256 and next_state_internal_game.map_id not in BAD_MAP_ID_TO_START_FROM and state_internal_game.map_id not in BAD_MAP_ID_TO_START_FROM:
             self.go_explored_list_of_episodes.append(
                 {
                     "external_game_state": self.external_game_state , 
