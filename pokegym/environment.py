@@ -9,6 +9,7 @@ from pokegym import game_state, observation
 from pokegym.data.events import REQUIRED_EVENTS, EventFlags
 from pokegym.game_state import External_Game_State, Internal_Game_State
 from pokegym.ram_reader.red_memory_world import BAD_MAP_ID_TO_START_FROM
+from pokegym.ram_reader.red_memoy_moves import LIST_OF_BAD_MOVES_ID
 from pokegym.reward import Reward
 from skimage.transform import resize
 
@@ -241,6 +242,7 @@ class Environment(Base):
             add_random_moves_to_starter_pokemon = True,
             set_starter_pokemon_speed_values = 0, 
             set_enemy_pokemon_damage_calcuation_to_zero = True,
+            disable_return_the_number_of_pp_after_battle = False,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -369,6 +371,7 @@ class Environment(Base):
         self.go_explored_list_of_episodes:list  = list()
         self.disable_wild_encounters = disable_wild_encounters
         self.set_enemy_pokemon_damage_calcuation_to_zero = set_enemy_pokemon_damage_calcuation_to_zero
+        self.disable_return_the_number_of_pp_after_battle = disable_return_the_number_of_pp_after_battle
         self.register_hooks()
         
         self.probaility_wild_grass_pokemon_encounter_rate_per_env = -1
@@ -416,7 +419,7 @@ class Environment(Base):
                     bank , addr = self.game.symbol_lookup(move_id)
                     bank_pp , addr_pp = self.game.symbol_lookup(move_pps[0])
                     for i in range(0, 5):
-                        if self.game.memory[addr + i] == 0:
+                        if self.game.memory[addr + i] == 0 or self.game.memory[addr + i] in LIST_OF_BAD_MOVES_ID:
                             self.game.memory[addr + i] = random.randint(0 , 161)
                             self.game.memory[addr_pp + i] = 4
             if self.set_starter_pokemon_speed_values != 0:
@@ -482,9 +485,29 @@ class Environment(Base):
         if self.set_enemy_pokemon_damage_calcuation_to_zero:
             self.setup_set_enemy_pokemon_damage_calcuation_to_zero()
         #self.Calculate Stat Experience:
-        self.calculate_stat_experience()
+        #self.calculate_stat_experience()
         if self.set_enemy_pokemon_accuracy_to_zero:
             self.setup_set_enemy_accuracy_to_zero()
+        if self.disable_return_the_number_of_pp_after_battle:
+            self.setup_disable_return_the_number_of_pp_after_battle()
+    def setup_disable_return_the_number_of_pp_after_battle(self):
+        bank, addr = self.game.symbol_lookup("DecrementPP.DecrementPP")
+        self.game.hook_register(
+            bank,
+            addr,
+            self.disable_return_the_number_of_pp_after_battle_hook,
+            None,
+        )
+    def disable_return_the_number_of_pp_after_battle_hook(self  ,  *args, **kwargs):
+        list_of_party_of_pps = ["wPartyMon1PP" , "wPartyMon2PP" , "wPartyMon3PP" , "wPartyMon4PP" , "wPartyMon5PP" , "wPartyMon6PP"]
+        max_pp_of_move = self.game.memory[self.game.symbol_lookup("wPlayerMoveMaxPP")[1]]
+        for element in list_of_party_of_pps:
+            bank , addr = self.game.symbol_lookup(element)
+            for incement in range(0, 4):
+                    if self.game.memory[addr + incement] != 0:
+                        print(f"The current_address is {addr + incement} and the value is {self.game.memory[addr + incement]}")
+                        self.game.memory[addr + incement] = 40
+
     def setup_set_enemy_accuracy_to_zero(self):
         bank, addr = self.game.symbol_lookup("MoveHitTest.calcHitChance")
         self.game.hook_register(
