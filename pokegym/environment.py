@@ -421,7 +421,7 @@ class Environment(Base):
                     for i in range(0, 5):
                         if self.game.memory[addr + i] == 0 or self.game.memory[addr + i] in LIST_OF_BAD_MOVES_ID:
                             self.game.memory[addr + i] = random.randint(0 , 161)
-                            self.game.memory[addr_pp + i] = 4
+                            self.game.memory[addr_pp + i] = 40
             if self.set_starter_pokemon_speed_values != 0:
                 bank , addr = self.game.symbol_lookup("wPartyMon1Speed")
                 self.game.memory[addr] = self.set_starter_pokemon_speed_values
