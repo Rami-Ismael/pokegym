@@ -9,7 +9,7 @@ from pokegym import game_state, observation
 from pokegym.data.events import REQUIRED_EVENTS, EventFlags
 from pokegym.game_state import External_Game_State, Internal_Game_State
 from pokegym.ram_reader.red_memory_world import BAD_MAP_ID_TO_START_FROM
-from pokegym.ram_reader.red_memoy_moves import LIST_OF_BAD_MOVES_ID
+from pokegym.ram_reader.red_memoy_moves import LIST_OF_BAD_MOVES_ID, create_a_list_of_good_moves
 from pokegym.reward import Reward
 from skimage.transform import resize
 
@@ -242,6 +242,7 @@ class Environment(Base):
             add_random_moves_to_starter_pokemon = True,
             set_starter_pokemon_speed_values = 0, 
             set_enemy_pokemon_damage_calcuation_to_zero = True,
+            random_no_reset_probability = 0.0 ,
             disable_return_the_number_of_pp_after_battle = False,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
@@ -381,6 +382,7 @@ class Environment(Base):
         self.first = True
         self.set_of_map_ids_explored = set()
         self.set_of_event_ids_explored = set()
+        self.random_no_reset_probability = random_no_reset_probability
 
     def fresh_game_state(self):
         state = io.BytesIO()
@@ -415,12 +417,13 @@ class Environment(Base):
                 import random
                 move_ids = ["wPartyMon1Moves"]
                 move_pps = ["wPartyMon1PP"]
+                list_of_good_moves = create_a_list_of_good_moves()
                 for move_id in move_ids:
                     bank , addr = self.game.symbol_lookup(move_id)
                     bank_pp , addr_pp = self.game.symbol_lookup(move_pps[0])
                     for i in range(0, 5):
                         if self.game.memory[addr + i] == 0 or self.game.memory[addr + i] in LIST_OF_BAD_MOVES_ID:
-                            self.game.memory[addr + i] = random.randint(0 , 161)
+                            self.game.memory[addr + i] = random.choice(list_of_good_moves)
                             self.game.memory[addr_pp + i] = 40
             if self.set_starter_pokemon_speed_values != 0:
                 bank , addr = self.game.symbol_lookup("wPartyMon1Speed")
@@ -449,13 +452,17 @@ class Environment(Base):
                 for i in range(1 , len(self.go_explored_list_of_episodes)+1):
                     list_of_probability_of_selection.append(i / ( ( n * (n + 1) ) / 2 ))
                     list_of_number.append(i-1)
+                # Add assert if the list is linearing increasing
+                #assert list_of_probability_of_selection == sorted(list_of_probability_of_selection)
                 self.random_number = np.random.choice(list_of_number, p=list_of_probability_of_selection)
                 self.external_game_state = self.go_explored_list_of_episodes[self.random_number]["external_game_state"]
                 self.explore_map = self.go_explored_list_of_episodes[self.random_number]["explore_map"]
                 self.seen_npcs = self.go_explored_list_of_episodes[self.random_number]["seen_npcs"]
                 self.counts_map = self.go_explored_list_of_episodes[self.random_number]["counts_map"]
                 load_pyboy_state(self.game, self.go_explored_list_of_episodes[self.random_number]["game_state"])
-            reduce_selection_probability_base_on_how_close_it_start_state()
+            internal_game_state: Internal_Game_State = Internal_Game_State(self.game)
+            if internal_game_state.map_id in BAD_MAP_ID_TO_START_FROM or np.random.choice([False, True], p = [1.0 - self.random_no_reset_probability, self.random_no_reset_probability]):
+                reduce_selection_probability_base_on_how_close_it_start_state()
                 
                 
             
