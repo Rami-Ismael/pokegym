@@ -243,7 +243,7 @@ class Environment(Base):
             set_starter_pokemon_speed_values = 0, 
             set_enemy_pokemon_damage_calcuation_to_zero = True,
             random_no_reset_probability = 0.0 ,
-            disable_return_the_number_of_pp_after_battle = False,
+            disable_return_the_number_of_pp_after_battle = True,
             **kwargs):
         self.random_starter_pokemon = kwargs.get("random_starter_pokemon", False)
         super().__init__(rom_path, state_path, headless, quiet, **kwargs)
@@ -512,7 +512,7 @@ class Environment(Base):
             bank , addr = self.game.symbol_lookup(element)
             for incement in range(0, 4):
                     if self.game.memory[addr + incement] != 0:
-                        print(f"The current_address is {addr + incement} and the value is {self.game.memory[addr + incement]}")
+                        #print(f"The current_address is {addr + incement} and the value is {self.game.memory[addr + incement]}")
                         self.game.memory[addr + incement] = 40
 
     def setup_set_enemy_accuracy_to_zero(self):
