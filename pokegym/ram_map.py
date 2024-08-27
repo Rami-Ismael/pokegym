@@ -625,3 +625,9 @@ def player_move_effect_id(game):
 from pokegym.ram_reader.red_memory_battle_stats import PLAYER_MOVE_POWER
 def player_move_power(game):
     return game.memory[PLAYER_MOVE_POWER]
+def player_move_type_in_battle(game):
+    return game.memory[
+        game.symbol_lookup(
+            "wPlayerMoveType"
+        )
+    ]

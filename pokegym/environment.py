@@ -333,6 +333,7 @@ class Environment(Base):
             "player_current_monster_stats_modifier_special": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_current_monster_stats_modifier_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "player_selected_move_effect": spaces.Box(low=0, high= 165, shape=(1,), dtype=np.uint8),
+            "player_move_type_in_battle": spaces.Box(low=0, high=16, shape=(1,), dtype=np.uint8),
             
             "enemy_current_pokemon_stats_modifier_attack": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_pokemon_stats_modifier_defense": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
@@ -342,7 +343,7 @@ class Environment(Base):
             "enemy_current_pokemon_stats_modifier_evasion": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
             "enemy_current_move_effect": spaces.Box(low=0, high=165, shape=(1,), dtype=np.uint8),
             "enemy_pokemon_move_power" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
-            "enemy_pokemon_move_type" : spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+            "enemy_pokemon_move_type" : spaces.Box(low=0, high = 16, shape=(1,), dtype=np.uint8),
             "enemy_pokemon_move_accuracy": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32) , 
             "enemy_pokemon_move_max_pp": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
         })

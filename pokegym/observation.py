@@ -66,6 +66,7 @@ class Observation:
     player_current_monster_stats_modifier_special: int = field(default_factory=int)
     player_current_monster_stats_modifier_accuracy: int = field(default_factory=int)
     player_selected_move_effect:int = field(default_factory=int)
+    player_move_type_in_battle:int = field(default_factory=int)
     
     enemy_current_pokemon_stats_modifier_attack: int = field(default_factory=int)
     enemy_current_pokemon_stats_modifier_defense: int = field(default_factory=int)
@@ -139,6 +140,7 @@ class Observation:
        self.player_current_monster_stats_modifier_special = next_state_internal_game_state.player_current_monster_stats_modifier_special
        self.player_current_monster_stats_modifier_accuracy = next_state_internal_game_state.player_current_monster_stats_modifier_accuracy
        self.player_selected_move_effect = next_state_internal_game_state.player_selected_move_effect
+       self.player_move_type_in_battle = next_state_internal_game_state.player_move_type_in_battle
        
        self.enemy_current_pokemon_stats_modifier_attack = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_attack
        self.enemy_current_pokemon_stats_modifier_defense = next_state_internal_game_state.enemy_current_pokemon_stats_modifier_defense
